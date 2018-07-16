@@ -1,0 +1,70 @@
+from etl.etl import db
+from sqlalchemy.ext.declarative import declared_attr
+
+
+class CRUDMixin(object):
+    """Mixin that adds convenience methods for CRUD (create, read, update, delete)
+    operations.
+    """
+
+    @declared_attr
+    def __tablename__(cls):
+
+        class_name_str = cls.__name__
+        table_name = class_name_str[0].lower()
+
+        for character in class_name_str[1:]:
+            table_name += character if character.islower() else '_' + character.lower()
+
+        return table_name
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    __table_args__ = {'mysql_engine': 'InnoDB'}
+
+    # def __init__(self):
+    #     self.session = db.session
+
+    @classmethod
+    def create(cls, **kwargs):
+        """Create a new record and save it the database."""
+        instance = cls(**kwargs)
+        instance.save()
+        return instance
+
+    @classmethod
+    def create_batch(cls, arrays):
+        """
+        batch create record and save it the database.
+        :return: 
+        """
+        instances = []
+        for item in arrays:
+            instance = cls(**item)
+            instances.append(instance)
+        db.session.add_all(instances)
+        return instances
+
+    def update(self, **kwargs):
+        """Update specific fields of a record."""
+        for attr, value in kwargs.iteritems():
+            setattr(self, attr, value)
+        self.save()
+        return self
+
+    def save(self):
+        """Save the record."""
+        db.session.add(self)
+        db.session.flush()
+
+    def delete(self):
+        """Remove the record from the database."""
+        db.session.delete(self)
+
+    @staticmethod
+    def flush():
+        """ flush to DB not commit"""
+        db.session.flush()
+
+    def to_dict(self):
+        pass
