@@ -1,5 +1,6 @@
-from etl.etl import db
 from sqlalchemy.ext.declarative import declared_attr
+
+from etl.etl import db
 
 
 class CRUDMixin(object):

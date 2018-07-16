@@ -4,10 +4,12 @@
 exam app runserver
 """
 import os
-from etl import create_app
-from config.config import config
+
+from flask_migrate import MigrateCommand
 from flask_script import Manager, Server
-from flask_migrate import Migrate, MigrateCommand
+
+from config.config import config
+from etl import create_app
 
 envirement = os.environ.get('ETL_ENVIREMENT', 'dev')
 

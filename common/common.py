@@ -2,10 +2,10 @@
 """
 common function for all app 
 """
-import random
-import time
 import datetime
 import hashlib
+import random
+import time
 
 
 def timestamp2format_time(timestamp):

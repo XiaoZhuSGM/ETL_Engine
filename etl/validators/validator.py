@@ -5,21 +5,16 @@
 the valid attributes = ['args', 'form', 'values', 'cookies', 'headers', 'json', 'rule']
 """
 
-from wtforms import StringField
-from wtforms import IntegerField
-from flask_inputs import Inputs
-from wtforms.validators import InputRequired
-from wtforms.validators import NumberRange
-from wtforms.validators import Optional
-from wtforms.validators import Regexp
-from wtforms.validators import Length
-from wtforms.validators import Email
-from wtforms.validators import AnyOf
-from wtforms.validators import DataRequired
-
-from flask_inputs.validators import JsonSchema
 from functools import wraps
+
 from flask import request
+from flask_inputs import Inputs
+from flask_inputs.validators import JsonSchema
+from wtforms import StringField
+from wtforms.validators import Email
+from wtforms.validators import InputRequired
+from wtforms.validators import Regexp
+
 from etl.controllers import APIError, jsonify_with_error
 
 RE_MOBILE = '^1[0-9]{10}$'
