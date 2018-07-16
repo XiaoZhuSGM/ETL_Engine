@@ -1,6 +1,6 @@
 # 超盟 抓数入库策略引擎
 
-## Choose python version 3。6
+## Choose python version 3.6
 
 ## fabfile.py:
 

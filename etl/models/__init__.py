@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from etl.etl import db
-from artist import Artist
-from collection import Collection
-from internal import Internal
 import functools
+
+from etl.etl import db
 
 
 def session_scope(func):
@@ -21,11 +19,8 @@ def session_scope(func):
             data = func(self, *args, **kwargs)
             session.commit()
             return data
-        except Exception, e:
+        except Exception as e:
             session.rollback()
-            print
-            e
-            raise e
             # return e.message
         finally:
             session.close()

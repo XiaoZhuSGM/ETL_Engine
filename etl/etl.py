@@ -2,12 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
+from celery import Celery
 
 __all__ = ['create_app']
 
-db = SQLAlchemy()
-
 DEFAULT_APP_NAME = 'etl'
+db = SQLAlchemy()
+celery = Celery(DEFAULT_APP_NAME)
 
 
 def create_app(config=None):
@@ -15,6 +16,8 @@ def create_app(config=None):
     if config is not None:
         app.config.from_object(config)
     db.init_app(app)
+
+    configure_celery(app)
 
     configure_path_converter(app)
     configure_blueprints(app)
@@ -26,8 +29,19 @@ def create_app(config=None):
     return app
 
 
+def configure_celery(app):
+    celery.config_from_object(app.config)
+
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
+
+
 def configure_sentry(app):
-    sentry = Sentry(dsn='https://<key>:<secret>@sentry.io/<project>')
+    sentry = Sentry()
     sentry.init_app(app)
 
 

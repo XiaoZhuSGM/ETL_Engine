@@ -46,6 +46,10 @@ class DevelopmentConfig(Config):
         DB_ADDR=mysql_db_hostname,
         DB_NAME=mysql_db_name)
 
+    SENTRY_DSN = ""
+    CELERY_RESULT_BACKEND = ""
+    CELERY_BROKER_URL = ""
+
 
 class LocalConfig(Config):
     DEBUG = True
