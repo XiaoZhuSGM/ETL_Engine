@@ -60,6 +60,3 @@ def configure_blueprints(app):
 
     app.register_blueprint(api, url_prefix='/etl/api')
     app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
-
-
-def make_celery(app):
