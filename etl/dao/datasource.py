@@ -10,8 +10,8 @@ class DatasourceDao():
         datasource = db.session.query(Datasource).filter_by(id=id).one()
         return datasource
 
-    def add_datasource(self, datasourceJson):
-        datasource = Datasource.fromJson(datasourceJson)
+    def add_datasource(self, datasource_json):
+        datasource = Datasource.fromJson(datasource_json)
         datasource.save()
         db.session.commit()
 
@@ -20,6 +20,5 @@ class DatasourceDao():
         return datasource_list
 
     def update(self, old_datasource, new_datasource_json):
-        # datasource_dict = json.loads(new_datasource_json)
         old_datasource.update(**new_datasource_json)
         db.session.commit()
