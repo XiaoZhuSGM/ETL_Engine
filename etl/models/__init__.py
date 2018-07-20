@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from etl.etl import db
 import functools
+
+from etl.etl import db
 
 
 def session_scope(func):

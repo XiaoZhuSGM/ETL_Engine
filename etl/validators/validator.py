@@ -5,22 +5,17 @@
 the valid attributes = ['args', 'form', 'values', 'cookies', 'headers', 'json', 'rule']
 """
 
-from wtforms import StringField
-from wtforms import IntegerField
-from flask_inputs import Inputs
-from wtforms.validators import InputRequired
-from wtforms.validators import NumberRange
-from wtforms.validators import Optional
-from wtforms.validators import Regexp
-from wtforms.validators import Length
-from wtforms.validators import Email
-from wtforms.validators import AnyOf
-from wtforms.validators import DataRequired
-
-from flask_inputs.validators import JsonSchema
 from functools import wraps
+
 from flask import request
+from wtforms import StringField
+from wtforms.validators import Email
+from wtforms.validators import InputRequired
+from wtforms.validators import Regexp
+
 from etl.controllers import APIError, jsonify_with_error
+from flask_inputs import Inputs
+from flask_inputs.validators import JsonSchema
 
 RE_MOBILE = '^1[0-9]{10}$'
 
@@ -104,6 +99,86 @@ school_add = {
     },
     'required': ['tel', 'name', 'address']
 }
+
+datasource_add = {
+    'type': 'object',
+    'properties': {
+        'source_id': {'type': 'string'},
+        'cmid': {'type': 'string'},
+        'company_name': {'type': 'string'},
+        'erp_vendor': {'type': 'string'},
+        'dp_type': {'type': 'string'},
+        'host': {'type': 'string'},
+        'port': {'type': 'integer'},
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'db_schema': {'type': 'string'},
+        'db_name': {'type': 'array'},
+        'traversal': {'type': 'boolean'},
+        'delta': {'type': 'integer'},
+        'status': {'type': 'integer'},
+
+    },
+    'required': ['source_id',
+                 'cmid',
+                 'company_name',
+                 'erp_vendor',
+                 'db_type',
+                 'host',
+                 'port',
+                 'username',
+                 'password',
+                 'db_schema',
+                 'db_name',
+                 'traversal',
+                 'delta',
+                 'status']
+}
+
+datasource_update = {
+    'type': 'object',
+    'properties': {
+        'id': {'type': 'integer'},
+        'source_id': {'type': 'string'},
+        'cmid': {'type': 'string'},
+        'company_name': {'type': 'string'},
+        'erp_vendor': {'type': 'string'},
+        'dp_type': {'type': 'string'},
+        'host': {'type': 'string'},
+        'port': {'type': 'integer'},
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'db_schema': {'type': 'string'},
+        'db_name': {'type': 'array'},
+        'traversal': {'type': 'boolean'},
+        'delta': {'type': 'integer'},
+        'status': {'type': 'integer'},
+
+    },
+    'required': ['id',
+                 'source_id',
+                 'cmid',
+                 'company_name',
+                 'erp_vendor',
+                 'db_type',
+                 'host',
+                 'port',
+                 'username',
+                 'password',
+                 'db_schema',
+                 'db_name',
+                 'traversal',
+                 'delta',
+                 'status']
+}
+
+
+class JsonDatasourceAddInput(Inputs):
+    json = [JsonSchema(schema=datasource_add)]
+
+
+class JsonDatasourceUpdateInput(Inputs):
+    json = [JsonSchema(schema=datasource_update)]
 
 
 class JsonSchoolInput(Inputs):  # 验证JSON

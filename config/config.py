@@ -65,9 +65,14 @@ class LocalConfig(Config):
         DB_NAME=mysql_db_name)
 
 
+class TestingConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://beanan:root@123.206.60.59:5432/test'
+
+
 config = {
     'dev': DevelopmentConfig,
-    # 'testing': TestingConfig,
+    'testing': TestingConfig,
     'prod': ProductionConfig,
     'default': LocalConfig,
     'local': LocalConfig

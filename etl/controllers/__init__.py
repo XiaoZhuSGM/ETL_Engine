@@ -7,8 +7,10 @@ class APIError(object):
     """
 
     OK = (200, 'OK')
-    NOTFOUND = (404, 'API or page not found')
-    VALIDATE_ERROR = (422, 'validate error')
+    NOTFOUBD = (404, 'API or page not found')
+    VALIDATE_ERROR = (417, 'paramter error')
+    SERVER_ERROR = (503, 'server error')
+
 
 
 def jsonify_with_data(err, **kwargs):

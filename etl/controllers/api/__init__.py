@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
-from flask import jsonify, current_app, Blueprint
+from flask import jsonify, Blueprint
+
 from .. import APIError
 
 etl_api = Blueprint('api', __name__)

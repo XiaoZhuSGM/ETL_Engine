@@ -1,6 +1,6 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from celery import Celery
 
@@ -24,8 +24,10 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
 
+
     CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
     CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
+
 
     return app
 
