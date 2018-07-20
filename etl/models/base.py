@@ -36,7 +36,7 @@ class CRUDMixin(object):
     def create_batch(cls, arrays):
         """
         batch create record and save it the database.
-        :return: 
+        :return:
         """
         instances = []
         for item in arrays:
@@ -47,7 +47,7 @@ class CRUDMixin(object):
 
     def update(self, **kwargs):
         """Update specific fields of a record."""
-        for attr, value in kwargs.iteritems():
+        for attr, value in kwargs.items():
             setattr(self, attr, value)
         self.save()
         return self
