@@ -18,33 +18,34 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    mysql_db_username = ''
-    mysql_db_password = ''
-    mysql_db_name = ''
-    mysql_db_hostname = ''
+    pgsql_db_username = ''
+    pgsql_db_password = ''
+    pgsql_db_name = ''
+    pgsql_db_hostname = ''
     SQLALCHEMY_ECHO = False
 
-    SQLALCHEMY_DATABASE_URI = "mysql://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
-        DB_USER=mysql_db_username,
-        DB_PASS=mysql_db_password,
-        DB_ADDR=mysql_db_hostname,
-        DB_NAME=mysql_db_name)
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
+        DB_USER=pgsql_db_username,
+        DB_PASS=pgsql_db_password,
+        DB_ADDR=pgsql_db_hostname,
+        DB_NAME=pgsql_db_name)
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
-    mysql_db_username = ' '
-    mysql_db_password = ' '
-    mysql_db_name = ' '
-    mysql_db_hostname = ''
+    pgsql_db_username = ''
+    pgsql_db_password = ''
+    pgsql_db_name = ''
+    pgsql_db_hostname = ''
 
-    # MySQL
-    SQLALCHEMY_DATABASE_URI = "mysql://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
-        DB_USER=mysql_db_username,
-        DB_PASS=mysql_db_password,
-        DB_ADDR=mysql_db_hostname,
-        DB_NAME=mysql_db_name)
+
+    # pgsql
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
+        DB_USER=pgsql_db_username,
+        DB_PASS=pgsql_db_password,
+        DB_ADDR=pgsql_db_hostname,
+        DB_NAME=pgsql_db_name)
 
     SENTRY_DSN = ""
     CELERY_RESULT_BACKEND = ""
@@ -53,16 +54,16 @@ class DevelopmentConfig(Config):
 
 class LocalConfig(Config):
     DEBUG = True
-    mysql_db_username = 'root'
-    mysql_db_password = '123456'
-    mysql_db_name = 'etl'
-    mysql_db_hostname = '127.0.0.1'
+    pgsql_db_username = 'root'
+    pgsql_db_password = '123456'
+    pgsql_db_name = 'etl'
+    pgsql_db_hostname = '127.0.0.1'
 
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
-        DB_USER=mysql_db_username,
-        DB_PASS=mysql_db_password,
-        DB_ADDR=mysql_db_hostname,
-        DB_NAME=mysql_db_name)
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
+        DB_USER=pgsql_db_username,
+        DB_PASS=pgsql_db_password,
+        DB_ADDR=pgsql_db_hostname,
+        DB_NAME=pgsql_db_name)
 
 
 class TestingConfig(Config):

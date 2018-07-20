@@ -17,10 +17,6 @@ from etl.controllers import APIError, jsonify_with_error
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
 
-RE_MOBILE = '^1[0-9]{10}$'
-
-RE_TEL = '[0-9]+'
-
 
 def validate_arg(validator):
     """
@@ -44,60 +40,21 @@ def validate_arg(validator):
     return deco
 
 
-class SmsRegisterInput(Inputs):
-    form = {
-        'mobile': (StringField, [InputRequired(), Regexp(RE_MOBILE)]),
-        'code': (StringField, [InputRequired()]),
-    }
 
 
-class SendVerificationInput(Inputs):
-    form = {
-        'mobile': (StringField, [InputRequired(), Regexp(RE_MOBILE)]),
-        'access_token': (StringField, [InputRequired()]),
-    }
 
-
-class MobileExistInput(Inputs):
-    form = {
-        'mobile': (StringField, [InputRequired(), Regexp(RE_MOBILE)]),
-    }
-
-
-class EmailExistInput(Inputs):
-    form = {
-        'email': (StringField, [InputRequired(), Email()]),
-    }
-
-
-login_schema = {
+ext_table_download = {
     'type': 'object',
     'properties': {
-        'mobile': {'pattern': RE_MOBILE},
-        'user_name': {'type': 'string'},
-        'password': {'type': 'string'}
-    },
-    'required': ['mobile', 'password']
-}
+        'cmid': {'type': 'integer'},
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'host': {'type': 'string'},
+        'port': {'type': 'integer'},
+        'db_name': {'type': 'string'}
 
-teacher_add = {
-    'type': 'object',
-    'properties': {
-        'mobile': {'pattern': RE_MOBILE},
-        'name': {'type': 'string'},
-        'belonged_school_id': {'type': 'integer'}
     },
-    'required': ['mobile', 'name', 'belonged_school_id']
-}
-
-school_add = {
-    'type': 'object',
-    'properties': {
-        'tel': {'pattern': RE_TEL},
-        'name': {'type': 'string'},
-        'address': {'type': 'string'},
-    },
-    'required': ['tel', 'name', 'address']
+    'required': ['cmid', 'username', 'password', 'host', 'port', 'db_name']
 }
 
 datasource_add = {
@@ -181,13 +138,8 @@ class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
 
 
-class JsonSchoolInput(Inputs):  # 验证JSON
-    json = [JsonSchema(schema=school_add)]
+
+class JsonExtTableInput(Inputs):  # 验证JSON
+    json = [JsonSchema(schema=ext_table_download)]
 
 
-class JsonLoginInput(Inputs):
-    json = [JsonSchema(schema=login_schema)]
-
-
-class JsonTeacherInput(Inputs):
-    json = [JsonSchema(schema=teacher_add)]
