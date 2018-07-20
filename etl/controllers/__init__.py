@@ -10,7 +10,7 @@ class APIError(object):
     NOTFOUND = (404, 'API or page not found')
     VALIDATE_ERROR = (417, 'paramter error')
     SERVER_ERROR = (503, 'server error')
-
+    BAD_REQUEST = (400, 'database connect fail')
 
 
 def jsonify_with_data(err, **kwargs):
