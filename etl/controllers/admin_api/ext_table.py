@@ -13,7 +13,7 @@ def download_tables():
     cmid = database.get('cmid')
     res = ext_table_service.connect_test(**database)
     if res is not None:
-        return jsonify_with_error(APIError.DBCONNECTFALSE, reason=res)
+        return jsonify_with_error(APIError.BAD_REQUEST, reason=res)
     tables = ext_table_service.get_tables()
     message = len(tables)
     for table in tables:
