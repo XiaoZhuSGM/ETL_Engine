@@ -23,8 +23,9 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
 
-    CORS(app, resources={r"/etl/admin_api/*": {"origins": "*"}})
-    CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
+    # CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
+    # CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
+    CORS(app)
 
     return app
 
