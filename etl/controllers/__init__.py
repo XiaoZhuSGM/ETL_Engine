@@ -12,6 +12,7 @@ class APIError(object):
     SERVER_ERROR = (503, 'server error')
 
 
+
 def jsonify_with_data(err, **kwargs):
     """
     正确相相应返回格式

@@ -37,7 +37,7 @@ class CRUDMixin(object):
     def create_batch(cls, arrays):
         """
         batch create record and save it the database.
-        :return: 
+        :return:
         """
         instances = []
         for item in arrays:

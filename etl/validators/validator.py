@@ -25,8 +25,8 @@ RE_TEL = '[0-9]+'
 def validate_arg(validator):
     """
     验证字段合法装饰器
-    :param validator: 
-    :return: 
+    :param validator:
+    :return:
     """
 
     def deco(f):

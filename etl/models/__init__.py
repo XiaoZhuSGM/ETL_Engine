@@ -8,8 +8,8 @@ from etl.etl import db
 def session_scope(func):
     """
     装饰器使用session事务
-    :param func: 
-    :return: 
+    :param func:
+    :return:
     """
 
     @functools.wraps(func)

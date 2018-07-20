@@ -99,3 +99,6 @@ ENV/
 
 .DS_Store
 test/
+
+
+migrations/
