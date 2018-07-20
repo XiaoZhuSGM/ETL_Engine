@@ -11,9 +11,9 @@ from flask_script import Manager, Server
 
 
 
-envirement = os.environ.get('ETL_ENVIREMENT', 'testing')
+envirement = os.environ.get('ETL_ENVIREMENT', 'dev')
 
-app = create_app(config.get(envirement, config["testing"]))
+app = create_app(config.get(envirement, config["dev"]))
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command("runserver",
