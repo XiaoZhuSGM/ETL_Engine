@@ -34,17 +34,16 @@ class ProductionConfig(Config):
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
-    mysql_db_username = ' '
-    mysql_db_password = ' '
-    mysql_db_name = ' '
-    mysql_db_hostname = ''
-
-    # MySQL
-    SQLALCHEMY_DATABASE_URI = "mysql://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
-        DB_USER=mysql_db_username,
-        DB_PASS=mysql_db_password,
-        DB_ADDR=mysql_db_hostname,
-        DB_NAME=mysql_db_name)
+***REMOVED***
+***REMOVED***
+    postgresql_db_name = 'cm_etl'
+    postgresql_db_hostname = 'cm-std.cdl8ar96w1hm.rds.cn-north-1.amazonaws.com.cn:5432'
+    # postgresql
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
+        DB_USER=postgresql_db_username,
+        DB_PASS=postgresql_db_password,
+        DB_ADDR=postgresql_db_hostname,
+        DB_NAME=postgresql_db_name)
 
     SENTRY_DSN = ""
     CELERY_RESULT_BACKEND = ""

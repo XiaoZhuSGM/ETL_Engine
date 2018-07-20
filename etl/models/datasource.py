@@ -1,10 +1,8 @@
 from etl import db
 from .base import CRUDMixin
-
+from sqlalchemy.dialects.postgresql import JSONB
 
 class Datasource(CRUDMixin, db.Model):
-    # __tablename__ = 'ext_datasource'
-    # id = db.Column(db.Integer, primary_key=True)
     source_id = db.Column(db.String(30), nullable=False)
     cmid = db.Column(db.Integer, unique=True, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
@@ -15,13 +13,13 @@ class Datasource(CRUDMixin, db.Model):
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
     db_schema = db.Column(db.String(50))
-    db_name = db.Column(db.JSON)
+    db_name = db.Column(JSONB)
     traversal = db.Column(db.Boolean)
     delta = db.Column(db.Integer)
     status = db.Column(db.Integer)
 
     @staticmethod
-    def fromJson(datasoureJson):
+    def from_json(datasoureJson):
         return Datasource(
             source_id=datasoureJson['source_id'],
             cmid=datasoureJson['cmid'],
@@ -39,7 +37,7 @@ class Datasource(CRUDMixin, db.Model):
             status=datasoureJson['status'])
 
     @staticmethod
-    def datasourceToDict(datasource):
+    def datasource_to_dict(datasource):
         return {
             'id': datasource.id,
             'source_id': datasource.source_id,
@@ -59,7 +57,7 @@ class Datasource(CRUDMixin, db.Model):
         }
 
     @staticmethod
-    def dictToDatasource(jsonObject):
+    def dict_to_datasource(jsonObject):
         return Datasource(
             id=jsonObject['id'],
             source_id=jsonObject['source_id'],
