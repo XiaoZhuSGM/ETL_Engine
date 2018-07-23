@@ -5,12 +5,16 @@ from flask import jsonify
 
 etl_admin_api = Blueprint('admin_api', __name__)
 
+from .hook import *  # noqa
 
 from .datasource import *  # noqa
 
 from .ext_table_info import *  # noqa
 
 from .ext_datasource_con import *  # noqa
+
+from .login import *  # noqa
+
 
 class APIError(object):
     """

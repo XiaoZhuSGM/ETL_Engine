@@ -11,6 +11,7 @@ class APIError(object):
     VALIDATE_ERROR = (417, 'paramter error')
     SERVER_ERROR = (503, 'server error')
     BAD_REQUEST = (400, 'database connect fail')
+    UNAUTHORIZED = (401, 'unauthorized')
 
 
 def jsonify_with_data(err, **kwargs):
