@@ -1,5 +1,6 @@
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from etl.etl import db
 from .base import CRUDMixin
 from enum import IntEnum
@@ -18,6 +19,13 @@ class ExtTableInfo(db.Model, CRUDMixin):
     record_num = Column(Integer)
     status = Column(Integer)
     ext_column = Column(JSONB)
+
+    datasource = relationship(
+        "Datasource",
+        primaryjoin="foreign(ExtTableInfo.cmid) == remote(Datasource.cmid)",
+        uselist=False,
+        back_populates="ext_tables",
+    )
 
     class Status(IntEnum):
         invalid = 0

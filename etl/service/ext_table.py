@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, inspect, func, select, table
-from etl.models.etl_table import ExtTableInfo
+from etl.models.ext_table_info import ExtTableInfo
 from etl.dao.dao import session_scope
 import json
 
@@ -71,4 +71,3 @@ class ExtTableService(object):
     @session_scope
     def create_ext_table(self, **kwargs):
         ExtTableInfo.create(**kwargs)
-
