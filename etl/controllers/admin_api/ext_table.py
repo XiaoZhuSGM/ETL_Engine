@@ -3,6 +3,7 @@ from flask import request
 from . import APIError, jsonify_with_error
 from etl.service.ext_table import ExtTableService
 from etl.validators.validator import validate_arg, JsonExtTableInput
+
 ext_table_service = ExtTableService()
 
 
@@ -13,9 +14,8 @@ def download_tables():
     cmid = database.get('cmid')
     res = ext_table_service.connect_test(**database)
     if res is not None:
-        return jsonify_with_error(APIError.BAD_REQUEST, reason=res)
+        return jsonify_with_error(APIError.DBCONNECTFALSE, reason=res)
     tables = ext_table_service.get_tables()
-    message = len(tables)
     for table in tables:
         ext_pri_key = ext_table_service.get_ext_pri_key(table)
         ext_column = ext_table_service.get_ext_column(table)
@@ -32,8 +32,7 @@ def download_tables():
             continue
         ext_table_service.update_ext_table(table_info, ext_pri_key=ext_pri_key, ext_column=ext_column, record_num=record_num)
 
-    return jsonify_with_data(APIError.OK, message=message)
-
+    return jsonify_with_data(APIError.OK)
 
 
 
