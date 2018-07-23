@@ -45,7 +45,7 @@ def configure_celery(app):
 
 def configure_sentry(app):
     sentry = Sentry()
-    sentry.init_app(app)
+    sentry.init_app(app, dsn=app.config["SENTRY_DSN"])
 
 
 def configure_path_converter(app):

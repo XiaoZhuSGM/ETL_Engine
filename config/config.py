@@ -46,7 +46,7 @@ class DevelopmentConfig(Config):
         DB_ADDR=postgresql_db_hostname,
         DB_NAME=postgresql_db_name)
 
-    SENTRY_DSN = ""
+    SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
     CELERY_RESULT_BACKEND = ""
     CELERY_BROKER_URL = ""
 
