@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declared_attr
-
+from datetime import datetime
 from etl.etl import db
 
 
@@ -20,6 +20,8 @@ class CRUDMixin(object):
         return table_name
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # __table_args__ = {'mysql_engine': 'InnoDB'}
 
