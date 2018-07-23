@@ -40,13 +40,13 @@ class DevelopmentConfig(Config):
     postgresql_db_name = 'cm_etl'
     postgresql_db_hostname = 'cm-std.cdl8ar96w1hm.rds.cn-north-1.amazonaws.com.cn:5432'
     # postgresql
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}?charset=utf8mb4".format(
+    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
         DB_USER=postgresql_db_username,
         DB_PASS=postgresql_db_password,
         DB_ADDR=postgresql_db_hostname,
         DB_NAME=postgresql_db_name)
 
-    SENTRY_DSN = ""
+    SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
     CELERY_RESULT_BACKEND = ""
     CELERY_BROKER_URL = ""
 
