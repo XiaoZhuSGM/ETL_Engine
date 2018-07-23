@@ -13,15 +13,20 @@ class ExtTableService(object):
 
     def connect_test(self, **kwargs):
         db_type = kwargs.get('db_type')
-        if db_type == 'mssql':
-            db_type += '+pymssql'
-        if db_type== 'oracle':
-            db_type += '+cx_oracle'
+        db_name = kwargs.get('db_name')
         username = kwargs.get('username')
         password = kwargs.get('password')
         host = kwargs.get('host')
         port = kwargs.get('port')
-        db_name = kwargs.get('db_name')
+
+        if db_type == 'mssql':
+            db_type += r'+pymssql'
+        elif db_type == 'postgresql':
+            db_type += r'+psycopg2'
+        elif db_type == 'oracle':
+            db_type += r'+cx_oracle'
+            db_name += r'?service_name='
+
         database_url = "{db_type}://{username}:{password}@{host}:{port}/{db_name}".format(
             db_type=db_type,
             username=username,
@@ -61,7 +66,7 @@ class ExtTableService(object):
     def get_table_from_pgsql(self, **kwargs):
         cmid = kwargs.get('cmid')
         table_name = kwargs.get('table_name')
-        table_info = ExtTableInfo.query.filter(ExtTableInfo.cmid==cmid, ExtTableInfo.table_name==table_name)
+        table_info = ExtTableInfo.query.filter(ExtTableInfo.cmid == cmid, ExtTableInfo.table_name == table_name)
         return table_info
 
     @session_scope
