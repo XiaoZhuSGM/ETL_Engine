@@ -10,6 +10,7 @@ from .datasource import *  # noqa
 
 from .ext_table_info import *  # noqa
 
+from .ext_datasource_con import *  # noqa
 
 class APIError(object):
     """
@@ -52,4 +53,3 @@ def jsonify_with_error(err, reason=None):
 
 
 from . import ext_table
-

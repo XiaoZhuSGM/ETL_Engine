@@ -1,6 +1,8 @@
 from etl import db
 from .base import CRUDMixin
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
+
 
 class Datasource(CRUDMixin, db.Model):
     source_id = db.Column(db.String(30), nullable=False)
@@ -17,6 +19,11 @@ class Datasource(CRUDMixin, db.Model):
     traversal = db.Column(db.Boolean)
     delta = db.Column(db.Integer)
     status = db.Column(db.Integer)
+
+    ext_tables = relationship(
+        'ExtTableInfo',
+        primaryjoin='remote(Datasource.cmid) == foreign(ExtTableInfo.cmid)',
+        back_populates='datasource')
 
     @staticmethod
     def from_json(datasoureJson):
