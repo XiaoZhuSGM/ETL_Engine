@@ -4,7 +4,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 
-class Datasource(CRUDMixin, db.Model):
+
+class ExtDatasource(CRUDMixin, db.Model):
     source_id = db.Column(db.String(30), nullable=False)
     cmid = db.Column(db.Integer, unique=True, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
@@ -22,26 +23,26 @@ class Datasource(CRUDMixin, db.Model):
 
     ext_tables = relationship(
         'ExtTableInfo',
-        primaryjoin='remote(Datasource.cmid) == foreign(ExtTableInfo.cmid)',
+        primaryjoin='remote(ExtDatasource.cmid) == foreign(ExtTableInfo.cmid)',
         back_populates='datasource')
 
-    @staticmethod
-    def from_json(datasoureJson):
-        return Datasource(
-            source_id=datasoureJson['source_id'],
-            cmid=datasoureJson['cmid'],
-            company_name=datasoureJson['company_name'],
-            erp_vendor=datasoureJson['erp_vendor'],
-            db_type=datasoureJson['db_type'],
-            host=datasoureJson['host'],
-            port=datasoureJson['port'],
-            username=datasoureJson['username'],
-            password=datasoureJson['password'],
-            db_schema=datasoureJson['db_schema'],
-            db_name=datasoureJson['db_name'],
-            traversal=datasoureJson['traversal'],
-            delta=datasoureJson['delta'],
-            status=datasoureJson['status'])
+    # @staticmethod
+    # def from_json(datasoure_json):
+    #     return ExtDatasource(
+    #         source_id=datasoure_json['source_id'],
+    #         cmid=datasoure_json['cmid'],
+    #         company_name=datasoure_json['company_name'],
+    #         erp_vendor=datasoure_json['erp_vendor'],
+    #         db_type=datasoure_json['db_type'],
+    #         host=datasoure_json['host'],
+    #         port=datasoure_json['port'],
+    #         username=datasoure_json['username'],
+    #         password=datasoure_json['password'],
+    #         db_schema=datasoure_json['db_schema'],
+    #         db_name=datasoure_json['db_name'],
+    #         traversal=datasoure_json['traversal'],
+    #         delta=datasoure_json['delta'],
+    #         status=datasoure_json['status'])
 
     @staticmethod
     def datasource_to_dict(datasource):
@@ -63,21 +64,21 @@ class Datasource(CRUDMixin, db.Model):
             'status': datasource.status
         }
 
-    @staticmethod
-    def dict_to_datasource(jsonObject):
-        return Datasource(
-            id=jsonObject['id'],
-            source_id=jsonObject['source_id'],
-            cmid=jsonObject['cmid'],
-            company_name=jsonObject['company_name'],
-            erp_vendor=jsonObject['erp_vendor'],
-            db_type=jsonObject['db_type'],
-            host=jsonObject['host'],
-            port=jsonObject['port'],
-            username=jsonObject['username'],
-            password=jsonObject['password'],
-            db_schema=jsonObject['db_schema'],
-            db_name=jsonObject['db_name'],
-            traversal=jsonObject['traversal'],
-            delta=jsonObject['delta'],
-            status=jsonObject['status'])
+    # @staticmethod
+    # def dict_to_datasource(json_object):
+    #     return ExtDatasource(
+    #         id=json_object['id'],
+    #         source_id=json_object['source_id'],
+    #         cmid=json_object['cmid'],
+    #         company_name=json_object['company_name'],
+    #         erp_vendor=json_object['erp_vendor'],
+    #         db_type=json_object['db_type'],
+    #         host=json_object['host'],
+    #         port=json_object['port'],
+    #         username=json_object['username'],
+    #         password=json_object['password'],
+    #         db_schema=json_object['db_schema'],
+    #         db_name=json_object['db_name'],
+    #         traversal=json_object['traversal'],
+    #         delta=json_object['delta'],
+    #         status=json_object['status'])

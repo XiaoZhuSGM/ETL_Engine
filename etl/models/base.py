@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declared_attr
-
+from datetime import datetime
 from etl.etl import db
 
 
@@ -12,7 +12,7 @@ class CRUDMixin(object):
     def __tablename__(cls):
 
         class_name_str = cls.__name__
-        table_name = "ext_" + class_name_str[0].lower()
+        table_name = class_name_str[0].lower()
 
         for character in class_name_str[1:]:
             table_name += character if character.islower() else '_' + character.lower()
@@ -20,6 +20,8 @@ class CRUDMixin(object):
         return table_name
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     # __table_args__ = {'mysql_engine': 'InnoDB'}
 

@@ -21,8 +21,8 @@ class ExtTableInfo(db.Model, CRUDMixin):
     ext_column = Column(JSONB)
 
     datasource = relationship(
-        "Datasource",
-        primaryjoin="foreign(ExtTableInfo.cmid) == remote(Datasource.cmid)",
+        "ExtDatasource",
+        primaryjoin="foreign(ExtTableInfo.cmid) == remote(ExtDatasource.cmid)",
         uselist=False,
         back_populates="ext_tables",
     )

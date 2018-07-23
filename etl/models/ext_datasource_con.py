@@ -12,8 +12,8 @@ class ExtDatasourceCon(CRUDMixin, db.Model):
     period = db.Column(Integer)
 
     datasource = relationship(
-        "Datasource",
-        primaryjoin="foreign(ExtDatasourceCon.cmid) == remote(Datasource.cmid)",
+        "ExtDatasource",
+        primaryjoin="foreign(ExtDatasourceCon.cmid) == remote(ExtDatasource.cmid)",
         uselist=False,
     )
 
