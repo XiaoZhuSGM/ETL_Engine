@@ -21,7 +21,7 @@ class ExtTableService(object):
 
         if db_type == 'mssql':
             db_type += r'+pymssql'
-        elif db_type == 'postgrssql':
+        elif db_type == 'postgresql':
             db_type += r'+psycopg2'
         elif db_type == 'oracle':
             db_type += r'+cx_oracle'
