@@ -87,17 +87,3 @@ class ExtTableInfoService:
             raise ExtTableInfoNotExist()
         ext_table_info.update(**info)
         return ext_table_info
-
-    @session_scope
-    def delete_ext_table_info(self, id):
-        """删除单个 ext_table_info.
-
-        :param id: ExtTableInfo.id
-        :type id: int
-        :raises ExtTableInfoNotExist: ExtTableInfo.id 不存在
-        """
-
-        ext_table_info = ExtTableInfo.query.get(id)
-        if not ext_table_info:
-            raise ExtTableInfoNotExist()
-        ext_table_info.delete()

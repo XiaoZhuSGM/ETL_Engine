@@ -12,7 +12,7 @@ class CRUDMixin(object):
     def __tablename__(cls):
 
         class_name_str = cls.__name__
-        table_name = "ext_" + class_name_str[0].lower()
+        table_name = class_name_str[0].lower()
 
         for character in class_name_str[1:]:
             table_name += character if character.islower() else '_' + character.lower()

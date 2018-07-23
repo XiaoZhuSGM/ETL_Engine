@@ -1,9 +1,11 @@
 from etl import db
 from .base import CRUDMixin
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 
-class Datasource(CRUDMixin, db.Model):
+
+class ExtDatasource(CRUDMixin, db.Model):
     source_id = db.Column(db.String(30), nullable=False)
     cmid = db.Column(db.Integer, unique=True, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
@@ -19,9 +21,14 @@ class Datasource(CRUDMixin, db.Model):
     delta = db.Column(db.Integer)
     status = db.Column(db.Integer)
 
+    ext_tables = relationship(
+        'ExtTableInfo',
+        primaryjoin='remote(ExtDatasource.cmid) == foreign(ExtTableInfo.cmid)',
+        back_populates='datasource')
+
     @staticmethod
     def from_json(datasoure_json):
-        return Datasource(
+        return ExtDatasource(
             source_id=datasoure_json['source_id'],
             cmid=datasoure_json['cmid'],
             company_name=datasoure_json['company_name'],
@@ -59,7 +66,7 @@ class Datasource(CRUDMixin, db.Model):
 
     @staticmethod
     def dict_to_datasource(json_object):
-        return Datasource(
+        return ExtDatasource(
             id=json_object['id'],
             source_id=json_object['source_id'],
             cmid=json_object['cmid'],
