@@ -102,4 +102,4 @@ test/
 
 
 migrations/
-
+manage_local.py

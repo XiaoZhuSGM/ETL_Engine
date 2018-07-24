@@ -1,8 +1,8 @@
-from etl import db
-from .base import CRUDMixin
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
+from etl import db
+from .base import CRUDMixin
 
 
 class ExtDatasource(CRUDMixin, db.Model):
@@ -26,23 +26,12 @@ class ExtDatasource(CRUDMixin, db.Model):
         primaryjoin='remote(ExtDatasource.cmid) == foreign(ExtTableInfo.cmid)',
         back_populates='datasource')
 
-    # @staticmethod
-    # def from_json(datasoure_json):
-    #     return ExtDatasource(
-    #         source_id=datasoure_json['source_id'],
-    #         cmid=datasoure_json['cmid'],
-    #         company_name=datasoure_json['company_name'],
-    #         erp_vendor=datasoure_json['erp_vendor'],
-    #         db_type=datasoure_json['db_type'],
-    #         host=datasoure_json['host'],
-    #         port=datasoure_json['port'],
-    #         username=datasoure_json['username'],
-    #         password=datasoure_json['password'],
-    #         db_schema=datasoure_json['db_schema'],
-    #         db_name=datasoure_json['db_name'],
-    #         traversal=datasoure_json['traversal'],
-    #         delta=datasoure_json['delta'],
-    #         status=datasoure_json['status'])
+    @staticmethod
+    def from_json(**datasoure_json):
+        datasource = ExtDatasource()
+        for attr, value in datasoure_json.items():
+            setattr(datasource, attr, value)
+        return datasource
 
     @staticmethod
     def datasource_to_dict(datasource):
