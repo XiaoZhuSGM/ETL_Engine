@@ -8,10 +8,6 @@ the valid attributes = ['args', 'form', 'values', 'cookies', 'headers', 'json', 
 from functools import wraps
 
 from flask import request
-from wtforms import StringField
-from wtforms.validators import Email
-from wtforms.validators import InputRequired
-from wtforms.validators import Regexp
 
 from etl.controllers import APIError, jsonify_with_error
 from flask_inputs import Inputs
@@ -40,9 +36,6 @@ def validate_arg(validator):
     return deco
 
 
-
-
-
 ext_table_download = {
     'type': 'object',
     'properties': {
@@ -61,7 +54,7 @@ datasource_add = {
     'type': 'object',
     'properties': {
         'source_id': {'type': 'string'},
-        'cmid': {'type': 'string'},
+        'cmid': {'type': 'integer'},
         'company_name': {'type': 'string'},
         'erp_vendor': {'type': 'string'},
         'dp_type': {'type': 'string'},
@@ -97,7 +90,7 @@ datasource_update = {
     'properties': {
         'id': {'type': 'integer'},
         'source_id': {'type': 'string'},
-        'cmid': {'type': 'string'},
+        'cmid': {'type': 'integer'},
         'company_name': {'type': 'string'},
         'erp_vendor': {'type': 'string'},
         'dp_type': {'type': 'string'},
@@ -138,8 +131,5 @@ class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
 
 
-
 class JsonExtTableInput(Inputs):  # 验证JSON
     json = [JsonSchema(schema=ext_table_download)]
-
-

@@ -11,7 +11,7 @@ class DatasourceDao():
         return datasource
 
     def add_datasource(self, datasource_json):
-        datasource = ExtDatasource.fromJson(datasource_json)
+        datasource = ExtDatasource.from_json(**datasource_json)
         datasource.save()
         db.session.commit()
 
