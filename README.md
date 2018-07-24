@@ -20,6 +20,12 @@ python manage.py shell  or python manage.py db
 ### 更多内容点击链接查看
 [flask-migrate](http://flask-migrate.readthedocs.io/en/latest/)
 
+## 部署
+
+```bash
+fab deploy -H <yourname>@172.31.16.17
+```
+
 ##config包
 ### 配置参数，包括数据库配置，环境变量配置，其他参数配置
 
