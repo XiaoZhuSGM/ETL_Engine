@@ -20,11 +20,17 @@ python manage.py shell  or python manage.py db
 ### 更多内容点击链接查看
 [flask-migrate](http://flask-migrate.readthedocs.io/en/latest/)
 
-##config包
+## 部署
+
+```bash
+fab deploy --env dev --user <yourname>
+```
+
+## config包
 ### 配置参数，包括数据库配置，环境变量配置，其他参数配置
 
 ## etl包
-###controllers
+### controllers
 
  1. api包为提供日志报警接口，供公司其他项目使用
  2. admin_api包为数据组策略引擎配置API相关接口
