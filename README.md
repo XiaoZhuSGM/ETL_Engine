@@ -25,12 +25,12 @@ python manage.py shell  or python manage.py db
 ### 数据库 migrate
 
 ```bash
-fab db-migrate --env dev --user <yourname>
+fab db-migrate --env dev
 ```
 
 ### 更新代码
 ```bash
-fab deploy --env dev --user <yourname>
+fab deploy --env dev
 ```
 
 ## config包

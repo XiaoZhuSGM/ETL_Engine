@@ -114,7 +114,6 @@ datasource_update = {
                  'host',
                  'port',
                  'username',
-                 'password',
                  'db_schema',
                  'db_name',
                  'traversal',
