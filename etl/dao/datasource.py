@@ -1,13 +1,11 @@
-import json
-
 from ..etl import db
 from ..models.datasource import ExtDatasource
 
 
 class DatasourceDao():
 
-    def find_by_id(self, id):
-        datasource = db.session.query(ExtDatasource).filter_by(id=id).one()
+    def find_by_id(self, datasource_id):
+        datasource = db.session.query(ExtDatasource).filter_by(id=datasource_id).one()
         return datasource
 
     def add_datasource(self, datasource_json):

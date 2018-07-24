@@ -19,15 +19,15 @@ class DatasourceService(object):
             print('Error', e)
             return False
 
-    def find_datasource_by_id(self, id):
+    def find_datasource_by_id(self, datasource_id):
         """
 
         :param id: datasource_id
         :return: 如果有数据则返回,没有返回None
         """
         try:
-            datasource = self.__datasourceDao.find_by_id(id)
-            return ExtDatasource.datasource_to_dict(datasource)
+            datasource = self.__datasourceDao.find_by_id(datasource_id)
+            return datasource.to_dict()
         except Exception as e:
             print('datasourceService error', e)
             return None
@@ -39,11 +39,11 @@ class DatasourceService(object):
         pagination = ExtDatasource.query.paginate(page, per_page=per_page, error_out=False)
         datasource_list = pagination.items
         total = pagination.total
-        return dict(items=[datasource.datasource_to_dict(datasource) for datasource in datasource_list], total=total)
+        return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
 
-    def update_by_id(self, id, new_datasource_json):
+    def update_by_id(self, datasource_id, new_datasource_json):
         try:
-            old_datasource = self.__datasourceDao.find_by_id(id)
+            old_datasource = self.__datasourceDao.find_by_id(datasource_id)
             self.__datasourceDao.update(old_datasource, new_datasource_json)
             return True
         except Exception as e:

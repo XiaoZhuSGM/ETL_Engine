@@ -68,6 +68,7 @@ class LocalConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://beanan:root@123.206.60.59:5432/test'
+    SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
 
 
 config = {
