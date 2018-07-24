@@ -14,3 +14,17 @@ def deploy(c, user, env="dev"):
             c.run("git checkout -- .")
             c.run("git pull -r")
         c.run("supervisorctl -c /data/code/supervisord.conf restart etl-engine")
+
+
+@task
+def db_migrate(c, user, env="dev"):
+    """Migrate database.
+    """
+    with Connection(host=ENV[env], user=user) as c:
+        with c.cd("/data/code/etl-engine"):
+            c.run(
+                f"ETL_ENVIREMENT={env} ./source/venv/bin/python source/manage.py db migrate"
+            )
+            c.run(
+                f"ETL_ENVIREMENT={env} ./source/venv/bin/python source/manage.py db upgrade"
+            )
