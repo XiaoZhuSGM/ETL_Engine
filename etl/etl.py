@@ -9,6 +9,7 @@ __all__ = ['create_app']
 DEFAULT_APP_NAME = 'etl'
 db = SQLAlchemy()
 celery = Celery(DEFAULT_APP_NAME)
+sentry = Sentry()
 
 
 def create_app(config=None):
@@ -24,10 +25,8 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
 
-
     CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
     CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
-
 
     return app
 
@@ -44,7 +43,6 @@ def configure_celery(app):
 
 
 def configure_sentry(app):
-    sentry = Sentry()
     sentry.init_app(app, dsn=app.config["SENTRY_DSN"])
 
 
