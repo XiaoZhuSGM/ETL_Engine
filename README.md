@@ -22,10 +22,10 @@ python manage.py shell  or python manage.py db
 
 ## 部署
 
-### 数据库 migrate
+### 使用 manage 命令
 
 ```bash
-fab db-migrate --env dev
+fab manage --env dev --command "shell, db migrate, db upgrade..."
 ```
 
 ### 更新代码
