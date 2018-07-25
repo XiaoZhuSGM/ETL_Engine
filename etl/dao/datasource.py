@@ -1,16 +1,17 @@
-from .dao import Dao
 from ..etl import db
 from ..models.datasource import ExtDatasource
 
 
-class DatasourceDao(Dao):
+class DatasourceDao():
 
-    def __init__(self):
-        super().__init__(ExtDatasource)
+    def find_by_id(self, datasource_id):
+        datasource = db.session.query(ExtDatasource).filter_by(id=datasource_id).one()
+        return datasource
 
     def add_datasource(self, datasource_json):
-        datasource = ExtDatasource(**datasource_json)
+        datasource = ExtDatasource.from_json(**datasource_json)
         datasource.save()
+        db.session.commit()
 
     def find_all(self):
         datasource_list = db.session.query(ExtDatasource).all()
@@ -18,3 +19,4 @@ class DatasourceDao(Dao):
 
     def update(self, old_datasource, new_datasource_json):
         old_datasource.update(**new_datasource_json)
+        db.session.commit()

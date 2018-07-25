@@ -44,10 +44,10 @@ ext_table_download = {
         'password': {'type': 'string'},
         'host': {'type': 'string'},
         'port': {'type': 'integer'},
-        'db_name': {'type': 'string'}
+        'db_names': {'type': 'arry'}
 
     },
-    'required': ['cmid', 'username', 'password', 'host', 'port', 'db_name']
+    'required': ['cmid', 'username', 'password', 'host', 'port', 'db_names']
 }
 
 datasource_add = {
@@ -62,6 +62,7 @@ datasource_add = {
         'port': {'type': 'integer'},
         'username': {'type': 'string'},
         'password': {'type': 'string'},
+        'db_schema': {'type': 'string'},
         'db_name': {'type': 'array'},
         'traversal': {'type': 'boolean'},
         'delta': {'type': 'integer'},
@@ -77,6 +78,7 @@ datasource_add = {
                  'port',
                  'username',
                  'password',
+                 'db_schema',
                  'db_name',
                  'traversal',
                  'delta',
@@ -96,6 +98,7 @@ datasource_update = {
         'port': {'type': 'integer'},
         'username': {'type': 'string'},
         'password': {'type': 'string'},
+        'db_schema': {'type': 'string'},
         'db_name': {'type': 'array'},
         'traversal': {'type': 'boolean'},
         'delta': {'type': 'integer'},
@@ -111,6 +114,8 @@ datasource_update = {
                  'host',
                  'port',
                  'username',
+                 'password',
+                 'db_schema',
                  'db_name',
                  'traversal',
                  'delta',

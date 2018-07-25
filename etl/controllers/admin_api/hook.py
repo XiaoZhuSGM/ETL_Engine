@@ -10,7 +10,7 @@ service = LoginService()
 def before_request():
     if current_app.debug is True:
         return
-    if request.endpoint in {"admin_api.login", "admin_api.ping"}:
+    if request.endpoint in {"admin_api.login"}:
         return
     token = request.headers.get("token")
     if not service.validate(token):

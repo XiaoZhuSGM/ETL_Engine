@@ -22,7 +22,7 @@ class ExtTableInfoService:
             "limit_num": ext_table_info.limit_num,
             "filter": ext_table_info.filter,
             "filter_format": ext_table_info.filter_format,
-            "weight": ext_table_info.weight,
+            "status": ext_table_info.status,
         }
 
     def get_ext_table_infos(self, cmid):

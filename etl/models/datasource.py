@@ -15,6 +15,7 @@ class ExtDatasource(CRUDMixin, db.Model):
     port = db.Column(db.Integer)
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
+    db_schema = db.Column(db.String(50))
     db_name = db.Column(JSONB)
     traversal = db.Column(db.Boolean)
     delta = db.Column(db.Integer)
@@ -24,6 +25,13 @@ class ExtDatasource(CRUDMixin, db.Model):
         'ExtTableInfo',
         primaryjoin='remote(ExtDatasource.cmid) == foreign(ExtTableInfo.cmid)',
         back_populates='datasource')
+
+    @staticmethod
+    def from_json(**datasoure_json):
+        datasource = ExtDatasource()
+        for attr, value in datasoure_json.items():
+            setattr(datasource, attr, value)
+        return datasource
 
     def to_dict(self):
         data = {col: getattr(self, col) for col in self.__table__.columns.keys()}

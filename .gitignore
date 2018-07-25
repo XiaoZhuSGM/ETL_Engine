@@ -103,5 +103,3 @@ test/
 
 migrations/
 manage_local.py
-
-.pytest_cache/
