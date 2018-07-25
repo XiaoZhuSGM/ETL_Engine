@@ -20,7 +20,8 @@ def deploy(c, env="dev", branch="dev"):
             c.run(
                 "venv/bin/pip install -r requirements.txt -i https://pypi.doubanio.com/simple/"
             )
-        c.run("supervisorctl -c /data/code/supervisord.conf restart etl-engine")
+        with c.cd("/data/code/etl-engine"):
+            c.run("kill -HUP $(cat gunicorn.pid)")
 
 
 @task
