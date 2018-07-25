@@ -1,6 +1,7 @@
 from ..dao.datasource import DatasourceDao
-from ..models.datasource import ExtDatasource
 from ..models import session_scope
+from ..models.datasource import ExtDatasource
+
 
 class DatasourceService(object):
 
