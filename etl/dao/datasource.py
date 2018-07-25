@@ -9,7 +9,7 @@ class DatasourceDao(Dao):
         super().__init__(ExtDatasource)
 
     def add_datasource(self, datasource_json):
-        datasource = ExtDatasource.from_json(**datasource_json)
+        datasource = ExtDatasource(**datasource_json)
         datasource.save()
 
     def find_all(self):
