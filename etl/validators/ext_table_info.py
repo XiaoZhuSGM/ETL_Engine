@@ -12,7 +12,7 @@ PROPERTIES = {
     "filter": {"type": "string"},
     "filter_format": {"type": "string"},
     "record_num": {"type": "integer"},
-    "status": {"type": "integer"},
+    "weight": {"type": "integer"},
     "ext_column": {"type": "object"},
 }
 
