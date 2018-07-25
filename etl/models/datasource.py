@@ -15,7 +15,6 @@ class ExtDatasource(CRUDMixin, db.Model):
     port = db.Column(db.Integer)
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
-    db_schema = db.Column(db.String(50))
     db_name = db.Column(JSONB)
     traversal = db.Column(db.Boolean)
     delta = db.Column(db.Integer)

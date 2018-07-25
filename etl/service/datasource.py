@@ -1,12 +1,13 @@
 from ..dao.datasource import DatasourceDao
 from ..models.datasource import ExtDatasource
-
+from ..models import session_scope
 
 class DatasourceService(object):
 
     def __init__(self):
         self.__datasourceDao = DatasourceDao()
 
+    @session_scope
     def add_datasource(self, datasource_json):
         """
         :param datasourceJson: Datasource的json格式
@@ -26,7 +27,7 @@ class DatasourceService(object):
         :return: 如果有数据则返回,没有返回None
         """
         try:
-            datasource = self.__datasourceDao.find_by_id(datasource_id)
+            datasource = self.__datasourceDao.get_model_by_id(datasource_id)
             return datasource.to_dict()
         except Exception as e:
             print('datasourceService error', e)
@@ -41,9 +42,10 @@ class DatasourceService(object):
         total = pagination.total
         return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
 
+    @session_scope
     def update_by_id(self, datasource_id, new_datasource_json):
         try:
-            old_datasource = self.__datasourceDao.find_by_id(datasource_id)
+            old_datasource = self.__datasourceDao.get_model_by_id(datasource_id)
             self.__datasourceDao.update(old_datasource, new_datasource_json)
             return True
         except Exception as e:
