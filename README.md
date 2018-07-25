@@ -33,6 +33,14 @@ fab manage --env dev --command "shell, db migrate, db upgrade..."
 fab deploy --env dev
 ```
 
+## 单元测试
+
+### 执行单元测试并打印报告
+
+```bash
+pytest tests --cov=etl --cov-report=term --cov-report=html --cov-branch
+```
+
 ## config包
 ### 配置参数，包括数据库配置，环境变量配置，其他参数配置
 
