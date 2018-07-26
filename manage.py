@@ -12,7 +12,7 @@ from flask_script import Manager, Server
 envirement = os.environ.get('ETL_ENVIREMENT', 'testing')
 
 app = create_app(config.get(envirement, config["testing"]))
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, compare_type=True)
 
 from etl.models import etl_table
 

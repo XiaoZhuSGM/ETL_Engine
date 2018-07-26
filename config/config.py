@@ -71,10 +71,15 @@ class TestingConfig(Config):
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
 
 
+class UnitestConfig(Config):
+    TESTING = True
+
+
 config = {
     'dev': DevelopmentConfig,
     'testing': TestingConfig,
     'prod': ProductionConfig,
     'default': LocalConfig,
-    'local': LocalConfig
+    'local': LocalConfig,
+    'unittest': UnitestConfig,
 }
