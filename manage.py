@@ -9,15 +9,12 @@ from etl import create_app, db
 from config.config import config
 from flask_script import Manager, Server
 
-envirement = os.environ.get('ETL_ENVIREMENT', 'local')
+envirement = os.environ.get('ETL_ENVIREMENT', 'testing')
 
-<<<<<<< HEAD
-app = create_app(config.get(envirement, config["local"]))
-=======
 app = create_app(config.get(envirement, config["testing"]))
->>>>>>> 8b55135524ea7cdfaaac31f4e94bf37be1dd0b48
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, compare_type=True)
 
+from etl.models import etl_table
 
 manager = Manager(app)
 manager.add_command("runserver",
