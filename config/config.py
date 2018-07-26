@@ -53,10 +53,12 @@ class DevelopmentConfig(Config):
 
 class LocalConfig(Config):
     DEBUG = True
-    pgsql_db_username = 'root'
-    pgsql_db_password = '123456'
+    pgsql_db_username = 'abc'
+    pgsql_db_password = 'Aa123456'
     pgsql_db_name = 'etl'
     pgsql_db_hostname = '127.0.0.1'
+    SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
+
 
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
         DB_USER=pgsql_db_username,
@@ -71,15 +73,10 @@ class TestingConfig(Config):
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
 
 
-class UnitestConfig(Config):
-    TESTING = True
-
-
 config = {
     'dev': DevelopmentConfig,
     'testing': TestingConfig,
     'prod': ProductionConfig,
     'default': LocalConfig,
-    'local': LocalConfig,
-    'unittest': UnitestConfig,
+    'local': LocalConfig
 }
