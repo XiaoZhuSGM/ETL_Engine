@@ -101,6 +101,7 @@ class ExtTableService(object):
     def download_table(self, **data):
 
         cmid = data.get('cmid')
+
         res = self.__connect_test(**data)
         if res:
             return
@@ -146,5 +147,6 @@ class ExtTableService(object):
                     )
             except Exception as e:
                 pass
+
 
 

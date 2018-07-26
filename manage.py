@@ -11,7 +11,11 @@ from flask_script import Manager, Server
 
 envirement = os.environ.get('ETL_ENVIREMENT', 'local')
 
+<<<<<<< HEAD
 app = create_app(config.get(envirement, config["local"]))
+=======
+app = create_app(config.get(envirement, config["testing"]))
+>>>>>>> 8b55135524ea7cdfaaac31f4e94bf37be1dd0b48
 migrate = Migrate(app, db)
 
 
