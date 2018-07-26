@@ -8,7 +8,6 @@ from etl.validators.ext_table_info import (
     ModifyExtTableInfo,
 )
 from etl.service.ext_table_info import ExtTableInfoService, ExtTableInfoNotExist
-from etl.models.ext_table_info import ExtTableInfo
 
 from . import etl_admin_api
 
@@ -35,8 +34,6 @@ def create_ext_table_info():
     data = request.json
     data["sync_column"] = ",".join(data["sync_column"])
     data["order_column"] = ",".join(data["order_column"])
-    if data["status"] not in ExtTableInfo.Status.__members__.values():
-        return jsonify_with_error(APIError.VALIDATE_ERROR, "status invalid")
 
     service.create_ext_table_info(data)
     return jsonify_with_data(APIError.OK, data={})
@@ -59,9 +56,6 @@ def modify_item(id):
         data["sync_column"] = ",".join(data["sync_column"])
     if data.get('order_column') is not None:
         data["order_column"] = ",".join(data["order_column"])
-    if data.get('status') is not None:
-        if data["status"] not in ExtTableInfo.Status.__members__.values():
-            return jsonify_with_error(APIError.VALIDATE_ERROR, "status invalid")
     try:
         service.modify_ext_table_info(id, data)
     except ExtTableInfoNotExist as e:

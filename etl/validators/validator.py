@@ -36,6 +36,20 @@ def validate_arg(validator):
     return deco
 
 
+ext_table_download = {
+    'type': 'object',
+    'properties': {
+        'cmid': {'type': 'integer'},
+        'username': {'type': 'string'},
+        'password': {'type': 'string'},
+        'host': {'type': 'string'},
+        'port': {'type': 'integer'},
+        'db_name': {'type': 'string'}
+
+    },
+    'required': ['cmid', 'username', 'password', 'host', 'port', 'db_name']
+}
+
 datasource_add = {
     'type': 'object',
     'properties': {
@@ -48,7 +62,6 @@ datasource_add = {
         'port': {'type': 'integer'},
         'username': {'type': 'string'},
         'password': {'type': 'string'},
-        'db_schema': {'type': 'string'},
         'db_name': {'type': 'array'},
         'traversal': {'type': 'boolean'},
         'delta': {'type': 'integer'},
@@ -64,7 +77,6 @@ datasource_add = {
                  'port',
                  'username',
                  'password',
-                 'db_schema',
                  'db_name',
                  'traversal',
                  'delta',
@@ -84,7 +96,6 @@ datasource_update = {
         'port': {'type': 'integer'},
         'username': {'type': 'string'},
         'password': {'type': 'string'},
-        'db_schema': {'type': 'string'},
         'db_name': {'type': 'array'},
         'traversal': {'type': 'boolean'},
         'delta': {'type': 'integer'},
@@ -100,8 +111,6 @@ datasource_update = {
                  'host',
                  'port',
                  'username',
-                 'password',
-                 'db_schema',
                  'db_name',
                  'traversal',
                  'delta',
@@ -117,3 +126,5 @@ class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
 
 
+class JsonExtTableInput(Inputs):  # 验证JSON
+    json = [JsonSchema(schema=ext_table_download)]
