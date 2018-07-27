@@ -23,6 +23,8 @@ class ExtTableInfoService:
             "filter": ext_table_info.filter,
             "filter_format": ext_table_info.filter_format,
             "weight": ext_table_info.weight,
+            "created_at": ext_table_info.created_at,
+            "updated_at": ext_table_info.updated_at,
         }
 
     def get_ext_table_infos(self, cmid):
