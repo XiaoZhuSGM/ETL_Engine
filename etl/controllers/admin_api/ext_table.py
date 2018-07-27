@@ -18,11 +18,10 @@ def download_tables(cmid):
 
     :return:
     """
-
     try:
         data = ext_table_service.get_datasource(cmid)
     except Exception as e:
-        return jsonify_with_error(APIError.NOTFOUND, repr(e))
+        return jsonify_with_error(APIError.NOTFOUBD, repr(e))
 
     db_name = data.get('db_name', [])
     for db_dict in db_name:
