@@ -86,7 +86,6 @@ class ExtTableService(object):
 
     def get_datasource(self, cmid):
         datasource = ExtDatasource.query.filter_by(cmid=cmid).first()
-        datasource.db_name = json.loads(datasource.db_name)
         data_dict = {
             'cmid': datasource.cmid,
             'db_type': datasource.db_type,

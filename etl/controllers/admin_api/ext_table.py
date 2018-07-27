@@ -1,6 +1,6 @@
 
 from . import etl_admin_api, jsonify_with_data, jsonify_with_error
-from . import APIError
+from .. import APIError
 from etl.service.ext_table import ExtTableService
 
 
@@ -18,7 +18,6 @@ def download_tables(cmid):
 
     :return:
     """
-
     try:
         data = ext_table_service.get_datasource(cmid)
     except Exception as e:
