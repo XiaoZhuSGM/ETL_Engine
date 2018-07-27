@@ -1,6 +1,6 @@
 
 from . import etl_admin_api, jsonify_with_data, jsonify_with_error
-from . import APIError
+from .. import APIError
 from etl.service.ext_table import ExtTableService
 
 
@@ -21,7 +21,7 @@ def download_tables(cmid):
     try:
         data = ext_table_service.get_datasource(cmid)
     except Exception as e:
-        return jsonify_with_error(APIError.NOTFOUBD, repr(e))
+        return jsonify_with_error(APIError.NOTFOUND, repr(e))
 
     db_name = data.get('db_name', [])
     for db_dict in db_name:
