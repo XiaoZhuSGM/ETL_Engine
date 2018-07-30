@@ -13,6 +13,7 @@ class ExtTableInfoService:
     def default_dictify(self, ext_table_info):
         return {
             "id": ext_table_info.id,
+            "cmid": ext_table_info.cmid,
             "table_name": ext_table_info.table_name,
             "ext_column": ext_table_info.ext_column,
             "ext_pri_key": ext_table_info.ext_pri_key,
