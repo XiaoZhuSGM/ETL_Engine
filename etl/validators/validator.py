@@ -36,20 +36,6 @@ def validate_arg(validator):
     return deco
 
 
-ext_table_download = {
-    'type': 'object',
-    'properties': {
-        'cmid': {'type': 'integer'},
-        'username': {'type': 'string'},
-        'password': {'type': 'string'},
-        'host': {'type': 'string'},
-        'port': {'type': 'integer'},
-        'db_name': {'type': 'string'}
-
-    },
-    'required': ['cmid', 'username', 'password', 'host', 'port', 'db_name']
-}
-
 datasource_add = {
     'type': 'object',
     'properties': {
@@ -126,5 +112,4 @@ class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
 
 
-class JsonExtTableInput(Inputs):  # 验证JSON
-    json = [JsonSchema(schema=ext_table_download)]
+
