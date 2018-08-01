@@ -6,9 +6,9 @@ from ...service.datasource import DatasourceService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
 
 DATASOURCE_API_CREATE = '/datasource'
-DATASOURCE_API_GET = '/datasource/<int:cmid>'
+DATASOURCE_API_GET = '/datasource/<int:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
-DATASOURCE_API_UPDATE = '/datasource/<int:cmid>'
+DATASOURCE_API_UPDATE = '/datasource/<int:source_id>'
 
 datasourceService = DatasourceService()
 
@@ -25,8 +25,8 @@ def add_datasource():
 
 
 @etl_admin_api.route(DATASOURCE_API_GET, methods=['GET'])
-def get_datasource(cmid):
-    datasource = datasourceService.find_datasource_by_id(cmid)
+def get_datasource(source_id):
+    datasource = datasourceService.find_datasource_by_id(source_id)
     if datasource is None:
         return jsonify_with_error(APIError.NOTFOUND, reason='id don\'t exist')
     else:
@@ -49,9 +49,9 @@ def get_all_datasource():
 
 @etl_admin_api.route(DATASOURCE_API_UPDATE, methods=["PATCH"])
 @validate_arg(JsonDatasourceUpdateInput)
-def update_datasource(cmid):
+def update_datasource(source_id):
     new_datasource_json = request.json
-    flag = datasourceService.update_by_id(cmid, new_datasource_json)
+    flag = datasourceService.update_by_id(source_id, new_datasource_json)
     if flag:
         return jsonify_with_data(APIError.OK)
     else:

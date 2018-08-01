@@ -1,1 +1,1 @@
-cmid = {"type": "integer"}
+cmid = {"type": "array"}

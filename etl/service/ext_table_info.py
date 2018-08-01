@@ -28,7 +28,7 @@ class ExtTableInfoService:
             "updated_at": ext_table_info.updated_at,
         }
 
-    def get_ext_table_infos(self, cmid):
+    def get_ext_table_infos(self, source_id):
         """获取对应 cmid 的 ext_table_infos.
 
         :param cmid: cmid
@@ -39,13 +39,13 @@ class ExtTableInfoService:
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
         if per_page != -1:
-            pagination = ExtTableInfo.query.filter_by(cmid=cmid).paginate(
+            pagination = ExtTableInfo.query.filter_by(source_id=source_id).paginate(
                 page=page, per_page=per_page, error_out=False
             )
             items = pagination.items
             total = pagination.total
         else:
-            items = ExtTableInfo.query.filter_by(cmid=cmid).all()
+            items = ExtTableInfo.query.filter_by(source_id=source_id).all()
             total = len(items)
         return total, [self.default_dictify(eti) for eti in items]
 

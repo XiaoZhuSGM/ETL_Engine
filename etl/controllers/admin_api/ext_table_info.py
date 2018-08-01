@@ -18,11 +18,11 @@ service = ExtTableInfoService()
 @validate_arg(GetExtTableInfos)
 def get_ext_table_info():
     try:
-        cmid = int(request.args["cmid"])
+        source_id = int(request.args["source_id"])
     except ValueError as e:
         return jsonify_with_error(APIError.VALIDATE_ERROR, e)
 
-    total, ext_table_infos = service.get_ext_table_infos(cmid)
+    total, ext_table_infos = service.get_ext_table_infos(source_id)
     return jsonify_with_data(
         APIError.OK, data={"total": total, "items": ext_table_infos}
     )
