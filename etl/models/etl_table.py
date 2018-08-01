@@ -1,5 +1,4 @@
 from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String
-from sqlalchemy.dialects.postgresql import JSONB
 from etl.etl import db
 from .base import CRUDMixin
 
@@ -11,14 +10,14 @@ class ExtErpEnterprise(CRUDMixin, db.Model):
 
 
 class ExtChainStoreOnline(CRUDMixin, db.Model):
-    source_id = db.Column(db.String(30))
-    cmid = db.Column(JSONB)
+    source_id = db.Column(db.String(15))
+    cmid = db.Column(Integer)
     company_name = db.Column(VARCHAR(100))
 
 
 class ExtStoreDetail(CRUDMixin, db.Model):
-    source_id = db.Column(db.String(30))
-    cmid = db.Column(JSONB)
+    source_id = db.Column(db.String(15))
+    cmid = db.Column(Integer)
     store_id = db.Column(String(50))
     store_name = db.Column(VARCHAR(100))
     total_cost = db.Column(REAL)

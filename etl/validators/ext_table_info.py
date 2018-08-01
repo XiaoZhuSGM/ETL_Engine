@@ -1,10 +1,8 @@
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
-from .constant import cmid
 
 PROPERTIES = {
     "source_id": {"type": "string"},
-    "cmid": cmid,
     "table_name": {"type": "string"},
     "ext_pri_key": {"type": "string"},
     "sync_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},

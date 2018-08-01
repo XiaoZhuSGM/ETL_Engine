@@ -7,8 +7,7 @@ from .base import CRUDMixin
 
 class ExtTableInfo(db.Model, CRUDMixin):
     __tablename__ = "ext_table_info"
-    source_id = db.Column(db.String(30))
-    cmid = Column(JSONB)
+    source_id = db.Column(db.String(15))
     table_name = Column(String(100))
     ext_pri_key = Column(String(200))
     order_column = Column(String(200))
