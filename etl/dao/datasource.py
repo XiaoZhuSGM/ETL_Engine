@@ -18,3 +18,7 @@ class DatasourceDao(Dao):
 
     def update(self, old_datasource, new_datasource_json):
         old_datasource.update(**new_datasource_json)
+
+    def find_datasource_by_cmid(self, cmid):
+        return self.model.query.filter_by(cmid=cmid).one_or_none()
+
