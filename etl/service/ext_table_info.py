@@ -38,9 +38,15 @@ class ExtTableInfoService:
         """
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
-        query = ExtTableInfo.query.filter_by(cmid=cmid)
-        total = query.order_by(None).count()
-        items = query.limit(per_page).offset((page - 1) * per_page)
+        if per_page != -1:
+            pagination = ExtTableInfo.query.filter_by(cmid=cmid).paginate(
+                page=page, per_page=per_page, error_out=False
+            )
+            items = pagination.items
+            total = pagination.total
+        else:
+            items = ExtTableInfo.query.filter_by(cmid=cmid).all()
+            total = len(items)
         return total, [self.default_dictify(eti) for eti in items]
 
     @session_scope
