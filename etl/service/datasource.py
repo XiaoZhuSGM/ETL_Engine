@@ -21,14 +21,14 @@ class DatasourceService(object):
             print('Error', e)
             return False
 
-    def find_datasource_by_id(self, cmid):
+    def find_datasource_by_id(self, source_id):
         """
 
         :param id: datasource_id
         :return: 如果有数据则返回,没有返回None
         """
         try:
-            datasource = self.__datasourceDao.find_datasource_by_cmid(cmid)
+            datasource = self.__datasourceDao.find_datasource_by_source_id(source_id)
             return datasource.to_dict()
         except Exception as e:
             print('datasourceService error', e)
@@ -44,9 +44,9 @@ class DatasourceService(object):
         return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
 
     @session_scope
-    def update_by_id(self, cmid, new_datasource_json):
+    def update_by_id(self, source_id, new_datasource_json):
         try:
-            old_datasource = self.__datasourceDao.find_datasource_by_cmid(cmid)
+            old_datasource = self.__datasourceDao.find_datasource_by_source_id(source_id)
             self.__datasourceDao.update(old_datasource, new_datasource_json)
             return True
         except Exception as e:

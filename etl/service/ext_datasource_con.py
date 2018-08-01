@@ -32,7 +32,7 @@ class ExtDatasourceConService:
         ext_datasource_con.save()
         return ext_datasource_con
 
-    def get_ext_datasource_con(self, cmid):
+    def get_ext_datasource_con(self, source_id):
         """获取单个 ext_datasource_con.
 
         :param id: ExtDatasourceCon.cmid
@@ -42,7 +42,7 @@ class ExtDatasourceConService:
         :rtype: dict
         """
 
-        ext_datasource_con = ExtDatasourceCon.query.filter_by(cmid=cmid).first()
+        ext_datasource_con = ExtDatasourceCon.query.filter_by(source_id=source_id).first()
         if not ext_datasource_con:
             raise ExtDatasourceConNotExist()
         return self.default_dictify(ext_datasource_con)

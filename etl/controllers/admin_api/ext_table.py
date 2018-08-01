@@ -7,8 +7,8 @@ from etl.service.ext_table import ExtTableService
 ext_table_service = ExtTableService()
 
 
-@etl_admin_api.route('/tables/download/<int:cmid>', methods=['GET'])
-def download_tables(cmid):
+@etl_admin_api.route('/tables/download/<int:source_id>', methods=['GET'])
+def download_tables(source_id):
 
     """
       "db_name": [{"database": "sss","schema": ["schema1", "schema2"]},
@@ -19,7 +19,7 @@ def download_tables(cmid):
     :return:
     """
     try:
-        data = ext_table_service.get_datasource(cmid)
+        data = ext_table_service.get_datasource(source_id)
     except Exception as e:
         return jsonify_with_error(APIError.NOTFOUND, repr(e))
 

@@ -13,7 +13,7 @@ class ExtTableService(object):
         self.conn = None
         self.schema = None
 
-    def __connect_test(self, **kwargs):
+    def connect_test(self, **kwargs):
 
         self.db_schema = kwargs.get('schema')
         db_type = kwargs.get('db_type')
@@ -84,8 +84,8 @@ class ExtTableService(object):
     def __create_ext_table(self, **kwargs):
         ExtTableInfo.create(**kwargs)
 
-    def get_datasource(self, cmid):
-        datasource = ExtDatasource.query.filter_by(cmid=cmid).first()
+    def get_datasource(self, source_id):
+        datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
         data_dict = {
             'cmid': datasource.cmid,
             'db_type': datasource.db_type,

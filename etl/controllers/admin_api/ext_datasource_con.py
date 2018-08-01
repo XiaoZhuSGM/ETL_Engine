@@ -19,11 +19,11 @@ service = ExtDatasourceConService()
 @validate_arg(GetExtDatasourceCon)
 def get_ext_datasource_con():
     try:
-        cmid = int(request.args["cmid"])
+        source_id = int(request.args["source_id"])
     except ValueError as e:
         return jsonify_with_error(APIError.VALIDATE_ERROR, e)
     try:
-        ext_datasource_con = service.get_ext_datasource_con(cmid)
+        ext_datasource_con = service.get_ext_datasource_con(source_id)
     except ExtDatasourceConNotExist as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
     return jsonify_with_data(APIError.OK, data=ext_datasource_con)
