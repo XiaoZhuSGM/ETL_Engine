@@ -1,10 +1,8 @@
 
 from flask_inputs.validators import JsonSchema
 from flask_inputs import Inputs
-from .constant import cmid
 
 PROPERTIES = {
-    "cmid": cmid,
     "source_id": {"type": "string"},
     "roll_back": {"type": "integer"},
     "frequency": {"type": "integer"},

@@ -13,7 +13,6 @@ class ExtTableInfoService:
     def default_dictify(self, ext_table_info):
         return {
             "id": ext_table_info.id,
-            "cmid": ext_table_info.cmid,
             "table_name": ext_table_info.table_name,
             "ext_column": ext_table_info.ext_column,
             "ext_pri_key": ext_table_info.ext_pri_key,
@@ -29,10 +28,10 @@ class ExtTableInfoService:
         }
 
     def get_ext_table_infos(self, source_id):
-        """获取对应 cmid 的 ext_table_infos.
+        """获取对应 source_id 的 ext_table_infos.
 
-        :param cmid: cmid
-        :type cmid: int
+        :param source_id: source_id
+        :type source_id: int
         :return: 总数, ext_table_info 详情的列表.
         :rtype: tuple
         """
