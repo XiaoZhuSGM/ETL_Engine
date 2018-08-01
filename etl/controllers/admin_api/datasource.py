@@ -6,9 +6,9 @@ from ...service.datasource import DatasourceService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
 
 DATASOURCE_API_CREATE = '/datasource'
-DATASOURCE_API_GET = '/datasource/<int:source_id>'
+DATASOURCE_API_GET = '/datasource/<string:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
-DATASOURCE_API_UPDATE = '/datasource/<int:source_id>'
+DATASOURCE_API_UPDATE = '/datasource/<string:source_id>'
 
 datasourceService = DatasourceService()
 
