@@ -19,7 +19,6 @@ class ExtTableService(object):
 
     def connect_test(self, **kwargs):
 
-        self.db_schema = kwargs.get('schema')
         db_type = kwargs.get('db_type')
         db_name = kwargs.get('database')
         username = kwargs.get('username')
@@ -32,6 +31,7 @@ class ExtTableService(object):
 
         if db_type == 'sqlserver':
             db_type = 'mssql+pymssql'
+
         elif db_type == 'postgresql':
             db_type += r'+psycopg2'
         elif db_type == 'oracle':
@@ -52,19 +52,19 @@ class ExtTableService(object):
         except Exception as e:
             return repr(e)
 
-    def _get_tables(self):
-        tables = self.inspector.get_table_names(schema=self.db_schema)
+    def _get_tables(self, schema):
+        tables = self.inspector.get_table_names(schema=schema)
         return tables
 
-    def _get_ext_pri_key(self, table):
-        res = self.inspector.get_pk_constraint(table, self.db_schema)
+    def _get_ext_pri_key(self, table, schema):
+        res = self.inspector.get_pk_constraint(table, schema=schema)
         pk_list = res.get('constrained_columns')
         pk = ','.join(pk_list) if pk_list else ''
         return pk
 
-    def _get_ext_column(self, table, ext_pri_key):
+    def _get_ext_column(self, table, ext_pri_key, schema):
         flag = 0
-        columns_list = self.inspector.get_columns(table, self.db_schema)
+        columns_list = self.inspector.get_columns(table, schema=schema)
 
         # 判断主键是否是单主键自增
         if ext_pri_key != '' and ',' not in ext_pri_key:
@@ -118,16 +118,18 @@ class ExtTableService(object):
         source_id = data.get('source_id')
         is_dbs = data.get('is_dbs')
         db_name = data.get('database')
+        schema = data.get('schema')
+
         res = self.connect_test(**data)
         if res:
             return
 
-        tables = self._get_tables()
+        tables = self._get_tables(schema)
         for table in tables:
             table_name = db_name + '.' + table if is_dbs else table
             try:
-                ext_pri_key = self._get_ext_pri_key(table)
-                ext_column = self._get_ext_column(table, ext_pri_key)
+                ext_pri_key = self._get_ext_pri_key(table, schema)
+                ext_column = self._get_ext_column(table, ext_pri_key, schema)
                 record_num = self._get_record_num(table)
             except Exception as e:
                 continue
@@ -171,10 +173,8 @@ class ExtTableService(object):
     def download_tables(self,app, lock, **data):
         with app.app_context():
             source_id = data.get('source_id')
-
-            lock.acquire()
-            self._set_status(source_id)
-            lock.release()
+            with lock:
+                self._set_status(source_id)
 
             try:
                 db_name = data.get('db_name', [])
@@ -196,13 +196,11 @@ class ExtTableService(object):
             # 如果任务异常结束，保证状态能及时更新
             except Exception as e:
                 print(repr(e))
-                lock.acquire()
-                self._update_status(source_id, 'fail')
-                lock.release()
+                with lock:
+                    self._update_status(source_id, 'fail')
 
-            lock.acquire()
-            self._update_status(source_id, 'success')
-            lock.release()
+            with lock:
+                self._update_status(source_id, 'success')
 
     def get_status(self, source_id):
         status = None
