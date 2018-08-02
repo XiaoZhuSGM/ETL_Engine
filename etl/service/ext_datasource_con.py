@@ -12,7 +12,6 @@ class ExtDatasourceConService:
         return {
             "id": ext_datasource_con.id,
             "source_id": ext_datasource_con.source_id,
-            "cmid": ext_datasource_con.cmid,
             "roll_back": ext_datasource_con.roll_back,
             "frequency": ext_datasource_con.frequency,
             "period": ext_datasource_con.period,
