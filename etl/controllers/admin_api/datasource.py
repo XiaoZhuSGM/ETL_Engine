@@ -5,11 +5,12 @@ from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
 from ...service.ext_table import ExtTableService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
+from ...service.datasource import ExtDatasourceNotExist
 
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
-DATASOURCE_API_UPDATE = '/datasource/<string:source_id>'
+DATASOURCE_API_UPDATE = '/datasource/<int:id>'
 DATASOURCE_API_TEST = '/datasource/test'
 
 datasource_service = DatasourceService()
@@ -29,11 +30,12 @@ def add_datasource():
 
 @etl_admin_api.route(DATASOURCE_API_GET, methods=['GET'])
 def get_datasource(source_id):
-    datasource = datasource_service.find_datasource_by_id(source_id)
-    if datasource is None:
-        return jsonify_with_error(APIError.NOTFOUND, reason='id don\'t exist')
-    else:
+    try:
+        datasource = datasource_service.find_datasource_by_id(source_id)
         return jsonify_with_data(APIError.OK, data=datasource)
+    except ExtDatasourceNotExist as e:
+        return jsonify_with_error(APIError.NOTFOUND, reason='id don\'t exist')
+
 
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL, methods=['GET'])
@@ -52,13 +54,13 @@ def get_all_datasource():
 
 @etl_admin_api.route(DATASOURCE_API_UPDATE, methods=["PATCH"])
 @validate_arg(JsonDatasourceUpdateInput)
-def update_datasource(source_id):
+def update_datasource(id):
     new_datasource_json = request.json
-    flag = datasource_service.update_by_id(source_id, new_datasource_json)
-    if flag:
+    try:
+        datasource_service.update_by_id(id, new_datasource_json)
         return jsonify_with_data(APIError.OK)
-    else:
-        return jsonify_with_data(APIError.SERVER_ERROR)
+    except ExtDatasourceNotExist as e:
+        return jsonify_with_data(APIError.SERVER_ERROR, reason='datasoure not exist')
 
 
 @etl_admin_api.route(DATASOURCE_API_TEST, methods=['POST'])
@@ -73,3 +75,5 @@ def test_connection_datasource():
         error = table_service.connect_test(**data)
         if error:
             return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
+
+
