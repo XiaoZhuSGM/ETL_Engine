@@ -1,13 +1,13 @@
-
 from . import etl_admin_api, jsonify_with_data, jsonify_with_error
 from .. import APIError
 from etl.service.ext_table import ExtTableService
+from threading import Thread, Lock
+from flask import current_app
+
+lock = Lock()
 
 
-ext_table_service = ExtTableService()
-
-
-@etl_admin_api.route('/tables/download/<int:source_id>', methods=['GET'])
+@etl_admin_api.route('/tables/download/<source_id>', methods=['GET'])
 def download_tables(source_id):
 
     """
@@ -18,26 +18,39 @@ def download_tables(source_id):
 
     :return:
     """
-    try:
-        data = ext_table_service.get_datasource(source_id)
-    except Exception as e:
-        return jsonify_with_error(APIError.NOTFOUND, repr(e))
+    ext_table_service = ExtTableService()
+
+    # 如果任务已经再，就不重复执行
+    status = ext_table_service.get_status(source_id)
+    if status == 'running':
+        return jsonify_with_data(APIError.BAD_REQUEST, reason="任务已经在执行，请勿重复执行")
+
+    # 测试数据库是否能够正常连接，只要有一个无法连接，就返回错误信息
+    data = ext_table_service.get_datasource_by_source_id(source_id)
+    if data is None:
+        return jsonify_with_error(APIError.NOTFOUND, "Datasource not found")
 
     db_name = data.get('db_name', [])
     for db_dict in db_name:
         database = db_dict.get('database')
         data['database'] = database
+        error = ext_table_service.connect_test(**data)
+        if error:
+            return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
 
-        schema_list = db_dict.get('schema')
+    task = Thread(target=ext_table_service.download_tables,
+                            args=(current_app._get_current_object(), lock), kwargs=data)
+    task.start()
 
-        if not schema_list:
-            ext_table_service.download_table(**data)
-            continue
-        for scheam in schema_list:
-            data['schema'] = scheam
-            ext_table_service.download_table(**data)
     return jsonify_with_data(APIError.OK)
 
 
+@etl_admin_api.route('/tables/download/status/<source_id>', methods=['GET'])
+def get_download_tables_status(source_id):
+    ext_table_service = ExtTableService()
+    status = ext_table_service.get_status(source_id)
 
-
+    if status:
+        return jsonify_with_data(APIError.OK, data={'status': status})
+    else:
+        return jsonify_with_error(APIError.NOTFOUND, reason='no task')
