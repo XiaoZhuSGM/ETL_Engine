@@ -51,7 +51,6 @@ class ExtTableInfoService:
     @session_scope
     def create_ext_table_info(self, info):
         """创建 ext_table_info.
-
         :param info: info 值.
         :type info: dict
         :return: ExtTableInfo
