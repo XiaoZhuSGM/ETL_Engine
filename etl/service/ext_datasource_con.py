@@ -35,7 +35,7 @@ class ExtDatasourceConService:
     def get_ext_datasource_con(self, source_id):
         """获取单个 ext_datasource_con.
 
-        :param id: ExtDatasourceCon.cmid
+        :param id: ExtDatasourceCon.source_id
         :type id: int
         :raises ExtDatasourceConNotExist: ExtDatasourceCon 不存在
         :return: ExtDatasourceCon 的详情
