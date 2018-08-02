@@ -4,14 +4,16 @@ from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
+from ...service.ext_table import ExtTableService
 
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
 DATASOURCE_API_UPDATE = '/datasource/<string:source_id>'
+DATASOURCE_API_TEST = '/datasource/test'
 
 datasourceService = DatasourceService()
-
+tableService = ExtTableService()
 
 @etl_admin_api.route(DATASOURCE_API_CREATE, methods=['POST'])
 @validate_arg(JsonDatasourceAddInput)
@@ -56,3 +58,8 @@ def update_datasource(source_id):
         return jsonify_with_data(APIError.OK)
     else:
         return jsonify_with_data(APIError.SERVER_ERROR)
+
+@etl_admin_api.route(DATASOURCE_API_TEST, methods=['POST'])
+def test_connection_datasource():
+    datasource = request.json
+    tableService.connect_test(datasource)
