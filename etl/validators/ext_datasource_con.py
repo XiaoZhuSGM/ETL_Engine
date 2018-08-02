@@ -13,8 +13,8 @@ PROPERTIES = {
 class GetExtDatasourceCon(Inputs):
     _schema = {
         "type": "object",
-        "properties": {"cmid": {"type": "string"}},
-        "required": ["cmid"],
+        "properties": {"source_id": {"type": "string"}},
+        "required": ["source_id"],
     }
     args = [JsonSchema(schema=_schema)]
 
