@@ -18,6 +18,7 @@ class ExtTableInfo(db.Model, CRUDMixin):
     record_num = Column(Integer)
     weight = Column(Integer)
     ext_column = Column(JSONB)
+    remark = Column(String(50))
 
     datasource = relationship(
         "ExtDatasource",
