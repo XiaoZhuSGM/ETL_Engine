@@ -4,6 +4,7 @@ from etl.service.ext_table import ExtTableService
 from threading import Thread, Lock
 from flask import current_app
 
+
 lock = Lock()
 
 
@@ -30,6 +31,7 @@ def download_tables(source_id):
     if data is None:
         return jsonify_with_error(APIError.NOTFOUND, "Datasource not found")
 
+
     db_name = data.get('db_name', [])
     for db_dict in db_name:
         database = db_dict.get('database')
@@ -40,6 +42,7 @@ def download_tables(source_id):
 
     task = Thread(target=ext_table_service.download_tables,
                             args=(current_app._get_current_object(), lock), kwargs=data)
+
     task.start()
 
     return jsonify_with_data(APIError.OK)
@@ -49,6 +52,7 @@ def download_tables(source_id):
 def get_download_tables_status(source_id):
     ext_table_service = ExtTableService()
     status = ext_table_service.get_status(source_id)
+
 
     if status:
         return jsonify_with_data(APIError.OK, data={'status': status})

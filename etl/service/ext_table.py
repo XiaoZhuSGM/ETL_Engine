@@ -132,6 +132,7 @@ class ExtTableService(object):
             except Exception as e:
                 continue
             table_info = self._get_table_from_pgsql(source_id=source_id, table_name=table_name)
+
             weight = 0 if record_num == 0 else 2
 
             if len(table_info) == 0:
@@ -204,7 +205,6 @@ class ExtTableService(object):
             lock.release()
 
     def get_status(self, source_id):
-
         status = None
         if not os.path.exists(self.status_file_path):
             return status
@@ -231,7 +231,6 @@ class ExtTableService(object):
 
             if flag is False:
                 context += 'source_id:%s,status:running' % source_id + '\n'
-
             with open(self.status_file_path, 'w+') as f:
                 f.write(context)
         except FileNotFoundError:
@@ -245,3 +244,4 @@ class ExtTableService(object):
                     print(line.strip().replace('running', str(status)))
                 else:
                     print(line.strip())
+
