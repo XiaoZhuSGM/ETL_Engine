@@ -7,6 +7,11 @@ class ExtDatasourceConNotExist(Exception):
         return "ext_datasource_con not found"
 
 
+class ExtDatasourceConExists(Exception):
+    def __str__(self):
+        return "sourse_id in ext_datasource_con exists"
+
+
 class ExtDatasourceConService:
     def default_dictify(self, ext_datasource_con):
         return {
@@ -26,7 +31,9 @@ class ExtDatasourceConService:
         :return: ExtDatasourceCon
         :rtype: ExtDatasourceCon
         """
-
+        exists = ExtDatasourceCon.query.filter_by(source_id=info["source_id"]).first()
+        if exists:
+            raise ExtDatasourceConExists()
         ext_datasource_con = ExtDatasourceCon(**info)
         ext_datasource_con.save()
         return ext_datasource_con
@@ -41,7 +48,9 @@ class ExtDatasourceConService:
         :rtype: dict
         """
 
-        ext_datasource_con = ExtDatasourceCon.query.filter_by(source_id=source_id).first()
+        ext_datasource_con = ExtDatasourceCon.query.filter_by(
+            source_id=source_id
+        ).first()
         if not ext_datasource_con:
             raise ExtDatasourceConNotExist()
         return self.default_dictify(ext_datasource_con)
@@ -62,5 +71,11 @@ class ExtDatasourceConService:
         ext_datasource_con = ExtDatasourceCon.query.get(id)
         if not ext_datasource_con:
             raise ExtDatasourceConNotExist()
+        if info.get("source_id"):
+            exists = ExtDatasourceCon.query.filter_by(
+                source_id=info["source_id"]
+            ).first()
+            if exists:
+                raise ExtDatasourceConExists()
         ext_datasource_con.update(**info)
         return ext_datasource_con
