@@ -1,9 +1,8 @@
-from flask_inputs.validators import JsonSchema
 from flask_inputs import Inputs
-from .constant import cmid
+from flask_inputs.validators import JsonSchema
 
 PROPERTIES = {
-    "cmid": cmid,
+    "source_id": {"type": "string"},
     "table_name": {"type": "string"},
     "ext_pri_key": {"type": "string"},
     "sync_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
@@ -20,8 +19,8 @@ PROPERTIES = {
 class GetExtTableInfos(Inputs):
     _schema = {
         "type": "object",
-        "properties": {"cmid": {"type": "string"}},
-        "required": ["cmid"],
+        "properties": {"source_id": {"type": "string"}},
+        "required": ["source_id"],
     }
     args = [JsonSchema(schema=_schema)]
 

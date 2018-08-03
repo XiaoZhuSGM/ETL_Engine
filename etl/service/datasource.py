@@ -3,6 +3,10 @@ from ..models import session_scope
 from ..models.datasource import ExtDatasource
 
 
+class ExtDatasourceNotExist(Exception):
+    def __str__(self):
+        return "ext_datasource not found"
+
 class DatasourceService(object):
 
     def __init__(self):
@@ -14,25 +18,18 @@ class DatasourceService(object):
         :param datasourceJson: Datasource的json格式
         :return: True OR False
         """
-        try:
-            self.__datasourceDao.add_datasource(datasource_json)
-            return True
-        except Exception as e:
-            print('Error', e)
-            return False
+        self.__datasourceDao.add_datasource(datasource_json)
+        return True
 
-    def find_datasource_by_id(self, datasource_id):
+    def find_datasource_by_id(self, source_id):
         """
-
         :param id: datasource_id
         :return: 如果有数据则返回,没有返回None
         """
-        try:
-            datasource = self.__datasourceDao.get_model_by_id(datasource_id)
-            return datasource.to_dict()
-        except Exception as e:
-            print('datasourceService error', e)
-            return None
+        datasource = self.__datasourceDao.find_datasource_by_source_id(source_id)
+        if not datasource:
+            raise ExtDatasourceNotExist()
+        return datasource.to_dict()
 
     def find_all(self):
         return self.__datasourceDao.find_all()
@@ -44,11 +41,10 @@ class DatasourceService(object):
         return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
 
     @session_scope
-    def update_by_id(self, datasource_id, new_datasource_json):
-        try:
-            old_datasource = self.__datasourceDao.get_model_by_id(datasource_id)
-            self.__datasourceDao.update(old_datasource, new_datasource_json)
-            return True
-        except Exception as e:
-            print('datasouceService error', e)
-            return False
+    def update_by_id(self, id, new_datasource_json):
+        old_datasource = self.__datasourceDao.get_model_by_id(id)
+
+        if not old_datasource:
+            raise ExtDatasourceNotExist()
+        self.__datasourceDao.update(old_datasource, new_datasource_json)
+        return True

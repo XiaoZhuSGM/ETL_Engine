@@ -16,13 +16,8 @@ service = ExtTableInfoService()
 
 @etl_admin_api.route("/ext_table_infos", methods=["GET"])
 @validate_arg(GetExtTableInfos)
-def get_ext_table_info():
-    try:
-        cmid = int(request.args["cmid"])
-    except ValueError as e:
-        return jsonify_with_error(APIError.VALIDATE_ERROR, e)
-
-    total, ext_table_infos = service.get_ext_table_infos(cmid)
+def get_ext_table_infos():
+    total, ext_table_infos = service.get_ext_table_infos(request.args["source_id"])
     return jsonify_with_data(
         APIError.OK, data={"total": total, "items": ext_table_infos}
     )
@@ -40,7 +35,7 @@ def create_ext_table_info():
 
 
 @etl_admin_api.route("/ext_table_info/<int:id>", methods=["GET"])
-def get_item(id):
+def get_ext_table_info(id):
     try:
         ext_table_info = service.get_ext_table_info(id)
     except ExtTableInfoNotExist as e:
@@ -50,11 +45,11 @@ def get_item(id):
 
 @etl_admin_api.route("/ext_table_info/<int:id>", methods=["PATCH"])
 @validate_arg(ModifyExtTableInfo)
-def modify_item(id):
+def modify_ext_table_info(id):
     data = request.json
-    if data.get('sync_column') is not None:
+    if data.get("sync_column") is not None:
         data["sync_column"] = ",".join(data["sync_column"])
-    if data.get('order_column') is not None:
+    if data.get("order_column") is not None:
         data["order_column"] = ",".join(data["order_column"])
     try:
         service.modify_ext_table_info(id, data)

@@ -12,7 +12,6 @@ class ExtDatasourceConService:
         return {
             "id": ext_datasource_con.id,
             "source_id": ext_datasource_con.source_id,
-            "cmid": ext_datasource_con.cmid,
             "roll_back": ext_datasource_con.roll_back,
             "frequency": ext_datasource_con.frequency,
             "period": ext_datasource_con.period,
@@ -32,17 +31,17 @@ class ExtDatasourceConService:
         ext_datasource_con.save()
         return ext_datasource_con
 
-    def get_ext_datasource_con(self, cmid):
+    def get_ext_datasource_con(self, source_id):
         """获取单个 ext_datasource_con.
 
-        :param id: ExtDatasourceCon.cmid
+        :param id: ExtDatasourceCon.source_id
         :type id: int
         :raises ExtDatasourceConNotExist: ExtDatasourceCon 不存在
         :return: ExtDatasourceCon 的详情
         :rtype: dict
         """
 
-        ext_datasource_con = ExtDatasourceCon.query.filter_by(cmid=cmid).first()
+        ext_datasource_con = ExtDatasourceCon.query.filter_by(source_id=source_id).first()
         if not ext_datasource_con:
             raise ExtDatasourceConNotExist()
         return self.default_dictify(ext_datasource_con)

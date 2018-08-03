@@ -13,7 +13,6 @@ class ExtTableInfoService:
     def default_dictify(self, ext_table_info):
         return {
             "id": ext_table_info.id,
-            "cmid": ext_table_info.cmid,
             "table_name": ext_table_info.table_name,
             "ext_column": ext_table_info.ext_column,
             "ext_pri_key": ext_table_info.ext_pri_key,
@@ -28,25 +27,30 @@ class ExtTableInfoService:
             "updated_at": ext_table_info.updated_at,
         }
 
-    def get_ext_table_infos(self, cmid):
-        """获取对应 cmid 的 ext_table_infos.
+    def get_ext_table_infos(self, source_id):
+        """获取对应 source_id 的 ext_table_infos.
 
-        :param cmid: cmid
-        :type cmid: int
+        :param source_id: source_id
+        :type source_id: int
         :return: 总数, ext_table_info 详情的列表.
         :rtype: tuple
         """
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
-        query = ExtTableInfo.query.filter_by(cmid=cmid)
-        total = query.order_by(None).count()
-        items = query.limit(per_page).offset((page - 1) * per_page)
+        if per_page != -1:
+            pagination = ExtTableInfo.query.filter_by(source_id=source_id).paginate(
+                page=page, per_page=per_page, error_out=False
+            )
+            items = pagination.items
+            total = pagination.total
+        else:
+            items = ExtTableInfo.query.filter_by(source_id=source_id).all()
+            total = len(items)
         return total, [self.default_dictify(eti) for eti in items]
 
     @session_scope
     def create_ext_table_info(self, info):
         """创建 ext_table_info.
-
         :param info: info 值.
         :type info: dict
         :return: ExtTableInfo

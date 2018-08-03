@@ -40,7 +40,7 @@ datasource_add = {
     'type': 'object',
     'properties': {
         'source_id': {'type': 'string'},
-        'cmid': {'type': 'integer'},
+        'cmid': {'type': 'array', 'items': {'type': 'number'}},
         'company_name': {'type': 'string'},
         'erp_vendor': {'type': 'string'},
         'dp_type': {'type': 'string'},
@@ -74,7 +74,7 @@ datasource_update = {
     'properties': {
         'id': {'type': 'integer'},
         'source_id': {'type': 'string'},
-        'cmid': {'type': 'integer'},
+        'cmid': {'type': 'array', 'items': {'type': 'number'}},
         'company_name': {'type': 'string'},
         'erp_vendor': {'type': 'string'},
         'dp_type': {'type': 'string'},
@@ -110,6 +110,3 @@ class JsonDatasourceAddInput(Inputs):
 
 class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
-
-
-

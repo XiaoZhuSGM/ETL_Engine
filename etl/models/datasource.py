@@ -6,8 +6,8 @@ from .base import CRUDMixin
 
 
 class ExtDatasource(CRUDMixin, db.Model):
-    source_id = db.Column(db.String(30), nullable=False)
-    cmid = db.Column(db.Integer, unique=True, nullable=False)
+    source_id = db.Column(db.String(15), unique=True, nullable=False)
+    cmid = db.Column(JSONB, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
     erp_vendor = db.Column(db.String(50), nullable=False)
     db_type = db.Column(db.String(50))
@@ -22,7 +22,7 @@ class ExtDatasource(CRUDMixin, db.Model):
 
     ext_tables = relationship(
         'ExtTableInfo',
-        primaryjoin='remote(ExtDatasource.cmid) == foreign(ExtTableInfo.cmid)',
+        primaryjoin='remote(ExtDatasource.source_id) == foreign(ExtTableInfo.source_id)',
         back_populates='datasource')
 
     def to_dict(self):

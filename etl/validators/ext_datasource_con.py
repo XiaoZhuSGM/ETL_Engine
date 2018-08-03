@@ -1,10 +1,8 @@
 
 from flask_inputs.validators import JsonSchema
 from flask_inputs import Inputs
-from .constant import cmid
 
 PROPERTIES = {
-    "cmid": cmid,
     "source_id": {"type": "string"},
     "roll_back": {"type": "integer"},
     "frequency": {"type": "integer"},
@@ -15,8 +13,8 @@ PROPERTIES = {
 class GetExtDatasourceCon(Inputs):
     _schema = {
         "type": "object",
-        "properties": {"cmid": {"type": "string"}},
-        "required": ["cmid"],
+        "properties": {"source_id": {"type": "string"}},
+        "required": ["source_id"],
     }
     args = [JsonSchema(schema=_schema)]
 

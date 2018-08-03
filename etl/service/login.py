@@ -14,6 +14,8 @@ class LoginService:
         return serializer.dumps({"username": "etl"}).decode("utf-8")
 
     def validate(self, token):
+        if token == 'AIRFLOW_REQUEST_TOKEN':  # for airflow
+            return True
         serializer = JWSSerializer(current_app.secret_key)
         try:
             data = serializer.loads(token)

@@ -7,7 +7,7 @@ from .base import CRUDMixin
 
 class ExtTableInfo(db.Model, CRUDMixin):
     __tablename__ = "ext_table_info"
-    cmid = Column(Integer)
+    source_id = db.Column(db.String(15))
     table_name = Column(String(100))
     ext_pri_key = Column(String(200))
     order_column = Column(String(200))
@@ -18,10 +18,11 @@ class ExtTableInfo(db.Model, CRUDMixin):
     record_num = Column(Integer)
     weight = Column(Integer)
     ext_column = Column(JSONB)
+    remark = Column(String(50))
 
     datasource = relationship(
         "ExtDatasource",
-        primaryjoin="foreign(ExtTableInfo.cmid) == remote(ExtDatasource.cmid)",
+        primaryjoin="foreign(ExtTableInfo.source_id) == remote(ExtDatasource.source_id)",
         uselist=False,
         back_populates="ext_tables",
     )
