@@ -1,7 +1,8 @@
-from etl import create_app
-from config.config import config
 import pytest
 from flask import url_for, json
+
+from config.config import config
+from etl import create_app
 
 
 @pytest.fixture(scope="module")
