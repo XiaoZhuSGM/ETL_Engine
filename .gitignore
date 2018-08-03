@@ -103,7 +103,6 @@ test/
 
 migrations/
 manage_local.py
-instance/local_config.py
 
 .pytest_cache/
 
