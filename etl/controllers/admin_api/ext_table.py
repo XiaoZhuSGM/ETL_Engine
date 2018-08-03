@@ -24,7 +24,7 @@ def download_tables(source_id):
     # 如果任务已经再，就不重复执行
     status = ext_table_service.get_status(source_id)
     if status == 'running':
-        return jsonify_with_data(APIError.BAD_REQUEST, reason="任务已经在执行，请勿重复执行")
+        return jsonify_with_data(APIError.PROCESSING, reason="task is running")
 
     # 测试数据库是否能够正常连接，只要有一个无法连接，就返回错误信息
     data = ext_table_service.get_datasource_by_source_id(source_id)
