@@ -21,6 +21,7 @@ def session_scope(func):
             return data
         except Exception as e:
             session.rollback()
+            raise
             # return e.message
         finally:
             session.close()
