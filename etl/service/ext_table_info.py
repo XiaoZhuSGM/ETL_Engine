@@ -10,21 +10,21 @@ class ExtTableInfoNotExist(Exception):
 
 
 class ExtTableInfoService:
-    def default_dictify(self, ext_table_info):
+    def default_dictify(self, eti):
         return {
-            "id": ext_table_info.id,
-            "table_name": ext_table_info.table_name,
-            "ext_column": ext_table_info.ext_column,
-            "ext_pri_key": ext_table_info.ext_pri_key,
-            "record_num": ext_table_info.record_num,
-            "order_column": ext_table_info.order_column.split(","),
-            "sync_column": ext_table_info.sync_column.split(","),
-            "limit_num": ext_table_info.limit_num,
-            "filter": ext_table_info.filter,
-            "filter_format": ext_table_info.filter_format,
-            "weight": ext_table_info.weight,
-            "created_at": ext_table_info.created_at,
-            "updated_at": ext_table_info.updated_at,
+            "id": eti.id,
+            "table_name": eti.table_name,
+            "ext_column": eti.ext_column,
+            "ext_pri_key": eti.ext_pri_key,
+            "record_num": eti.record_num,
+            "order_column": eti.order_column.split(",") if eti.order_column else [],
+            "sync_column": eti.sync_column.split(",") if eti.order_column else [],
+            "limit_num": eti.limit_num,
+            "filter": eti.filter,
+            "filter_format": eti.filter_format,
+            "weight": eti.weight,
+            "created_at": eti.created_at,
+            "updated_at": eti.updated_at,
         }
 
     def get_ext_table_infos(self, source_id):
