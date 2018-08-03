@@ -13,6 +13,7 @@ class APIError(object):
     BAD_REQUEST = (400, 'database connect fail')
     UNAUTHORIZED = (401, 'unauthorized')
     PROCESSING = (101, 'task is running')
+    CONFLICT = (409, 'conflict')
 
 
 def jsonify_with_data(err, **kwargs):

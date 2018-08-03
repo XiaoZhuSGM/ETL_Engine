@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 
 class ExtDatasourceCon(CRUDMixin, db.Model):
-    source_id = db.Column(VARCHAR(15))
+    source_id = db.Column(VARCHAR(15), unique=True)
     roll_back = db.Column(Integer)
     frequency = db.Column(Integer)
     period = db.Column(Integer)

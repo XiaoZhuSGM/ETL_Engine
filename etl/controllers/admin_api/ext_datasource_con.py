@@ -10,6 +10,7 @@ from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.ext_datasource_con import (
     ExtDatasourceConService,
     ExtDatasourceConNotExist,
+    ExtDatasourceConExists,
 )
 
 service = ExtDatasourceConService()
@@ -29,7 +30,10 @@ def get_ext_datasource_con():
 @validate_arg(CreateExtDatasourceCon)
 def create_ext_datasource_con():
     data = request.json
-    service.create_ext_datasource_con(data)
+    try:
+        service.create_ext_datasource_con(data)
+    except ExtDatasourceConExists as e:
+        return jsonify_with_error(APIError.CONFLICT, str(e))
     return jsonify_with_data(APIError.OK, data={})
 
 
@@ -41,4 +45,6 @@ def modify_ext_datasource_con(id):
         service.modify_ext_datasource_con(id, data)
     except ExtDatasourceConNotExist as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
+    except ExtDatasourceConExists as e:
+        return jsonify_with_error(APIError.CONFLICT, str(e))
     return jsonify_with_data(APIError.OK, data={})
