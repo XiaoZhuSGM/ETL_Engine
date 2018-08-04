@@ -34,7 +34,7 @@ def get_datasource(source_id):
         datasource = datasource_service.find_datasource_by_id(source_id)
         return jsonify_with_data(APIError.OK, data=datasource)
     except ExtDatasourceNotExist as e:
-        return jsonify_with_error(APIError.NOTFOUND, reason='id don\'t exist')
+        return jsonify_with_error(APIError.NOTFOUND, reason=str(e))
 
 
 
@@ -60,7 +60,7 @@ def update_datasource(id):
         datasource_service.update_by_id(id, new_datasource_json)
         return jsonify_with_data(APIError.OK)
     except ExtDatasourceNotExist as e:
-        return jsonify_with_data(APIError.SERVER_ERROR, reason='datasoure not exist')
+        return jsonify_with_data(APIError.SERVER_ERROR, reason=str(e))
 
 
 @etl_admin_api.route(DATASOURCE_API_TEST, methods=['POST'])
@@ -68,12 +68,11 @@ def update_datasource(id):
 def test_connection_datasource():
     data = request.json
     db_name = data.get('db_name', [])
-
     for db_dict in db_name:
         database = db_dict.get('database')
         data['database'] = database
         error = table_service.connect_test(**data)
         if error:
             return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
-
+    return jsonify_with_data(APIError.OK)
 
