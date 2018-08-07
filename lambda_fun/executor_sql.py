@@ -50,7 +50,9 @@ def my_function(event):
 
         key, full_key = upload_to_s3(source_id, table, _type, query_date, sql_data_frame)
 
-        return dict(status="OK", result=dict(table=key, full=full_key))
+        response = dict(status="OK", result=dict(full=full_key))
+        response["result"][table] = key
+        return response
     except Exception as e:
         return {'status': 'error', 'trace': str(traceback.format_exc())}
     finally:
@@ -90,9 +92,10 @@ def now_timestamp():
     return now_timestamp
 
 
+# {'t_im_flow': "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"}
 if __name__ == '__main__':
     event = {"source_id": "54YYYYYYYYYYYYY", "sql": (
-        "t_im_check_master", "SELECT * FROM t_rm_saleflow where oper_date >= '20180805' and oper_date < '20180806'"),
+        "t_im_flow", "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"),
              "type": "full", "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9",
              "query_date": "2018-08-05"}
 

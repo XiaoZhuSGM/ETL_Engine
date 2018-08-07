@@ -13,16 +13,17 @@ S3_BUCKET = 'ext-etl-data'
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 
 S3_CLIENT = boto3.resource('s3')
-LAMBDA_CLIENT = boto3.resource('lambda')
+LAMBDA_CLIENT = boto3.client('lambda')
 
 
-def handler(event):
+def extract_data(event):
     # Check if the incoming message was sent by SNS
     if 'Records' in event:
         message = json.loads(event['Records'][0]['Sns']['Message'])
     else:
         message = event
-    response = ext_db_worker = ExtDBWork(message)
+    ext_db_worker = ExtDBWork(message)
+    response = ext_db_worker.extract_data()
 
 
 class ExtDBWork(object):
@@ -34,7 +35,6 @@ class ExtDBWork(object):
         self.filename = message.get("filename", None)
         self.db_url = message.get("db_url")
 
-    @property
     def sqls(self):
         """
         example:
@@ -49,23 +49,27 @@ class ExtDBWork(object):
         :return:
         """
         key = SQL_PREFIX.format(source_id=self.source_id, date=self.query_date) + self.filename
+        print(key)
         extract_sqls = S3_CLIENT.Object(S3_BUCKET, key).get()['Body'].read().decode('utf-8')
-        return extract_sqls
+        return json.loads(extract_sqls)
 
     def extract_data(self):
         if self.source_id is None:
             return "source_id不能为空"
 
-        if self.query_date != self.sqls["query_date"]:
+        sql_info = self.sqls()
+
+        if self.query_date != sql_info["query_date"]:
             return "抓取日期和文件日期不一致"
 
         q = Queue()
         threads = []
-        _type = self.sqls["type"]
-        for sql in self.sqls["sql"]:
+        _type = sql_info["type"]
+        for sql in sql_info["sqls"]:
+            print(sql)
             thread_query = threading.Thread(target=self.thread_query_tables, args=(sql, q, _type))
             thread_query.start()
-            time.sleep(0.4)
+            time.sleep(1)
             threads.append(thread_query)
 
         for thread in threads:
@@ -74,13 +78,16 @@ class ExtDBWork(object):
         response = dict(source_id=self.source_id, query_date=self.query_date, task_type=self.task_type)
 
         extracted_data_list = list(q.queue)
+        if len(sql_info["sqls"]) == len(extracted_data_list):
+            print("OK")
+        print(extracted_data_list)
 
         return response
 
     def thread_query_tables(self, sql, q, _type):
-        sql = tuple(sql)
-        msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url)
-        from .executor_sql import my_function
+        sql = list(sql.items())[0]
+        msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
+        from lambda_fun.executor_sql import my_function
         payload = my_function(msg)
         # invoke_response = LAMBDA_CLIENT.invoke(
         #     FunctionName="executor_sql", InvocationType='RequestResponse',
@@ -95,3 +102,9 @@ class ExtDBWork(object):
         elif status and status == 'error':
             trace = payload.get('trace')
             print(trace)
+
+
+if __name__ == '__main__':
+    event = dict(source_id="54YYYYYYYYYYYYY", query_date="2018-08-06", task_type="full", filename="1.json",
+                 db_url="mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9")
+    extract_data(event)
