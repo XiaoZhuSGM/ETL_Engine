@@ -31,7 +31,6 @@ def download_tables(source_id):
     if data is None:
         return jsonify_with_error(APIError.NOTFOUND, "Datasource not found")
 
-
     db_name = data.get('db_name', [])
     for db_dict in db_name:
         database = db_dict.get('database')
@@ -53,8 +52,7 @@ def get_download_tables_status(source_id):
     ext_table_service = ExtTableService()
     status = ext_table_service.get_status(source_id)
 
-
     if status:
         return jsonify_with_data(APIError.OK, data={'status': status})
     else:
-        return jsonify_with_error(APIError.NOTFOUND, reason='no task')
+        return jsonify_with_data(APIError.OK, data={'status': 'no task'})

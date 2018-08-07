@@ -72,8 +72,8 @@ class ExtTableService(object):
                 if col['name'] == ext_pri_key and col['autoincrement'] is True:
                     flag = 1
 
-        columns = [{column['name']: str(column['type'])} for column in columns_list]
-        columns.append({'autoincrement':flag})
+        columns = {column['name']: str(column['type']) for column in columns_list}
+        columns.update({'autoincrement': flag})
         return columns
 
     def _get_record_num(self, tab):
