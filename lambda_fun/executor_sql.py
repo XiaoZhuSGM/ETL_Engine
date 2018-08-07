@@ -15,8 +15,8 @@ S3_BUCKET = "ext-etl-data"
 S3_RECORDS = 'datapipeline/source_id={source_id}/ext_date={date}/table={ext_table}/' \
              'dump={timestamp}&rowcount={rowcount}.csv.gz'
 
-S3_FULL_RECORDS = 'data/source_id={source_id}/ext_date={date}/table={ext_table}/' \
-                  'dump={timestamp}&rowcount={rowcount}.csv.gz'
+S3_WHOLE_RECORDS = 'data/source_id={source_id}/ext_date={date}/table={ext_table}/' \
+                   'dump={timestamp}&rowcount={rowcount}.csv.gz'
 
 _TZINFO = pytz.timezone('Asia/Shanghai')
 S3 = boto3.resource("s3")
@@ -28,7 +28,7 @@ class Method(Enum):
     increment = 3
 
 
-def my_function(event):
+def handler(event):
     # Check if the incoming message was sent by SNS
     if 'Records' in event:
         message = json.loads(event['Records'][0]['Sns']['Message'])
@@ -50,7 +50,7 @@ def my_function(event):
 
         key, full_key = upload_to_s3(source_id, table, _type, query_date, sql_data_frame)
 
-        response = dict(status="OK", result=dict(full=full_key))
+        response = dict(status="OK", result=dict())
         response["result"][table] = key
         return response
     except Exception as e:
@@ -74,9 +74,9 @@ def upload_to_s3(source_id, table, _type, query_date, frame):
             'Bucket': S3_BUCKET,
             'Key': key
         }
-        full_key = S3_FULL_RECORDS.format(source_id=source_id, ext_table=table, date=query_date,
-                                          timestamp=now_timestamp(),
-                                          rowcount=count)
+        full_key = S3_WHOLE_RECORDS.format(source_id=source_id, ext_table=table, date=query_date,
+                                           timestamp=now_timestamp(),
+                                           rowcount=count)
         S3.Bucket(S3_BUCKET).copy(copy_source, full_key)
         return key, full_key
     return key, None
@@ -88,8 +88,8 @@ def get_ymd():
 
 
 def now_timestamp():
-    now_timestamp = datetime.fromtimestamp(time.time(), tz=_TZINFO)
-    return now_timestamp
+    _timestamp = datetime.fromtimestamp(time.time(), tz=_TZINFO)
+    return _timestamp
 
 
 # {'t_im_flow': "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"}
@@ -99,4 +99,4 @@ if __name__ == '__main__':
              "type": "full", "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9",
              "query_date": "2018-08-05"}
 
-    my_function(event)
+    handler(event)

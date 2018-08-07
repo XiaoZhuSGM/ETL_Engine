@@ -5,15 +5,29 @@ import time
 import boto3
 import threading
 from queue import Queue
+from collections import defaultdict
+from datetime import datetime
+from enum import Enum
 
-_tzinfo = pytz.timezone('Asia/Shanghai')
+_TZINFO = pytz.timezone('Asia/Shanghai')
 
 S3_BUCKET = 'ext-etl-data'
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
+HISTORY_HUMP_JSON = 'datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/' \
+                    'dump={timestamp}.json'
+
+FULL_JSON = 'datapipeline/source_id={source_id}/ext_date={date}/' \
+            'dump={date}_whole_path.json'
 
 S3_CLIENT = boto3.resource('s3')
 LAMBDA_CLIENT = boto3.client('lambda')
+
+
+class Method(Enum):
+    full = 1
+    sync = 2
+    increment = 3
 
 
 def extract_data(event):
@@ -24,6 +38,32 @@ def extract_data(event):
         message = event
     ext_db_worker = ExtDBWork(message)
     response = ext_db_worker.extract_data()
+    print(json.dumps(response))
+    if response and ext_db_worker.task_type != Method.sync.name:
+        json_key = HISTORY_HUMP_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date,
+                                            timestamp=now_timestamp())
+        print(json_key)
+        S3_CLIENT.Object(bucket_name=S3_BUCKET, key=json_key).put(
+            Body=json.dumps(response))
+
+        # 不需要，可以在airflow生成全路径
+        # if ext_db_worker.task_type == Method.full.name:
+        #     """full json 每天只会有一份，每次增量的话都是更新"""
+        #     S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
+        #         Body=json.dumps([response]))
+        # elif ext_db_worker.task_type == Method.sync.name:
+        #     whole_path = S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).get()['Body']
+        #     whole_path = json.loads(whole_path)
+        #     whole_path.append(response)
+        #     S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
+        #         Body=json.dumps([response]))
+        # else:
+        #     pass
+
+
+def now_timestamp():
+    _timestamp = datetime.fromtimestamp(time.time(), tz=_TZINFO)
+    return _timestamp
 
 
 class ExtDBWork(object):
@@ -66,11 +106,13 @@ class ExtDBWork(object):
         threads = []
         _type = sql_info["type"]
         for sql in sql_info["sqls"]:
-            print(sql)
-            thread_query = threading.Thread(target=self.thread_query_tables, args=(sql, q, _type))
-            thread_query.start()
-            time.sleep(1)
-            threads.append(thread_query)
+            table_name, = sql
+            sql_statement, = sql.values()
+            for value in sql_statement:
+                thread_query = threading.Thread(target=self.thread_query_tables, args=((table_name, value), q, _type))
+                thread_query.start()
+                time.sleep(1)
+                threads.append(thread_query)
 
         for thread in threads:
             thread.join()
@@ -80,15 +122,31 @@ class ExtDBWork(object):
         extracted_data_list = list(q.queue)
         if len(sql_info["sqls"]) == len(extracted_data_list):
             print("OK")
-        print(extracted_data_list)
+
+        extracted_data = list()
+        sign_has_record_in_extracted_data_table_name = list()
+        for data_road in extracted_data_list:
+            (table, road), = data_road.items()
+            if table not in sign_has_record_in_extracted_data_table_name:
+                temp = defaultdict(list)
+                temp["table"] = table
+                temp["records"].append(road)
+                extracted_data.append(temp)
+                sign_has_record_in_extracted_data_table_name.append(table)
+            else:
+                for target_dict in extracted_data:
+                    if target_dict["table"] == table:
+                        target_dict["records"].append(road)
+                    continue
+
+        response["extract_data"] = extracted_data
 
         return response
 
     def thread_query_tables(self, sql, q, _type):
-        sql = list(sql.items())[0]
         msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
-        from lambda_fun.executor_sql import my_function
-        payload = my_function(msg)
+        from lambda_fun.executor_sql import handler
+        payload = handler(msg)
         # invoke_response = LAMBDA_CLIENT.invoke(
         #     FunctionName="executor_sql", InvocationType='RequestResponse',
         #     Payload=json.dumps(msg), Qualifier='prod')
@@ -105,6 +163,8 @@ class ExtDBWork(object):
 
 
 if __name__ == '__main__':
+    start = time.time()
     event = dict(source_id="54YYYYYYYYYYYYY", query_date="2018-08-06", task_type="full", filename="1.json",
                  db_url="mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9")
     extract_data(event)
+    print('spend time: ', time.time() - start)
