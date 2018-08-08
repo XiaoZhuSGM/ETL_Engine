@@ -12,7 +12,7 @@ class ExtTableInfo(db.Model, CRUDMixin):
     ext_pri_key = Column(String(200))
     order_column = Column(String(200))
     sync_column = Column(String(200))
-    limit_num = Column(Integer)
+    limit_num = Column(Integer)  # 分页页数
     filter = Column(String(500))
     filter_format = Column(String(50))
     record_num = Column(Integer)
