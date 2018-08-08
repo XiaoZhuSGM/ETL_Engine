@@ -9,7 +9,7 @@ class ExtDatasource(CRUDMixin, db.Model):
     source_id = db.Column(db.String(15), unique=True, nullable=False)
     cmid = db.Column(JSONB, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
-    c = db.Column(db.String(50), nullable=False)
+    erp_vendor = db.Column(db.String(50), nullable=False)
     db_type = db.Column(db.String(50))
     host = db.Column(db.String(255))
     port = db.Column(db.Integer)
