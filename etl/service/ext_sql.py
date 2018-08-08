@@ -36,7 +36,7 @@ class DatasourceSqlService(object):
         extraxt_sqls = dict(type="full", date=extract_date)
         for table in tables:
             if table.limit_num is None or table.limit_num <= 1:
-                sql_str = self.common_mould(table)
+                sql_str = self.common_mould(table, extract_date)
             else:
                 db_type = table.datasource.db_type
                 sql_str = self.page_by_limit_mould(table, db_type, extract_date)
