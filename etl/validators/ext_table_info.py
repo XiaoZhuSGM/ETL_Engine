@@ -19,8 +19,12 @@ PROPERTIES = {
 class GetExtTableInfos(Inputs):
     _schema = {
         "type": "object",
-        "properties": {"source_id": {"type": "string"}},
-        "required": ["source_id"],
+        "properties": {
+            "source_id": {"type": "string"},
+            "table_name": {"type": "string"},
+            "weight": {"type": "string", "enum": ["0", "1", "2"]},
+            "record_num": {"type": "string", "enum": ["0", "1"]},
+        },
     }
     args = [JsonSchema(schema=_schema)]
 
@@ -36,8 +40,5 @@ class CreateExtTableInfo(Inputs):
 
 
 class ModifyExtTableInfo(Inputs):
-    _schema = {
-        "type": "object",
-        "properties": PROPERTIES,
-    }
+    _schema = {"type": "object", "properties": PROPERTIES}
     json = [JsonSchema(schema=_schema)]

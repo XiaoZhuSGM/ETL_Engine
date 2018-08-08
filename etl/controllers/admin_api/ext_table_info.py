@@ -17,7 +17,7 @@ service = ExtTableInfoService()
 @etl_admin_api.route("/ext_table_infos", methods=["GET"])
 @validate_arg(GetExtTableInfos)
 def get_ext_table_infos():
-    total, ext_table_infos = service.get_ext_table_infos(request.args["source_id"])
+    total, ext_table_infos = service.get_ext_table_infos(request.args)
     return jsonify_with_data(
         APIError.OK, data={"total": total, "items": ext_table_infos}
     )
