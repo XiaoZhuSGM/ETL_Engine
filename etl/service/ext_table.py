@@ -198,18 +198,18 @@ class ExtTableService(object):
 
     def get_status(self, source_id):
         datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
-        status = datasource.table_structure if datasource else None
+        status = datasource.fetch_status if datasource else None
         return status
 
     @session_scope
     def _update_status(self, source_id, status):
         datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
-        datasource.table_structure = status
+        datasource.fetch_status = status
 
     @session_scope
     def set_all_fail(self):
         datasource_service = DatasourceService()
         datasource_models = datasource_service.find_all()
         for datasource in datasource_models:
-            if datasource.table_structure == 'running':
-                datasource.table_structure = 'fail'
+            if datasource.fetch_status == 'running':
+                datasource.fetch_status = 'fail'

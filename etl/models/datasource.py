@@ -19,7 +19,7 @@ class ExtDatasource(CRUDMixin, db.Model):
     traversal = db.Column(db.Boolean)
     delta = db.Column(db.Integer)
     status = db.Column(db.Integer)
-    table_structure = db.Column(db.String(10))
+    fetch_status = db.Column(db.String(10))
 
     ext_tables = relationship(
         'ExtTableInfo',
