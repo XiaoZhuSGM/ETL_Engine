@@ -30,7 +30,7 @@ class Method(Enum):
     increment = 3
 
 
-def extract_data(event):
+def handler(event):
     # Check if the incoming message was sent by SNS
     if 'Records' in event:
         message = json.loads(event['Records'][0]['Sns']['Message'])
@@ -169,5 +169,5 @@ if __name__ == '__main__':
     start = time.time()
     event = dict(source_id="54YYYYYYYYYYYYY", query_date="2018-08-06", task_type="full", filename="1.json",
                  db_url="mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9")
-    extract_data(event)
+    handler(event)
     print('spend time: ', time.time() - start)
