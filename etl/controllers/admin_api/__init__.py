@@ -20,6 +20,8 @@ from .login import *  # noqa
 
 from .ext_table import *  # noqa
 
+from .ext_sql import *
+
 
 class APIError(object):
     """
