@@ -18,6 +18,9 @@ S3_RECORDS = 'datapipeline/source_id={source_id}/ext_date={date}/table={ext_tabl
 S3_WHOLE_RECORDS = 'data/source_id={source_id}/ext_date={date}/table={ext_table}/' \
                    'dump={timestamp}&rowcount={rowcount}.csv.gz'
 
+SYNC_RECORDS = 'sync/source_id={source_id}/ext_date={date}/table={ext_table}/' \
+               'dump={timestamp}&rowcount={rowcount}.csv.gz'
+
 _TZINFO = pytz.timezone('Asia/Shanghai')
 S3 = boto3.resource("s3")
 
@@ -45,10 +48,10 @@ def handler(event):
     try:
         sql_data_frame = pd.read_sql(sql, engine)
 
-        if _type.lower() == Method.sync.name:
-            return
+        # if _type.lower() == Method.sync.name:
+        #     return
 
-        key, full_key = upload_to_s3(source_id, table, _type, query_date, sql_data_frame)
+        key = upload_to_s3(source_id, table, _type, query_date, sql_data_frame)
 
         response = dict(status="OK", result=dict())
         response["result"][table] = key
@@ -65,21 +68,26 @@ def upload_to_s3(source_id, table, _type, query_date, frame):
     frame.to_csv(filename.name, index=False, compression="gzip")
     filename.seek(0)
 
-    key = S3_RECORDS.format(source_id=source_id, ext_table=table, date=query_date, timestamp=now_timestamp(),
-                            rowcount=count)
+    if _type == Method.sync.name:
+        key = SYNC_RECORDS.format(source_id=source_id, ext_table=table, date=query_date, timestamp=now_timestamp(),
+                                  rowcount=count)
+    else:
+        key = S3_RECORDS.format(source_id=source_id, ext_table=table, date=query_date, timestamp=now_timestamp(),
+                                rowcount=count)
     # S3.Object(bucket_name=S3_BUCKET, key=key).put(Body=filename)
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    if _type == Method.full.name:
-        copy_source = {
-            'Bucket': S3_BUCKET,
-            'Key': key
-        }
-        full_key = S3_WHOLE_RECORDS.format(source_id=source_id, ext_table=table, date=query_date,
-                                           timestamp=now_timestamp(),
-                                           rowcount=count)
-        S3.Bucket(S3_BUCKET).copy(copy_source, full_key)
-        return key, full_key
-    return key, None
+    # 不需要这一步骤，初次抓取的话全路径和每次第一次抓取保持同一个路径，不需要在复制，等同步更新的时候再更新到data目录下
+    # if _type == Method.full.name:
+    #     copy_source = {
+    #         'Bucket': S3_BUCKET,
+    #         'Key': key
+    #     }
+    #     full_key = S3_WHOLE_RECORDS.format(source_id=source_id, ext_table=table, date=query_date,
+    #                                        timestamp=now_timestamp(),
+    #                                        rowcount=count)
+    #     S3.Bucket(S3_BUCKET).copy(copy_source, full_key)
+    #     return key, full_key
+    return key
 
 
 def get_ymd():
