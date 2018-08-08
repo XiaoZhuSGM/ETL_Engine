@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 import json
 import pytz
 import time
 import boto3
-import threading
-from queue import Queue
+from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from datetime import datetime
 from enum import Enum
+
 
 _TZINFO = pytz.timezone('Asia/Shanghai')
 
@@ -72,13 +71,13 @@ class ExtDBWork(object):
         """
         example:
         {"sqls": [{"t_im_check_master": "SELECT * FROM t_im_check_master where oper_date >= '20180805' and oper_date < '20180806'"},
-		        {"t_im_flow": "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"},
-		        {"t_rm_saleflow": "SELECT * FROM t_rm_saleflow where oper_date >= '20180805' and oper_date < '20180806'"},
-		        {"t_da_jxc_daysum": "SELECT * FROM t_da_jxc_daysum where oper_date >= '20180805' and oper_date < '20180806'"},
-		        {"t_im_check_sum": "SELECT a.* FROM t_im_check_sum a left join t_im_check_master b on a.sheet_no=b.check_no where oper_date >= '20180805' and oper_date < '20180806'"}],
-	     "source_id": "54YYYYYYYYYYYYY",
-	     "query_date": "2018-08-05"
-	     "type":"full"}
+                {"t_im_flow": "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"},
+                {"t_rm_saleflow": "SELECT * FROM t_rm_saleflow where oper_date >= '20180805' and oper_date < '20180806'"},
+                {"t_da_jxc_daysum": "SELECT * FROM t_da_jxc_daysum where oper_date >= '20180805' and oper_date < '20180806'"},
+                {"t_im_check_sum": "SELECT a.* FROM t_im_check_sum a left join t_im_check_master b on a.sheet_no=b.check_no where oper_date >= '20180805' and oper_date < '20180806'"}],
+         "source_id": "54YYYYYYYYYYYYY",
+         "query_date": "2018-08-05"
+         "type":"full"}
         return:
         """
         key = SQL_PREFIX.format(source_id=self.source_id, date=self.query_date) + self.filename
@@ -95,24 +94,20 @@ class ExtDBWork(object):
         if self.query_date != sql_info["query_date"]:
             return "抓取日期和文件日期不一致"
 
-        q = Queue()
-        threads = []
         _type = sql_info["type"]
-        for sql in sql_info["sqls"]:
-            table_name, = sql
-            sql_statement, = sql.values()
-            for value in sql_statement:
-                thread_query = threading.Thread(target=self.thread_query_tables, args=((table_name, value), q, _type))
-                thread_query.start()
-                time.sleep(1)
-                threads.append(thread_query)
-
-        for thread in threads:
-            thread.join()
+        futures = []
+        with ThreadPoolExecutor() as executor:
+            for sql in sql_info['sqls']:
+                for table_name, sql_statement in sql.items():
+                    for value in sql_statement:
+                        future = executor.submit(self.thread_query_tables, (table_name, value), _type)
+                        futures.append(future)
+                        time.sleep(1)
 
         response = dict(source_id=self.source_id, query_date=self.query_date, task_type=self.task_type)
+        results = [f.result() for f in futures]
+        extracted_data_list = [r for r in results if r is not None]
 
-        extracted_data_list = list(q.queue)
         if len(sql_info["sqls"]) == len(extracted_data_list):
             print("OK")
 
@@ -137,9 +132,9 @@ class ExtDBWork(object):
 
         return response
 
-    def thread_query_tables(self, sql, q, _type):
+    def thread_query_tables(self, sql, _type):
         msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
-        from lambda_fun.executor_sql import handler
+        from executor_sql import handler
         payload = handler(msg)
         # invoke_response = LAMBDA_CLIENT.invoke(
         #     FunctionName="executor_sql", InvocationType='RequestResponse',
@@ -150,10 +145,11 @@ class ExtDBWork(object):
         status = payload.get('status', None)
         if status and status == 'OK':
             result = payload.get('result')
-            q.put_nowait(result)
+            return result
         elif status and status == 'error':
             trace = payload.get('trace')
             print(trace)
+        return None
 
 
 if __name__ == '__main__':
