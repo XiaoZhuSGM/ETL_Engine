@@ -3,8 +3,6 @@ from flask import request, current_app
 from etl.controllers import APIError, jsonify_with_error
 from etl.service.login import LoginService
 from etl.service.ext_table import ExtTableService
-import fileinput
-import os
 service = LoginService()
 ext_table_service = ExtTableService()
 
@@ -20,9 +18,7 @@ def before_request():
         return jsonify_with_error(APIError.UNAUTHORIZED)
 
 
+# 防止程序意外终端，导致抓表结构状态不对，在第一请求之前将所有running的状态改成fail
 @etl_admin_api.before_app_first_request
 def before_app_first_request():
-    if os.path.exists(ext_table_service.status_file_path):
-        with fileinput.input(files=ext_table_service.status_file_path, inplace=True) as file:
-            for line in file:
-                print(line.strip().replace('running', 'fail'))
+    ext_table_service.set_all_fail()

@@ -2,8 +2,7 @@ from sqlalchemy import create_engine, inspect, func, select, table
 from etl.models.ext_table_info import ExtTableInfo
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
-import fileinput
-import os
+from etl.service.datasource import DatasourceService
 
 
 class ExtTableService(object):
@@ -13,8 +12,6 @@ class ExtTableService(object):
         self.inspector = None
         self.conn = None
         self.schema = None
-        # 用一个文件记录异步任务执行的状态，该变量标示文件的路径
-        self.status_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext_table_status.log')
         self.db_schema = None
 
     def connect_test(self, **kwargs):
@@ -170,11 +167,10 @@ class ExtTableService(object):
 
         self.conn.close()
 
-    def download_tables(self,app, lock, **data):
+    def download_tables(self, app, **data):
         with app.app_context():
             source_id = data.get('source_id')
-            with lock:
-                self._set_status(source_id)
+            self._update_status(source_id, 'running')
 
             try:
                 db_name = data.get('db_name', [])
@@ -196,50 +192,24 @@ class ExtTableService(object):
             # 如果任务异常结束，保证状态能及时更新
             except Exception as e:
                 print(repr(e))
-                with lock:
-                    self._update_status(source_id, 'fail')
+                self._update_status(source_id, 'fail')
 
-            with lock:
-                self._update_status(source_id, 'success')
+            self._update_status(source_id, 'success')
 
     def get_status(self, source_id):
-        status = None
-        if not os.path.exists(self.status_file_path):
-            return status
-
-        with fileinput.input(files=self.status_file_path) as file:
-            for line in file:
-                if 'source_id:%s,' % source_id in line:
-                    try:
-                        status = line.strip('\n').split(',')[1].split(':')[1]
-                    except IndexError:
-                        status = None
-
+        datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
+        status = datasource.table_structure if datasource else None
         return status
 
-    def _set_status(self, source_id):
-        try:
-            context, flag = '', False
-            with open(self.status_file_path, 'r+') as f:
-                for line in f.readlines():
-                    if 'source_id:%s,' % source_id in line:
-                        line = 'source_id:%s,status:running' % source_id + '\n'
-                        flag = True
-                    context += line
-
-            if flag is False:
-                context += 'source_id:%s,status:running' % source_id + '\n'
-            with open(self.status_file_path, 'w+') as f:
-                f.write(context)
-        except FileNotFoundError:
-            with open(self.status_file_path, 'w+') as f:
-                f.write('source_id:%s,status:running' % source_id + '\n')
-
+    @session_scope
     def _update_status(self, source_id, status):
-        with fileinput.input(files=self.status_file_path, inplace=True) as file:
-            for line in file:
-                if 'source_id:%s,' % source_id in line:
-                    print(line.strip().replace('running', str(status)))
-                else:
-                    print(line.strip())
+        datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
+        datasource.table_structure = status
 
+    @session_scope
+    def set_all_fail(self):
+        datasource_service = DatasourceService()
+        datasource_models = datasource_service.find_all()
+        for datasource in datasource_models:
+            if datasource.table_structure == 'running':
+                datasource.table_structure = 'fail'

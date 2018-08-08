@@ -1,11 +1,8 @@
 from . import etl_admin_api, jsonify_with_data, jsonify_with_error
 from .. import APIError
 from etl.service.ext_table import ExtTableService
-from threading import Thread, Lock
+from threading import Thread
 from flask import current_app
-
-
-lock = Lock()
 
 
 @etl_admin_api.route('/tables/download/<source_id>', methods=['GET'])
@@ -40,7 +37,7 @@ def download_tables(source_id):
             return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
 
     task = Thread(target=ext_table_service.download_tables,
-                            args=(current_app._get_current_object(), lock), kwargs=data)
+                            args=(current_app._get_current_object(),), kwargs=data)
 
     task.start()
 
