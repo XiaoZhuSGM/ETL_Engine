@@ -47,19 +47,10 @@ def handler(event):
             Body=response)
 
         if ext_db_worker.task_type == Method.full.name:
-            """full json 每天只会有一份，每次增量后的话都是更新"""
+            """full json 每天只会有一份，每次增量后的话都是更新，同步更新后放到data目录"""
             full_json_ley = FULL_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date)
             S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
                 Body=response)
-        # elif ext_db_worker.task_type == Method.sync.name:
-        #     whole_path = S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).get()['Body']
-        #     whole_path = json.loads(whole_path)
-        #     whole_path.append(response)
-        #     S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
-        #         Body=json.dumps([response]))
-        # else:
-        #     pass
-
     return response
 
 
