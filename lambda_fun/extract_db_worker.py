@@ -17,7 +17,7 @@ SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 HISTORY_HUMP_JSON = 'datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/' \
                     'dump={timestamp}.json'
 
-FULL_JSON = 'datapipeline/source_id={source_id}/ext_date={date}/' \
+FULL_JSON = 'data/source_id={source_id}/ext_date={date}/' \
             'dump={date}_whole_path.json'
 
 S3_CLIENT = boto3.resource('s3')
@@ -37,20 +37,20 @@ def extract_data(event):
     else:
         message = event
     ext_db_worker = ExtDBWork(message)
-    response = ext_db_worker.extract_data()
-    print(json.dumps(response))
+    response = json.dumps(ext_db_worker.extract_data())
+    print(response)
     if response and ext_db_worker.task_type != Method.sync.name:
         json_key = HISTORY_HUMP_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date,
                                             timestamp=now_timestamp())
         print(json_key)
         S3_CLIENT.Object(bucket_name=S3_BUCKET, key=json_key).put(
-            Body=json.dumps(response))
+            Body=response)
 
-        # 不需要，可以在airflow生成全路径
-        # if ext_db_worker.task_type == Method.full.name:
-        #     """full json 每天只会有一份，每次增量的话都是更新"""
-        #     S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
-        #         Body=json.dumps([response]))
+        if ext_db_worker.task_type == Method.full.name:
+            """full json 每天只会有一份，每次增量后的话都是更新"""
+            full_json_ley = FULL_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date)
+            S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
+                Body=response)
         # elif ext_db_worker.task_type == Method.sync.name:
         #     whole_path = S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).get()['Body']
         #     whole_path = json.loads(whole_path)
@@ -59,6 +59,8 @@ def extract_data(event):
         #         Body=json.dumps([response]))
         # else:
         #     pass
+
+    return response
 
 
 def now_timestamp():
@@ -86,7 +88,7 @@ class ExtDBWork(object):
 	     "source_id": "54YYYYYYYYYYYYY",
 	     "query_date": "2018-08-05"
 	     "type":"full"}
-        :return:
+        return:
         """
         key = SQL_PREFIX.format(source_id=self.source_id, date=self.query_date) + self.filename
         print(key)
@@ -137,6 +139,7 @@ class ExtDBWork(object):
                 for target_dict in extracted_data:
                     if target_dict["table"] == table:
                         target_dict["records"].append(road)
+                        break
                     continue
 
         response["extract_data"] = extracted_data
