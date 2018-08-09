@@ -27,24 +27,38 @@ class ExtTableInfoService:
             "updated_at": eti.updated_at,
         }
 
-    def get_ext_table_infos(self, source_id):
-        """获取对应 source_id 的 ext_table_infos.
+    def get_ext_table_infos(self, args):
+        """获取对应条件的 ext_table_infos.
 
-        :param source_id: source_id
-        :type source_id: int
+        :param args: args
+        :type args: dict
         :return: 总数, ext_table_info 详情的列表.
         :rtype: tuple
         """
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
+        source_id = args.get("source_id")
+        weight = args.get("weight")
+        table_name = args.get("table_name")
+        record_num = args.get("record_num")
+        query = ExtTableInfo.query
+        if source_id:
+            query = query.filter_by(source_id=source_id)
+        if weight:
+            query = query.filter_by(weight=int(weight))
+        if table_name:
+            query = query.filter_by(table_name=table_name)
+        if record_num:
+            if int(record_num) == 0:
+                query = query.filter(ExtTableInfo.record_num == 0)
+            else:
+                query = query.filter(ExtTableInfo.record_num > 0)
         if per_page != -1:
-            pagination = ExtTableInfo.query.filter_by(source_id=source_id).paginate(
-                page=page, per_page=per_page, error_out=False
-            )
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
             items = pagination.items
             total = pagination.total
         else:
-            items = ExtTableInfo.query.filter_by(source_id=source_id).all()
+            items = query.all()
             total = len(items)
         return total, [self.default_dictify(eti) for eti in items]
 
