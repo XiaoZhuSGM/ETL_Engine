@@ -29,7 +29,7 @@ class Method(Enum):
     increment = 3
 
 
-def handler(event):
+def handler(event, context):
     # Check if the incoming message was sent by SNS
     if 'Records' in event:
         message = json.loads(event['Records'][0]['Sns']['Message'])
@@ -134,14 +134,14 @@ class ExtDBWork(object):
 
     def thread_query_tables(self, sql, _type):
         msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
-        from executor_sql import handler
-        payload = handler(msg)
-        # invoke_response = LAMBDA_CLIENT.invoke(
-        #     FunctionName="executor_sql", InvocationType='RequestResponse',
-        #     Payload=json.dumps(msg), Qualifier='prod')
-        # payload = invoke_response.get('Payload')
-        # payload_str = payload.read()
-        # payload = json.loads(payload_str)
+        # from executor_sql import handler
+        # payload = handler(msg)
+        invoke_response = LAMBDA_CLIENT.invoke(
+            FunctionName="executor_sql", InvocationType='RequestResponse',
+            Payload=json.dumps(msg), Qualifier='prod')
+        payload = invoke_response.get('Payload')
+        payload_str = payload.read()
+        payload = json.loads(payload_str)
         status = payload.get('status', None)
         if status and status == 'OK':
             result = payload.get('result')
