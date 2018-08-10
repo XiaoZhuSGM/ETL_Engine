@@ -5,6 +5,7 @@ from copy import deepcopy
 PROPERTIES = {
     "source_id": {"type": "string"},
     "table_name": {"type": "string"},
+    "alias_table_name": {"type": "string"},
     "ext_pri_key": {"type": "string"},
     "sync_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
     "order_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
