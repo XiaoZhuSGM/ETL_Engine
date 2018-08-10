@@ -3,6 +3,7 @@ from datetime import datetime
 from common.common import PAGE_SQL
 from etl import db
 from ..models import ExtDatasource, ExtTableInfo
+from collections import defaultdict
 
 
 class DatasourceSqlService(object):
@@ -31,18 +32,15 @@ class DatasourceSqlService(object):
                 ExtTableInfo.filter_format,
                 ExtTableInfo.limit_num,
                 ExtTableInfo.order_column,
-            )
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
-            .all()
+                ExtTableInfo.alias_table_name
+            ).filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1).all()
         )
 
         return {
             "type": "full",
             "date": extract_date,
-            "sqls": {
-                table.table_name: self._generate_by_correct_mould(table, extract_date)
-                for table in tables
-            },
+            "sqls": self._generate_by_correct_mould(tables, extract_date)
+
         }
 
     def generate_table_sql(self, source_id, table_names, extract_date):
@@ -54,30 +52,29 @@ class DatasourceSqlService(object):
                 ExtTableInfo.limit_num,
                 ExtTableInfo.order_column,
             )
-            .filter(
+                .filter(
                 ExtTableInfo.source_id == source_id,
                 ExtTableInfo.weight == 1,
                 ExtTableInfo.table_name.in_(table_names.split(",")),
-            )
-            .all()
+            ).all()
         )
-        print(tables)
         return {
             "type": "single_table",
             "date": extract_date,
-            "sqls": {
-                table.table_name: self._generate_by_correct_mould(table, extract_date)
-                for table in tables
-            },
+            "sqls": self._generate_by_correct_mould(tables, extract_date)
         }
 
-    def _generate_by_correct_mould(self, table, extract_date):
-        if table.limit_num is None or table.limit_num <= 1:
-            sql_str = self._common_mould(table, extract_date)
-        else:
-            db_type = table.datasource.db_type
-            sql_str = self._page_by_limit_mould(table, db_type, extract_date)
-        return sql_str
+    def _generate_by_correct_mould(self, tables, extract_date):
+        sqls = defaultdict(list)
+        for table in tables:
+            if table.limit_num is None or table.limit_num <= 1:
+                sql_str = self._common_mould(table, extract_date)
+            else:
+                db_type = table.datasource.db_type
+                sql_str = self._page_by_limit_mould(table, db_type, extract_date)
+
+            sqls[table.alias_table_name if table.alias_table_name else table.table_name].extend(sql_str)
+        return sqls
 
     def _page_by_limit_mould(self, table, db_type, extract_date):
         """
