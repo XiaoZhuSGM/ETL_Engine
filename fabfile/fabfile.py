@@ -5,10 +5,25 @@ ENV = {"dev": "172.31.16.17"}
 
 
 @task
+def reload(c, env="dev"):
+    """Reload app."""
+    with Connection(host=ENV[env], user="centos") as c:
+        with c.cd("/data/code/etl-engine"):
+            c.run("kill -HUP $(cat gunicorn.pid)")
+
+
+@task
+def supervisor(c, env="dev", command=""):
+    """Supervisor command."""
+    with Connection(host=ENV[env], user="centos") as c:
+        with c.cd("/data/code"):
+            c.run(f"supervisorctl -c supervisord.conf {command} etl-engine")
+
+
+@task(post=[reload])
 def deploy(c, env="dev", branch="dev"):
     """Deploy <branch> with <env>.
     """
-
     with Connection(host=ENV[env], user="centos") as c:
         with c.cd("/data/code/etl-engine/source"):
             # 1. 丢弃远端的修改
@@ -20,8 +35,6 @@ def deploy(c, env="dev", branch="dev"):
             c.run(
                 "venv/bin/pip install -r requirements.txt -i https://pypi.doubanio.com/simple/"
             )
-        with c.cd("/data/code/etl-engine"):
-            c.run("kill -HUP $(cat gunicorn.pid)")
 
 
 @task

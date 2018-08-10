@@ -10,41 +10,55 @@ class ExtTableInfoNotExist(Exception):
 
 
 class ExtTableInfoService:
-    def default_dictify(self, ext_table_info):
+    def default_dictify(self, eti):
         return {
-            "id": ext_table_info.id,
-            "table_name": ext_table_info.table_name,
-            "ext_column": ext_table_info.ext_column,
-            "ext_pri_key": ext_table_info.ext_pri_key,
-            "record_num": ext_table_info.record_num,
-            "order_column": ext_table_info.order_column.split(","),
-            "sync_column": ext_table_info.sync_column.split(","),
-            "limit_num": ext_table_info.limit_num,
-            "filter": ext_table_info.filter,
-            "filter_format": ext_table_info.filter_format,
-            "weight": ext_table_info.weight,
-            "created_at": ext_table_info.created_at,
-            "updated_at": ext_table_info.updated_at,
+            "id": eti.id,
+            "table_name": eti.table_name,
+            "ext_column": eti.ext_column,
+            "ext_pri_key": eti.ext_pri_key,
+            "record_num": eti.record_num,
+            "order_column": eti.order_column.split(",") if eti.order_column else [],
+            "sync_column": eti.sync_column.split(",") if eti.order_column else [],
+            "limit_num": eti.limit_num,
+            "filter": eti.filter,
+            "filter_format": eti.filter_format,
+            "weight": eti.weight,
+            "created_at": eti.created_at,
+            "updated_at": eti.updated_at,
         }
 
-    def get_ext_table_infos(self, source_id):
-        """获取对应 source_id 的 ext_table_infos.
+    def get_ext_table_infos(self, args):
+        """获取对应条件的 ext_table_infos.
 
-        :param source_id: source_id
-        :type source_id: int
+        :param args: args
+        :type args: dict
         :return: 总数, ext_table_info 详情的列表.
         :rtype: tuple
         """
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
+        source_id = args.get("source_id")
+        weight = args.get("weight")
+        table_name = args.get("table_name")
+        record_num = args.get("record_num")
+        query = ExtTableInfo.query
+        if source_id:
+            query = query.filter_by(source_id=source_id)
+        if weight:
+            query = query.filter_by(weight=int(weight))
+        if table_name:
+            query = query.filter_by(table_name=table_name)
+        if record_num:
+            if int(record_num) == 0:
+                query = query.filter(ExtTableInfo.record_num == 0)
+            else:
+                query = query.filter(ExtTableInfo.record_num > 0)
         if per_page != -1:
-            pagination = ExtTableInfo.query.filter_by(source_id=source_id).paginate(
-                page=page, per_page=per_page, error_out=False
-            )
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
             items = pagination.items
             total = pagination.total
         else:
-            items = ExtTableInfo.query.filter_by(source_id=source_id).all()
+            items = query.all()
             total = len(items)
         return total, [self.default_dictify(eti) for eti in items]
 

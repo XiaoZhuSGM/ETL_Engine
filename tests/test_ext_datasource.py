@@ -42,7 +42,7 @@ class TestExtDatasource:
         assert res.json["meta"]["code"] == 200 or res.json['meta']['code'] == 404
 
     def test_create_ext_datasource(self, client, token):
-        source_id = str(uuid.uuid1())
+        source_id = str(uuid.uuid1())[:15]
         data = {
             "source_id": source_id,
             "cmid": [1, 2, 3],
@@ -71,7 +71,7 @@ class TestExtDatasource:
     def test_modify_ext_datasource(self, client, token):
         old = ExtDatasource.query.order_by(ExtDatasource.id.desc()).first()
         old_id = old.id
-        source_id = str(uuid.uuid1())
+        source_id = str(uuid.uuid1())[:15]
         data = {
             'id': old_id,
             "source_id": source_id,
