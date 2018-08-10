@@ -79,6 +79,5 @@ def test_connection_datasource():
 
 @etl_admin_api.route(DATASOURCE_API_GET_BY_ERP, methods=['GET'])
 def get_datasouce_by_erp(erp_vendor):
-    print('fdf')
     datasource_list = datasource_service.find_datasource_by_erp(erp_vendor)
     return jsonify_with_data(APIError.OK, data=[datasource.to_dict() for datasource in datasource_list])
