@@ -9,7 +9,10 @@ def reload(c, env="dev"):
     """Reload app."""
     with Connection(host=ENV[env], user="centos") as c:
         with c.cd("/data/code/etl-engine"):
-            c.run("kill -HUP $(cat gunicorn.pid)")
+            result = c.run("kill -HUP $(cat gunicorn.pid)")
+            if result.failed:
+                with c.cd("/data/code"):
+                    c.run(f"supervisorctl -c supervisord.conf restart etl-engine")
 
 
 @task
