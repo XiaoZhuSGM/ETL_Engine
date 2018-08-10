@@ -36,7 +36,7 @@ class DatasourceService(object):
         return self.__datasourceDao.find_all()
 
     def find_by_page_limit(self, page, per_page):
-        pagination = ExtDatasource.query.paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtDatasource.query.order_by(ExtDatasource.source_id.asc()).paginate(page, per_page=per_page, error_out=False)
         datasource_list = pagination.items
         total = pagination.total
         return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
