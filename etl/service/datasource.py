@@ -21,7 +21,7 @@ class DatasourceService(object):
         self.__datasourceDao.add_datasource(datasource_json)
         return True
 
-    def find_datasource_by_id(self, source_id):
+    def find_datasource_by_source_id(self, source_id):
         """
         :param id: datasource_id
         :return: 如果有数据则返回,没有返回None
@@ -48,3 +48,7 @@ class DatasourceService(object):
             raise ExtDatasourceNotExist()
         self.__datasourceDao.update(old_datasource, new_datasource_json)
         return True
+
+
+    def find_datasource_by_erp(self, erp_vendor):
+        return self.__datasourceDao.find_datasource_by_erp(erp_vendor)

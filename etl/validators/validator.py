@@ -97,6 +97,7 @@ datasource_update = {
                  'host',
                  'port',
                  'username',
+                 'password',
                  'db_name',
                  'traversal',
                  'delta',

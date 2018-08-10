@@ -27,6 +27,14 @@ class TestExtDatasource:
         assert isinstance(res.json['data'], list)
         assert res.json['meta']['code'] == 200 and res.json['meta']['message'] == 'OK'
 
+    def test_get_ext_datasource_by_erp(self, client, token):
+        res = client.get(
+            url_for("admin_api.get_datasouce_by_erp", erp_vendor='思'),
+            headers={"token": token},
+        )
+        assert isinstance(res.json['data'], list)
+        assert res.json['meta']['code'] == 200 and res.json['meta']['message'] == 'OK'
+
     def test_get_ext_datasource(self, client, token):
         res = client.get(
             url_for("admin_api.get_datasource", source_id=1), headers={"token": token}
@@ -37,7 +45,7 @@ class TestExtDatasource:
         source_id = str(uuid.uuid1())
         data = {
             "source_id": source_id,
-            "cmid": [1,2,3],
+            "cmid": [1, 2, 3],
             'company_name': 'unittest',
             'erp_vendor': 'unittest',
             'db_type': 'unittest',
@@ -67,7 +75,7 @@ class TestExtDatasource:
         data = {
             'id': old_id,
             "source_id": source_id,
-            "cmid": [1,2,3],
+            "cmid": [1, 2, 3],
             'company_name': 'unittest',
             'erp_vendor': 'unittest',
             'db_type': 'unittest',
