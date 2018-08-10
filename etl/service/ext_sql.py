@@ -58,7 +58,7 @@ class DatasourceSqlService(object):
 
         where = ""
         if table.filter is not None:
-            format_date = datetime.strptime(extract_date, table.filter_format).strftime(
+            format_date = datetime.strptime(extract_date, "%Y-%m-%d").strftime(
                 table.filter_format)
             where = table.filter.format(recorddate=format_date)
         sql_str = []
