@@ -16,7 +16,7 @@ def create_app(config=None):
     app = Flask(DEFAULT_APP_NAME, instance_relative_config=True)
     if config is not None:
         app.config.from_object(config)
-    # app.config.from_pyfile('local_config.py', silent=True)  # 加载个人配置
+    app.config.from_pyfile('local_config.py', silent=True)  # 加载个人配置
     db.init_app(app)
 
     configure_celery(app)
