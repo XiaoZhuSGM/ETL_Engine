@@ -3,6 +3,10 @@
 import functools
 
 from etl.etl import db
+from .ext_datasource_con import ExtDatasourceCon
+from .ext_table_info import ExtTableInfo
+from .etl_table import ExtChainStoreOnline, ExtErpEnterprise, ExtStoreDetail
+from .datasource import ExtDatasource
 
 
 def session_scope(func):
