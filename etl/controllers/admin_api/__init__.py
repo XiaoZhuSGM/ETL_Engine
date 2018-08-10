@@ -22,10 +22,7 @@ from .login import *  # noqa
 from .ext_table import *  # noqa
 
 
-from .ext_sql import *
-
-
-from .extract import *
+from .ext_sql import *  # noqa
 
 
 class APIError(object):
