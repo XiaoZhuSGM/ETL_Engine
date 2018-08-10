@@ -65,12 +65,16 @@ class DatasourceSqlService(object):
                 ExtTableInfo.table_name.in_(table_names.split(",")),
             ).all()
         )
-        return {
+        tables_sqls = {
             "type": "single_table",
             "date": extract_date,
             "source_id": source_id,
             "sqls": self._generate_by_correct_mould(tables, extract_date)
         }
+
+        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + str(now_timestamp()) + ".json"
+        upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
+        return tables_sqls
 
     def _generate_by_correct_mould(self, tables, extract_date):
         sqls = defaultdict(list)
