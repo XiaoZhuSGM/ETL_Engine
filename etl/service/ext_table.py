@@ -1,5 +1,4 @@
 from sqlalchemy import create_engine, inspect, func, select, table
-
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
 from etl.models.ext_table_info import ExtTableInfo
@@ -70,7 +69,8 @@ class ExtTableService(object):
                 if col['name'] == ext_pri_key and col['autoincrement'] is True:
                     flag = 1
 
-        columns = {column['name']: str(column['type']) for column in columns_list}
+        columns = {column['name']: repr(column['type']).replace(", collation='Chinese_PRC_CI_AS'", "")
+                   for column in columns_list}
         columns.update({'autoincrement': flag})
         return columns
 
@@ -116,6 +116,7 @@ class ExtTableService(object):
     def download_table_once(self, **data):
         source_id = data.get('source_id')
         is_dbs = data.get('is_dbs')
+        db_type = data.get('da_type')
         db_name = data.get('database')
         schema = data.get('schema')
 
@@ -125,7 +126,14 @@ class ExtTableService(object):
 
         tables = self._get_tables(schema)
         for table in tables:
-            table_name = db_name + '.' + table if is_dbs else table
+            if db_type == 'oracle':
+                table_name = schema + '.' + table if schema else table
+            else:
+                if is_dbs:
+                    table_name = db_name + schema + '.' + table if schema else db_name + '.' + table
+                else:
+                    table_name = schema + '.' + table if schema else table
+
             try:
                 ext_pri_key = self._get_ext_pri_key(table, schema)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
@@ -164,7 +172,7 @@ class ExtTableService(object):
                     ext_column=ext_column,
                     weight=weight
                 )
-            except Exception:
+            except Exception as e:
                 pass
 
         self.conn.close()
