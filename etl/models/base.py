@@ -1,6 +1,9 @@
-from sqlalchemy.ext.declarative import declared_attr
 from datetime import datetime
+
+from sqlalchemy.ext.declarative import declared_attr
+
 from etl.etl import db
+
 
 class CRUDMixin(object):
     """Mixin that adds convenience methods for CRUD (create, read, update, delete)
@@ -21,7 +24,6 @@ class CRUDMixin(object):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-
 
     @classmethod
     def create(cls, **kwargs):

@@ -50,6 +50,5 @@ class DatasourceService(object):
         self.__datasourceDao.update(old_datasource, new_datasource_json)
         return True
 
-
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)

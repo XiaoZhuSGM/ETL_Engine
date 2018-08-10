@@ -1,7 +1,7 @@
 from flask import request
-from . import etl_admin_api
-from etl.validators import validate_arg
+
 from etl.service.ext_sql import DatasourceSqlService
+from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 
 service = DatasourceSqlService()

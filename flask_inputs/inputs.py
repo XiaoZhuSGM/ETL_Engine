@@ -1,11 +1,9 @@
-
 import collections
 from itertools import chain
 
 from werkzeug.datastructures import MultiDict
-
-from wtforms.form import BaseForm
 from wtforms.fields import Field
+from wtforms.form import BaseForm
 
 
 class Inputs(object):

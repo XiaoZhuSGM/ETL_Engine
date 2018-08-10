@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, inspect, func, select, table
-from etl.models.ext_table_info import ExtTableInfo
+
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
+from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
 
 
@@ -83,7 +84,8 @@ class ExtTableService(object):
     def _get_table_from_pgsql(**kwargs):
         source_id = kwargs.get('source_id')
         table_name = kwargs.get('table_name')
-        table_info = ExtTableInfo.query.filter(ExtTableInfo.source_id == source_id, ExtTableInfo.table_name == table_name).all()
+        table_info = ExtTableInfo.query.filter(ExtTableInfo.source_id == source_id,
+                                               ExtTableInfo.table_name == table_name).all()
         return table_info
 
     @session_scope
@@ -143,7 +145,7 @@ class ExtTableService(object):
                         ext_column=ext_column,
                         record_num=record_num,
                         weight=weight
-                        )
+                    )
                 except Exception as e:
                     pass
 
@@ -161,7 +163,7 @@ class ExtTableService(object):
                     ext_pri_key=ext_pri_key,
                     ext_column=ext_column,
                     weight=weight
-                    )
+                )
             except Exception:
                 pass
 

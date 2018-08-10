@@ -1,14 +1,13 @@
 from flask import request
 
 from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
+from etl.service.ext_table_info import ExtTableInfoService, ExtTableInfoNotExist
 from etl.validators import validate_arg
 from etl.validators.ext_table_info import (
     GetExtTableInfos,
     CreateExtTableInfo,
     ModifyExtTableInfo,
 )
-from etl.service.ext_table_info import ExtTableInfoService, ExtTableInfoNotExist
-
 from . import etl_admin_api
 
 service = ExtTableInfoService()

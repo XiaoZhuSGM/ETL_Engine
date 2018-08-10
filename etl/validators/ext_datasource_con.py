@@ -1,6 +1,5 @@
-
-from flask_inputs.validators import JsonSchema
 from flask_inputs import Inputs
+from flask_inputs.validators import JsonSchema
 
 PROPERTIES = {
     "source_id": {"type": "string"},

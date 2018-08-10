@@ -1,4 +1,5 @@
 from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String
+
 from etl.etl import db
 from .base import CRUDMixin
 

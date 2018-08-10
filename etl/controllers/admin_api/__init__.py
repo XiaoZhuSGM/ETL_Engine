@@ -8,6 +8,7 @@ etl_admin_api = Blueprint('admin_api', __name__)
 def ping():
     return jsonify({"ping": "pong"})
 
+
 from .hook import *  # noqa
 
 from .datasource import *  # noqa

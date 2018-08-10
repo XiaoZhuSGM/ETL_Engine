@@ -1,7 +1,8 @@
-from etl.models.ext_table_info import ExtTableInfo
-from etl.models import session_scope
 from flask import request
+
 from etl.constant import PER_PAGE
+from etl.models import session_scope
+from etl.models.ext_table_info import ExtTableInfo
 
 
 class ExtTableInfoNotExist(Exception):
