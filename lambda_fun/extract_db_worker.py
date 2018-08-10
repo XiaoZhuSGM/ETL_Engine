@@ -156,5 +156,5 @@ if __name__ == '__main__':
     start = time.time()
     event = dict(source_id="54YYYYYYYYYYYYY", query_date="2018-08-06", task_type="full", filename="1.json",
                  db_url="mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9")
-    handler(event)
+    handler(event, None)
     print('spend time: ', time.time() - start)

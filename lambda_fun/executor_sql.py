@@ -31,7 +31,7 @@ class Method(Enum):
     increment = 3
 
 
-def handler(event):
+def handler(event, context):
     # Check if the incoming message was sent by SNS
     if 'Records' in event:
         message = json.loads(event['Records'][0]['Sns']['Message'])
@@ -102,9 +102,12 @@ def now_timestamp():
 
 # {'t_im_flow': "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"}
 if __name__ == '__main__':
-    event = {"source_id": "54YYYYYYYYYYYYY", "sql": (
-        "t_im_flow", "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"),
-             "type": "full", "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9",
-             "query_date": "2018-08-05"}
-
-    handler(event)
+    event = {
+        "source_id": "54YYYYYYYYYYYYY",
+        "sql": (
+            "t_im_flow", "SELECT * FROM t_im_flow where oper_date >= '20180805' and oper_date < '20180806'"
+        ),
+        "type": "full", "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9",
+        "query_date": "2018-08-05"
+    }
+    handler(event, None)
