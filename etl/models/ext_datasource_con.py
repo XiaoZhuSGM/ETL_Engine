@@ -1,7 +1,8 @@
-from etl.etl import db
-from .base import CRUDMixin
 from sqlalchemy import VARCHAR, Integer
 from sqlalchemy.orm import relationship
+
+from etl.etl import db
+from .base import CRUDMixin
 
 
 class ExtDatasourceCon(CRUDMixin, db.Model):

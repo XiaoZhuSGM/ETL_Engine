@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-import tempfile
-import boto3
 import json
-import pytz
+import tempfile
 import time
 import traceback
-import pandas as pd
-from sqlalchemy import create_engine
-from sqlalchemy.pool import NullPool
 from datetime import datetime, timedelta
 from enum import Enum
+
+import boto3
+import pandas as pd
+import pytz
+from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 
 S3_BUCKET = "ext-etl-data"
 S3_RECORDS = 'datapipeline/source_id={source_id}/ext_date={date}/table={ext_table}/' \

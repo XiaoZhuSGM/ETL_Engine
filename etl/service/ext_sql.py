@@ -1,9 +1,9 @@
+from datetime import datetime
+
+from common.common import PAGE_SQL
+from etl import db
 from ..dao.datasource import DatasourceDao
 from ..models import ExtDatasource, ExtTableInfo
-from datetime import datetime
-from common.common import PAGE_SQL
-
-from etl import db
 
 
 class DatasourceSqlService(object):

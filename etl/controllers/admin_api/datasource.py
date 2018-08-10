@@ -3,15 +3,16 @@ from flask import request
 from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
+from ...service.datasource import ExtDatasourceNotExist
 from ...service.ext_table import ExtTableService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
-from ...service.datasource import ExtDatasourceNotExist
 
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
 DATASOURCE_API_UPDATE = '/datasource/<int:id>'
 DATASOURCE_API_TEST = '/datasource/test'
+DATASOURCE_API_GET_BY_ERP = '/datasource/erp/<string:erp_vendor>'
 
 datasource_service = DatasourceService()
 table_service = ExtTableService()
@@ -31,11 +32,10 @@ def add_datasource():
 @etl_admin_api.route(DATASOURCE_API_GET, methods=['GET'])
 def get_datasource(source_id):
     try:
-        datasource = datasource_service.find_datasource_by_id(source_id)
+        datasource = datasource_service.find_datasource_by_source_id(source_id)
         return jsonify_with_data(APIError.OK, data=datasource)
     except ExtDatasourceNotExist as e:
         return jsonify_with_error(APIError.NOTFOUND, reason=str(e))
-
 
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL, methods=['GET'])
@@ -76,3 +76,8 @@ def test_connection_datasource():
             return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
     return jsonify_with_data(APIError.OK)
 
+
+@etl_admin_api.route(DATASOURCE_API_GET_BY_ERP, methods=['GET'])
+def get_datasouce_by_erp(erp_vendor):
+    datasource_list = datasource_service.find_datasource_by_erp(erp_vendor)
+    return jsonify_with_data(APIError.OK, data=[datasource.to_dict() for datasource in datasource_list])

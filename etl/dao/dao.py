@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from etl.etl import db
 import functools
 from contextlib import contextmanager
+
+from etl.etl import db
 
 
 class Dao(object):
@@ -39,6 +40,7 @@ def session_scope(func):
     :param func:
     :return:
     """
+
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         session = db.session
@@ -51,6 +53,7 @@ def session_scope(func):
             raise e
         finally:
             session.close()
+
     return wrapper
 
 

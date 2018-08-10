@@ -1,4 +1,3 @@
-
 import jsonschema
 from wtforms.validators import ValidationError
 

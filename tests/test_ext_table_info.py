@@ -1,4 +1,5 @@
 from flask import url_for, json
+
 from etl.models.ext_table_info import ExtTableInfo
 
 

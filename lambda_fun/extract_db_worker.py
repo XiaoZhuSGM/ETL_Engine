@@ -1,12 +1,12 @@
 import json
-import pytz
 import time
-import boto3
-from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from enum import Enum
 
+import boto3
+import pytz
 
 _TZINFO = pytz.timezone('Asia/Shanghai')
 

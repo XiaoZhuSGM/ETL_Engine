@@ -1,9 +1,10 @@
-from . import etl_admin_api
-from etl.validators.login import LoginInput
-from etl.validators import validate_arg
-from etl.service.login import LoginService, LoginFailed
 from flask import request
+
 from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
+from etl.service.login import LoginService, LoginFailed
+from etl.validators import validate_arg
+from etl.validators.login import LoginInput
+from . import etl_admin_api
 
 service = LoginService()
 

@@ -1,6 +1,7 @@
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+
 from etl.etl import db
 from .base import CRUDMixin
 

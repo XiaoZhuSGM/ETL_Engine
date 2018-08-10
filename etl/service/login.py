@@ -1,5 +1,5 @@
-from itsdangerous import TimedJSONWebSignatureSerializer as JWSSerializer
 from flask import current_app
+from itsdangerous import TimedJSONWebSignatureSerializer as JWSSerializer
 
 
 class LoginFailed(Exception):

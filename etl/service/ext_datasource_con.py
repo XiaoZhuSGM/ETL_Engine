@@ -1,5 +1,5 @@
-from etl.models.ext_datasource_con import ExtDatasourceCon
 from etl.models import session_scope
+from etl.models.ext_datasource_con import ExtDatasourceCon
 
 
 class ExtDatasourceConNotExist(Exception):

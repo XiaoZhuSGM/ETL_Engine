@@ -28,5 +28,4 @@ class ExtDatasource(CRUDMixin, db.Model):
 
     def to_dict(self):
         data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
-        data.pop('password', None)
         return data

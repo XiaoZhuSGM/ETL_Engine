@@ -1,8 +1,8 @@
+from celery import Celery
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
-from celery import Celery
 
 __all__ = ['create_app']
 
