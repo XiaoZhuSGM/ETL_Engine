@@ -43,7 +43,7 @@ class CreateExtTableInfo(Inputs):
 
 class ModifyExtTableInfo(Inputs):
     _optional = deepcopy(PROPERTIES)
-    for v in _optional.values():
-        v["type"] = [v["type"], "null"]
+    for _v in _optional.values():
+        _v["type"] = [_v["type"], "null"]
     _schema = {"type": "object", "properties": _optional}
     json = [JsonSchema(schema=_schema)]

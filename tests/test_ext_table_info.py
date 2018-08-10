@@ -25,6 +25,7 @@ class TestExtTableInfo:
         data = {
             "source_id": source_id,
             "table_name": "unittest",
+            "alias_table_name": "unittest",
             "ext_pri_key": "unittest",
             "sync_column": ["unittest1", "unittest2"],
             "order_column": ["unittest1", "unittest2"],
@@ -62,7 +63,7 @@ class TestExtTableInfo:
         res = client.patch(
             url_for("admin_api.modify_ext_table_info", id=old.id),
             headers={"token": token},
-            data=(json.dumps(data)),
+            data=json.dumps(data),
             content_type="application/json",
         )
         assert res.json["meta"]["code"] == 200
