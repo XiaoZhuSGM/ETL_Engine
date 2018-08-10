@@ -51,6 +51,7 @@ class DatasourceSqlService(object):
                 ExtTableInfo.filter_format,
                 ExtTableInfo.limit_num,
                 ExtTableInfo.order_column,
+                ExtTableInfo.alias_table_name
             )
                 .filter(
                 ExtTableInfo.source_id == source_id,
