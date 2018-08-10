@@ -24,6 +24,7 @@ class ExtTableInfoService:
             "filter": eti.filter,
             "filter_format": eti.filter_format,
             "weight": eti.weight,
+            "alias_table_name": eti.alias_table_name,
             "created_at": eti.created_at,
             "updated_at": eti.updated_at,
         }
