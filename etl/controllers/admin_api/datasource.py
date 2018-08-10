@@ -40,7 +40,6 @@ def get_datasource(source_id):
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL, methods=['GET'])
 def get_all_datasource():
-    print('get_all_datasource enter')
     page = request.args.get('page', default=-1, type=int)
     per_page = request.args.get("per_page", default=-1, type=int)
     if page == -1 and per_page == -1:
