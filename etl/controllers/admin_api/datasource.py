@@ -10,7 +10,7 @@ from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDa
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
 DATASOURCE_API_GET_ALL = '/datasources'
-DATASOURCE_API_UPDATE = '/datasource/<int:id>'
+DATASOURCE_API_UPDATE = '/datasource/<int:datasource_id>'
 DATASOURCE_API_TEST = '/datasource/test'
 DATASOURCE_API_GET_BY_ERP = '/datasource/erp/<string:erp_vendor>'
 
@@ -54,10 +54,10 @@ def get_all_datasource():
 
 @etl_admin_api.route(DATASOURCE_API_UPDATE, methods=["PATCH"])
 @validate_arg(JsonDatasourceUpdateInput)
-def update_datasource(id):
+def update_datasource(datasource_id):
     new_datasource_json = request.json
     try:
-        datasource_service.update_by_id(id, new_datasource_json)
+        datasource_service.update_by_id(datasource_id, new_datasource_json)
         return jsonify_with_data(APIError.OK)
     except ExtDatasourceNotExist as e:
         return jsonify_with_data(APIError.SERVER_ERROR, reason=str(e))

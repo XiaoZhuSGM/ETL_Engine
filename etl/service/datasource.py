@@ -42,8 +42,8 @@ class DatasourceService(object):
         return dict(items=[datasource.to_dict() for datasource in datasource_list], total=total)
 
     @session_scope
-    def update_by_id(self, id, new_datasource_json):
-        old_datasource = self.__datasourceDao.get_model_by_id(id)
+    def update_by_id(self, datasource_id, new_datasource_json):
+        old_datasource = self.__datasourceDao.get_model_by_id(datasource_id)
 
         if not old_datasource:
             raise ExtDatasourceNotExist()
