@@ -45,8 +45,8 @@ class DatasourceSqlService(object):
             },
         }
 
-    def generate_table_sql(self, source_id, table_name, extract_date):
-        table = (
+    def generate_table_sql(self, source_id, table_names, extract_date):
+        tables = (
             db.session.query(
                 ExtTableInfo.table_name,
                 ExtTableInfo.filter,
@@ -57,15 +57,17 @@ class DatasourceSqlService(object):
             .filter(
                 ExtTableInfo.source_id == source_id,
                 ExtTableInfo.weight == 1,
-                ExtTableInfo.table_name == table_name,
+                ExtTableInfo.table_name.in_(table_names.split(",")),
             )
-            .one_or_none()
+            .all()
         )
+        print(tables)
         return {
             "type": "single_table",
             "date": extract_date,
             "sqls": {
                 table.table_name: self._generate_by_correct_mould(table, extract_date)
+                for table in tables
             },
         }
 

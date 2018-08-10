@@ -17,10 +17,10 @@ def generate_full_sql():
     return jsonify_with_error(APIError.SERVER_ERROR)
 
 
-@etl_admin_api.route("/sql/table", methods=["GET"])
+@etl_admin_api.route("/sql/tables", methods=["GET"])
 def generate_table_sql():
     source_id = request.args["source_id"]
-    table_name = request.args["table_name"]
+    table_names = request.args["table_names"]
     extract_date = request.args["date"]
-    result = service.generate_table_sql(source_id, table_name, extract_date)
+    result = service.generate_table_sql(source_id, table_names, extract_date)
     return jsonify_with_data(APIError.OK, data=result)
