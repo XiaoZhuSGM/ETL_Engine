@@ -12,6 +12,8 @@ from flask import request
 from etl.controllers import APIError, jsonify_with_error
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
+from wtforms import IntegerField
+from wtforms.validators import InputRequired, NumberRange
 
 
 def validate_arg(validator):
@@ -111,3 +113,9 @@ class JsonDatasourceAddInput(Inputs):
 
 class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_update)]
+
+
+class PageInput(Inputs):
+    args = {
+        'page': (IntegerField, [InputRequired(), NumberRange(min=1)]),
+    }
