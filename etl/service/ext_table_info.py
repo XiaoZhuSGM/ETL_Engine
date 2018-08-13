@@ -40,7 +40,7 @@ class ExtTableInfoService:
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
         source_id = args.get("source_id")
-        weight = args.get("weight")
+        weight = args.get("weight") if args.get("weight") else 1
         table_name = args.get("table_name")
         record_num = args.get("record_num")
         query = ExtTableInfo.query
@@ -49,14 +49,11 @@ class ExtTableInfoService:
         if weight:
             query = query.filter_by(weight=int(weight))
         if table_name:
-            query = query.filter_by(table_name=table_name)
+            query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%"))
         if record_num:
-            if int(record_num) == 0:
-                query = query.filter(ExtTableInfo.record_num == 0)
-            else:
-                query = query.filter(ExtTableInfo.record_num > 0)
+            query = query.filter(ExtTableInfo.record_num >= int(record_num))
         if per_page != -1:
-            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+            pagination = query.order_by(ExtTableInfo.table_name).paginate(page=page, per_page=per_page, error_out=False)
             items = pagination.items
             total = pagination.total
         else:
