@@ -44,20 +44,38 @@ class TestExtDatasource:
     def test_create_ext_datasource(self, client, token):
         source_id = str(uuid.uuid1())[:15]
         data = {
-            "source_id": source_id,
-            "cmid": [1, 2, 3],
-            'company_name': 'unittest',
-            'erp_vendor': 'unittest',
-            'db_type': 'unittest',
-            'host': 'localhost',
-            'port': 8080,
-            'username': 'unittest',
-            'password': 'unittest',
-            'db_name': ['one', 'two'],
-            'traversal': False,
-            'delta': 10,
-            'status': 10
+            "datasource": {
+                "source_id": source_id,
+                "cmid": [
+                    34
+                ],
+                "company_name": "fsf",
+                "erp_vendor": "fdsf",
+                "db_type": "sqlserver",
+                "host": "fdfsd",
+                "port": 212,
+                "username": "fanjianan",
+                "password": "fabfa",
+                "db_name": [
+                    {
+                        "database": "fdsffdsf",
+                        "schema": [
+                            "fsdfsafsfff"
+                        ]
+                    }
+                ],
+                "traversal": True,
+                "delta": 1,
+                "status": 1
+            },
+            "datasource_config": {
+                "source_id": source_id,
+                "roll_back": 121,
+                "frequency": 21,
+                "period": 343
+            }
         }
+
         res = client.post(
             url_for("admin_api.add_datasource"),
             headers={"token": token},
@@ -72,21 +90,39 @@ class TestExtDatasource:
         old = ExtDatasource.query.order_by(ExtDatasource.id.desc()).first()
         old_id = old.id
         source_id = str(uuid.uuid1())[:15]
+
         data = {
-            'id': old_id,
-            "source_id": source_id,
-            "cmid": [1, 2, 3],
-            'company_name': 'unittest',
-            'erp_vendor': 'unittest',
-            'db_type': 'unittest',
-            'host': 'localhost',
-            'port': 8080,
-            'username': 'unittest',
-            'password': 'unittest',
-            'db_name': ['one', 'two'],
-            'traversal': False,
-            'delta': 20,
-            'status': 10
+            "datasource": {
+                'id' : old_id,
+                "source_id": source_id,
+                "cmid": [
+                    34
+                ],
+                "company_name": "fsf",
+                "erp_vendor": "fdsf",
+                "db_type": "sqlserver",
+                "host": "fdfsd",
+                "port": 212,
+                "username": "fanjianan",
+                "password": "fabfa",
+                "db_name": [
+                    {
+                        "database": "fdsffdsf",
+                        "schema": [
+                            "fsdfsafsfff"
+                        ]
+                    }
+                ],
+                "traversal": True,
+                "delta": 1,
+                "status": 1
+            },
+            "datasource_config": {
+                "source_id": source_id,
+                "roll_back": 121,
+                "frequency": 21,
+                "period": 343
+            }
         }
 
         res = client.patch(

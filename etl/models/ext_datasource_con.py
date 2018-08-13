@@ -21,3 +21,4 @@ class ExtDatasourceCon(CRUDMixin, db.Model):
         "ExtTableInfo",
         primaryjoin="foreign(ExtDatasourceCon.source_id) == remote(ExtTableInfo.source_id)",
     )
+
