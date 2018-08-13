@@ -72,7 +72,8 @@ class TestExtDatasource:
                 "source_id": source_id,
                 "roll_back": 121,
                 "frequency": 21,
-                "period": 343
+                "period": 343,
+                'ext_time': '12:21:21'
             }
         }
 
@@ -121,7 +122,8 @@ class TestExtDatasource:
                 "source_id": source_id,
                 "roll_back": 121,
                 "frequency": 21,
-                "period": 343
+                "period": 343,
+                'ext_time': '12:21:21'
             }
         }
 

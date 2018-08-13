@@ -98,6 +98,7 @@ datasource_config_add = {
                 "status": {
                     "type": "integer",
                 }
+
             },
             'required': ['source_id',
                          'cmid',
@@ -129,10 +130,13 @@ datasource_config_add = {
                 },
                 "period": {
                     "type": "integer"
+                },
+                'ext_time': {
+                    'type': 'string'
                 }
             },
             'required': [
-                'source_id', 'roll_back', 'frequency', 'period'
+                'source_id', 'roll_back', 'frequency', 'period', 'ext_time'
             ]
         }
     }
@@ -232,10 +236,13 @@ datasource_config_update = {
                 },
                 "period": {
                     "type": "integer"
+                },
+                'ext_time': {
+                    'type': 'string'
                 }
             },
             'required': [
-                'source_id', 'roll_back', 'frequency', 'period'
+                'source_id', 'roll_back', 'frequency', 'period', 'ext_time'
             ]
         }
     }
