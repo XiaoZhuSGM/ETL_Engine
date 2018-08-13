@@ -14,7 +14,7 @@ class Config(object):
     SQLALCHEMY_POOL_SIZE = 10
     SQLALCHEMY_MAX_OVERFLOW = 10
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = "score-center"
+    SECRET_KEY = "B18F697BCF51AD270703BF7602C457DA"
 
 
 class ProductionConfig(Config):

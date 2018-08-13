@@ -39,7 +39,7 @@ class DatasourceSqlService(object):
 
         tables_sqls = {
             "type": "full",
-            "date": extract_date,
+            "query_date": extract_date,
             "source_id": source_id,
             "sqls": self._generate_by_correct_mould(tables, extract_date)
 
@@ -67,7 +67,7 @@ class DatasourceSqlService(object):
         )
         tables_sqls = {
             "type": "single_table",
-            "date": extract_date,
+            "query_date": extract_date,
             "source_id": source_id,
             "sqls": self._generate_by_correct_mould(tables, extract_date)
         }
