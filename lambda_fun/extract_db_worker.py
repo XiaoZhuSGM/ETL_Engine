@@ -97,12 +97,12 @@ class ExtDBWork(object):
         _type = sql_info["type"]
         futures = []
         with ThreadPoolExecutor() as executor:
-            for sql in sql_info['sqls']:
-                for table_name, sql_statement in sql.items():
-                    for value in sql_statement:
-                        future = executor.submit(self.thread_query_tables, (table_name, value), _type)
-                        futures.append(future)
-                        time.sleep(1)
+            for table_name, sql_statement in sql_info['sqls'].items():
+                for value in sql_statement:
+                    print(value)
+                    future = executor.submit(self.thread_query_tables, (table_name, value), _type)
+                    futures.append(future)
+                    time.sleep(0.1)
 
         response = dict(source_id=self.source_id, query_date=self.query_date, task_type=self.task_type)
         results = [f.result() for f in futures]
@@ -154,7 +154,8 @@ class ExtDBWork(object):
 
 if __name__ == '__main__':
     start = time.time()
-    event = dict(source_id="54YYYYYYYYYYYYY", query_date="2018-08-06", task_type="full", filename="1.json",
-                 db_url="mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9")
+    event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
+                 filename="2018-08-13 16:32:40.557536.json",
+                 db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
     handler(event, None)
     print('spend time: ', time.time() - start)
