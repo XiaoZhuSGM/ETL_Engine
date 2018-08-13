@@ -1,6 +1,7 @@
+from copy import deepcopy
+
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
-from copy import deepcopy
 
 PROPERTIES = {
     "source_id": {"type": "string"},
@@ -43,6 +44,7 @@ class CreateExtTableInfo(Inputs):
 
 class ModifyExtTableInfo(Inputs):
     _optional = deepcopy(PROPERTIES)
+
     for _v in _optional.values():
         _v["type"] = [_v["type"], "null"]
     _schema = {"type": "object", "properties": _optional}

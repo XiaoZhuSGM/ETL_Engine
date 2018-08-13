@@ -23,6 +23,5 @@ class DatasourceDao(Dao):
         return self.model.query.filter_by(source_id=source_id).one_or_none()
 
     def find_datasource_by_erp(self, erp_vendor):
-        condition = f'%{erp_vendor}%'
         return self.model.query.filter(
-            ExtDatasource.erp_vendor.like(condition)).all()
+            ExtDatasource.erp_vendor.like(f'%{erp_vendor}%')).order_by(ExtDatasource.source_id.asc()).all()

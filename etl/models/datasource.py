@@ -26,6 +26,21 @@ class ExtDatasource(CRUDMixin, db.Model):
         primaryjoin='remote(ExtDatasource.source_id) == foreign(ExtTableInfo.source_id)',
         back_populates='datasource')
 
+    ext_datasource_config = relationship('ExtDatasourceCon',
+                                         primaryjoin='remote(ExtDatasource.source_id)==foreign(ExtDatasourceCon.source_id)',
+                                         back_populates='datasource', uselist=False, lazy=False)
+
     def to_dict(self):
         data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
+        return data
+
+    def to_dict_and_config(self):
+        data = {}
+        data['datasource'] = {col: getattr(self, col) for col in self.__table__.columns.keys()}
+        if self.ext_datasource_config:
+            data['datasource_config'] = {col: getattr(self.ext_datasource_config, col) for col in
+                                         self.ext_datasource_config.__table__.columns.keys()}
+        else:
+            data['datasource_config'] = {}
+
         return data

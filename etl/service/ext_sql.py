@@ -1,10 +1,10 @@
+import json
+from collections import defaultdict
 from datetime import datetime
 
 from common.common import PAGE_SQL, upload_body_to_s3, SQL_PREFIX, now_timestamp, S3_BUCKET
 from etl import db
 from ..models import ExtDatasource, ExtTableInfo
-from collections import defaultdict
-import json
 
 
 class DatasourceSqlService(object):

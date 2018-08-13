@@ -145,6 +145,7 @@ PAGE_SQL = {
     "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ( ORDER BY {order_rows} desc ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
 }
 
+
 S3_BUCKET = 'ext-etl-data'
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'

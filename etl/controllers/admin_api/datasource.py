@@ -3,7 +3,7 @@ from flask import request
 from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
-from ...service.datasource import ExtDatasourceNotExist
+from ...service.datasource import ExtDatasourceNotExist,ExtDatasourceConfigNotExist
 from ...service.ext_table import ExtTableService
 from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
 
@@ -21,8 +21,8 @@ table_service = ExtTableService()
 @etl_admin_api.route(DATASOURCE_API_CREATE, methods=['POST'])
 @validate_arg(JsonDatasourceAddInput)
 def add_datasource():
-    datasource_json = request.json
-    flag = datasource_service.add_datasource(datasource_json)
+    datasource_and_config_json = request.json
+    flag = datasource_service.add_datasource(datasource_and_config_json)
     if flag:
         return jsonify_with_data(APIError.OK)
     else:
@@ -36,6 +36,8 @@ def get_datasource(source_id):
         return jsonify_with_data(APIError.OK, data=datasource)
     except ExtDatasourceNotExist as e:
         return jsonify_with_error(APIError.NOTFOUND, reason=str(e))
+    except ExtDatasourceConfigNotExist as e:
+        return jsonify_with_error(APIError.NOTFOUND, reason=str(e))
 
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL, methods=['GET'])
@@ -44,7 +46,7 @@ def get_all_datasource():
     per_page = request.args.get("per_page", default=-1, type=int)
     if page == -1 and per_page == -1:
         datasource_list = datasource_service.find_all()
-        return jsonify_with_data(APIError.OK, data=[datasource.to_dict() for datasource in datasource_list])
+        return jsonify_with_data(APIError.OK, data=[datasource.to_dict_and_config() for datasource in datasource_list])
     elif page >= 1 and per_page >= 1:
         datasource_dict = datasource_service.find_by_page_limit(page, per_page)
         return jsonify_with_data(APIError.OK, data=datasource_dict)
@@ -55,11 +57,13 @@ def get_all_datasource():
 @etl_admin_api.route(DATASOURCE_API_UPDATE, methods=["PATCH"])
 @validate_arg(JsonDatasourceUpdateInput)
 def update_datasource(datasource_id):
-    new_datasource_json = request.json
+    new_datasource_and_config_json = request.json
     try:
-        datasource_service.update_by_id(datasource_id, new_datasource_json)
+        datasource_service.update_by_id(datasource_id, new_datasource_and_config_json)
         return jsonify_with_data(APIError.OK)
     except ExtDatasourceNotExist as e:
+        return jsonify_with_data(APIError.SERVER_ERROR, reason=str(e))
+    except ExtDatasourceConfigNotExist as e:
         return jsonify_with_data(APIError.SERVER_ERROR, reason=str(e))
 
 
@@ -80,4 +84,4 @@ def test_connection_datasource():
 @etl_admin_api.route(DATASOURCE_API_GET_BY_ERP, methods=['GET'])
 def get_datasouce_by_erp(erp_vendor):
     datasource_list = datasource_service.find_datasource_by_erp(erp_vendor)
-    return jsonify_with_data(APIError.OK, data=[datasource.to_dict() for datasource in datasource_list])
+    return jsonify_with_data(APIError.OK, data=[datasource.to_dict_and_config() for datasource in datasource_list])

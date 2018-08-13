@@ -8,12 +8,12 @@ the valid attributes = ['args', 'form', 'values', 'cookies', 'headers', 'json', 
 from functools import wraps
 
 from flask import request
+from wtforms import IntegerField
+from wtforms.validators import InputRequired, NumberRange
 
 from etl.controllers import APIError, jsonify_with_error
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
-from wtforms import IntegerField
-from wtforms.validators import InputRequired, NumberRange
 
 
 def validate_arg(validator):
@@ -38,81 +38,216 @@ def validate_arg(validator):
     return deco
 
 
-datasource_add = {
-    'type': 'object',
-    'properties': {
-        'source_id': {'type': 'string'},
-        'cmid': {'type': 'array', 'items': {'type': 'number'}},
-        'company_name': {'type': 'string'},
-        'erp_vendor': {'type': 'string'},
-        'dp_type': {'type': 'string'},
-        'host': {'type': 'string'},
-        'port': {'type': 'integer'},
-        'username': {'type': 'string'},
-        'password': {'type': 'string'},
-        'db_name': {'type': 'array'},
-        'traversal': {'type': 'boolean'},
-        'delta': {'type': 'integer'},
-        'status': {'type': 'integer'},
+datasource_config_add = {
+    "type": "object",
+    "properties": {
+        "datasource": {
+            "type": "object",
+            "properties": {
+                "source_id": {"type": "string"},
+                "cmid": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                    }
+                },
+                "company_name": {
+                    "type": "string",
+                },
+                "erp_vendor": {
+                    "type": "string",
+                },
+                "db_type": {
+                    "type": "string",
+                },
+                "host": {
+                    "type": "string",
+                },
+                "port": {
+                    "type": "integer",
+                },
+                "username": {
+                    "type": "string",
+                },
+                "password": {
+                    "type": "string",
+                },
+                "db_name": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                            },
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                }
+                            }
+                        }
+                    }
+                },
+                "traversal": {
+                    "type": "boolean",
+                },
+                "delta": {
+                    "type": "integer",
+                },
+                "status": {
+                    "type": "integer",
+                }
+            },
+            'required': ['source_id',
+                         'cmid',
+                         'company_name',
+                         'erp_vendor',
+                         'db_type',
+                         'host',
+                         'port',
+                         'username',
+                         'password',
+                         'db_name',
+                         'traversal',
+                         'delta',
+                         'status']
 
-    },
-    'required': ['source_id',
-                 'cmid',
-                 'company_name',
-                 'erp_vendor',
-                 'db_type',
-                 'host',
-                 'port',
-                 'username',
-                 'password',
-                 'db_name',
-                 'traversal',
-                 'delta',
-                 'status']
+        },
+        "datasource_config": {
+            "type": "object",
+            "properties": {
+                "source_id": {
+                    "type": "string",
+
+                },
+                "roll_back": {
+                    "type": "integer"
+                },
+                "frequency": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "integer"
+                }
+            },
+            'required': [
+                'source_id', 'roll_back', 'frequency', 'period'
+            ]
+        }
+    }
 }
 
-datasource_update = {
-    'type': 'object',
-    'properties': {
-        'id': {'type': 'integer'},
-        'source_id': {'type': 'string'},
-        'cmid': {'type': 'array', 'items': {'type': 'number'}},
-        'company_name': {'type': 'string'},
-        'erp_vendor': {'type': 'string'},
-        'dp_type': {'type': 'string'},
-        'host': {'type': 'string'},
-        'port': {'type': 'integer'},
-        'username': {'type': 'string'},
-        'password': {'type': 'string'},
-        'db_name': {'type': 'array'},
-        'traversal': {'type': 'boolean'},
-        'delta': {'type': 'integer'},
-        'status': {'type': 'integer'},
+datasource_config_update = {
+    "type": "object",
+    "properties": {
+        "datasource": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "source_id": {"type": "string"},
+                "cmid": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                    }
+                },
+                "company_name": {
+                    "type": "string",
+                },
+                "erp_vendor": {
+                    "type": "string",
+                },
+                "db_type": {
+                    "type": "string",
+                },
+                "host": {
+                    "type": "string",
+                },
+                "port": {
+                    "type": "integer",
+                },
+                "username": {
+                    "type": "string",
+                },
+                "password": {
+                    "type": "string",
+                },
+                "db_name": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "database": {
+                                "type": "string",
+                            },
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                }
+                            }
+                        }
+                    }
+                },
+                "traversal": {
+                    "type": "boolean",
+                },
+                "delta": {
+                    "type": "integer",
+                },
+                "status": {
+                    "type": "integer",
+                }
+            },
+            'required': [
+                'id',
+                'source_id',
+                'cmid',
+                'company_name',
+                'erp_vendor',
+                'db_type',
+                'host',
+                'port',
+                'username',
+                'password',
+                'db_name',
+                'traversal',
+                'delta',
+                'status']
 
-    },
-    'required': ['id',
-                 'source_id',
-                 'cmid',
-                 'company_name',
-                 'erp_vendor',
-                 'db_type',
-                 'host',
-                 'port',
-                 'username',
-                 'password',
-                 'db_name',
-                 'traversal',
-                 'delta',
-                 'status']
+        },
+        "datasource_config": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "source_id": {
+                    "type": "string",
+                },
+                "roll_back": {
+                    "type": "integer"
+                },
+                "frequency": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "integer"
+                }
+            },
+            'required': [
+                'source_id', 'roll_back', 'frequency', 'period'
+            ]
+        }
+    }
 }
 
 
 class JsonDatasourceAddInput(Inputs):
-    json = [JsonSchema(schema=datasource_add)]
+    json = [JsonSchema(schema=datasource_config_add)]
 
 
 class JsonDatasourceUpdateInput(Inputs):
-    json = [JsonSchema(schema=datasource_update)]
+    json = [JsonSchema(schema=datasource_config_update)]
 
 
 class PageInput(Inputs):
