@@ -8,12 +8,12 @@ the valid attributes = ['args', 'form', 'values', 'cookies', 'headers', 'json', 
 from functools import wraps
 
 from flask import request
+from wtforms import IntegerField
+from wtforms.validators import InputRequired, NumberRange
 
 from etl.controllers import APIError, jsonify_with_error
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
-from wtforms import IntegerField
-from wtforms.validators import InputRequired, NumberRange
 
 
 def validate_arg(validator):
@@ -131,7 +131,9 @@ datasource_config_add = {
                     "type": "integer"
                 }
             },
-            "required": ['source_id']
+            'required': [
+                'source_id', 'roll_back', 'frequency', 'period'
+            ]
         }
     }
 }
@@ -218,6 +220,7 @@ datasource_config_update = {
         "datasource_config": {
             "type": "object",
             "properties": {
+                "id": {"type": "integer"},
                 "source_id": {
                     "type": "string",
                 },
@@ -230,7 +233,10 @@ datasource_config_update = {
                 "period": {
                     "type": "integer"
                 }
-            }
+            },
+            'required': [
+                'source_id', 'roll_back', 'frequency', 'period'
+            ]
         }
     }
 }
@@ -241,14 +247,10 @@ class JsonDatasourceAddInput(Inputs):
 
 
 class JsonDatasourceUpdateInput(Inputs):
-<<<<<<< HEAD
     json = [JsonSchema(schema=datasource_config_update)]
-=======
-    json = [JsonSchema(schema=datasource_update)]
 
 
 class PageInput(Inputs):
     args = {
         'page': (IntegerField, [InputRequired(), NumberRange(min=1)]),
     }
->>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430

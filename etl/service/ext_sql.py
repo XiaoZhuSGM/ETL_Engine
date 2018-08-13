@@ -1,13 +1,10 @@
+import json
+from collections import defaultdict
 from datetime import datetime
 
 from common.common import PAGE_SQL, upload_body_to_s3, SQL_PREFIX, now_timestamp, S3_BUCKET
 from etl import db
 from ..models import ExtDatasource, ExtTableInfo
-from collections import defaultdict
-<<<<<<< HEAD
-=======
-import json
->>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430
 
 
 class DatasourceSqlService(object):
@@ -40,14 +37,6 @@ class DatasourceSqlService(object):
             ).filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1).all()
         )
 
-<<<<<<< HEAD
-        return {
-            "type": "full",
-            "date": extract_date,
-            "sqls": self._generate_by_correct_mould(tables, extract_date)
-
-        }
-=======
         tables_sqls = {
             "type": "full",
             "date": extract_date,
@@ -59,7 +48,6 @@ class DatasourceSqlService(object):
         key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + str(now_timestamp()) + ".json"
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls
->>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430
 
     def generate_table_sql(self, source_id, table_names, extract_date):
         tables = (
@@ -77,14 +65,6 @@ class DatasourceSqlService(object):
                 ExtTableInfo.table_name.in_(table_names.split(",")),
             ).all()
         )
-<<<<<<< HEAD
-        return {
-            "type": "single_table",
-            "date": extract_date,
-            "sqls": self._generate_by_correct_mould(tables, extract_date)
-        }
-
-=======
         tables_sqls = {
             "type": "single_table",
             "date": extract_date,
@@ -96,7 +76,6 @@ class DatasourceSqlService(object):
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls
 
->>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430
     def _generate_by_correct_mould(self, tables, extract_date):
         sqls = defaultdict(list)
         for table in tables:
@@ -105,17 +84,10 @@ class DatasourceSqlService(object):
             else:
                 db_type = table.datasource.db_type
                 sql_str = self._page_by_limit_mould(table, db_type, extract_date)
-<<<<<<< HEAD
 
             sqls[table.alias_table_name if table.alias_table_name else table.table_name].extend(sql_str)
         return sqls
 
-=======
-
-            sqls[table.alias_table_name if table.alias_table_name else table.table_name].extend(sql_str)
-        return sqls
-
->>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430
     def _page_by_limit_mould(self, table, db_type, extract_date):
         """
         配置分页
