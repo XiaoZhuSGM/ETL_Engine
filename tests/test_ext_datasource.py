@@ -90,7 +90,7 @@ class TestExtDatasource:
         }
 
         res = client.patch(
-            url_for("admin_api.update_datasource", id=old_id),
+            url_for("admin_api.update_datasource", datasource_id=old_id),
             headers={"token": token},
             data=(json.dumps(data)),
             content_type="application/json",
