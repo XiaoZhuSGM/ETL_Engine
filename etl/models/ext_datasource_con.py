@@ -10,6 +10,7 @@ class ExtDatasourceCon(CRUDMixin, db.Model):
     roll_back = db.Column(Integer)
     frequency = db.Column(Integer)
     period = db.Column(Integer)
+    ext_time = db.Column(VARCHAR(10))
 
     datasource = relationship(
         "ExtDatasource",
