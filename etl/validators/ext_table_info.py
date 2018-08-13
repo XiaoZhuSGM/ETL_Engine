@@ -25,7 +25,7 @@ class GetExtTableInfos(Inputs):
             "source_id": {"type": "string"},
             "table_name": {"type": "string"},
             "weight": {"type": "string", "enum": ["0", "1", "2", ""]},
-            "record_num": {"type": "string", "enum": ["0", "1", ""]},
+            "record_num": {"type": "string"},
         },
     }
     args = [JsonSchema(schema=_schema)]
