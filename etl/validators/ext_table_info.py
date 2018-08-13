@@ -5,6 +5,7 @@ from copy import deepcopy
 PROPERTIES = {
     "source_id": {"type": "string"},
     "table_name": {"type": "string"},
+    "alias_table_name": {"type": "string"},
     "ext_pri_key": {"type": "string"},
     "sync_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
     "order_column": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
@@ -24,7 +25,7 @@ class GetExtTableInfos(Inputs):
             "source_id": {"type": "string"},
             "table_name": {"type": "string"},
             "weight": {"type": "string", "enum": ["0", "1", "2", ""]},
-            "record_num": {"type": "string", "enum": ["0", "1", ""]},
+            "record_num": {"type": "string"},
         },
     }
     args = [JsonSchema(schema=_schema)]
@@ -42,7 +43,12 @@ class CreateExtTableInfo(Inputs):
 
 class ModifyExtTableInfo(Inputs):
     _optional = deepcopy(PROPERTIES)
+<<<<<<< HEAD
     for v in _optional.values():
         v["type"] = [v["type"], "null"]
+=======
+    for _v in _optional.values():
+        _v["type"] = [_v["type"], "null"]
+>>>>>>> d8bf35c8754c552f03c373db88a4be86eef61430
     _schema = {"type": "object", "properties": _optional}
     json = [JsonSchema(schema=_schema)]

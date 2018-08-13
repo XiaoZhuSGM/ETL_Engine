@@ -2,14 +2,14 @@
 """
 common function for all app
 """
-import datetime
+from datetime import datetime
 import hashlib
 import random
 import time
 
 import boto3
 
-s3 = boto3.client('s3')
+s3 = boto3.resource('s3')
 
 
 def timestamp2format_time(timestamp):
@@ -27,7 +27,7 @@ def datetime_to_string(dt):
 
 
 def string_to_datetime(time_string):
-    return datetime.datetime.strptime(time_string, "%Y-%m-%d %H:%M:%S")
+    return datetime.strptime(time_string, "%Y-%m-%d %H:%M:%S")
 
 
 def generate_password(password):
@@ -37,6 +37,34 @@ def generate_password(password):
 def md5sum(file_content):
     fmd5 = hashlib.md5(file_content)
     return fmd5.hexdigest()
+
+
+def now_timestamp():
+    _timestamp = datetime.fromtimestamp(time.time())
+    return _timestamp
+
+
+def upload_body_to_s3(bucket, key, body):
+    """
+    upload body (xml,json,binary) to s3 key
+    :param bucket:
+    :param key:
+    :param body:
+    :return:
+    """
+    s3.Object(bucket_name=bucket, key=key).put(
+        Body=body)
+
+
+def upload_file_to_s3(bucket, key, file):
+    """
+    upload a file to s3
+    :param bucket:
+    :param key:
+    :param file:
+    :return:
+    """
+    s3.Bucket(bucket).upload_file(file, key)
 
 
 def get_s3_keys(bucket):
@@ -116,3 +144,8 @@ PAGE_SQL = {
     "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} order by  {order_rows} desc ) RPT WHERE  ROWNUM <= {large} )  temp_rpt WHERE RN > {small}",
     "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ( ORDER BY {order_rows} desc ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
 }
+
+
+S3_BUCKET = 'ext-etl-data'
+
+SQL_PREFIX = 'sql/source_id={source_id}/{date}/'

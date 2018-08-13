@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine, inspect, func, select, table
-
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
 from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class ExtTableService(object):
@@ -70,7 +70,8 @@ class ExtTableService(object):
                 if col['name'] == ext_pri_key and col['autoincrement'] is True:
                     flag = 1
 
-        columns = {column['name']: str(column['type']) for column in columns_list}
+        columns = {column['name']: repr(column['type']).replace(", collation='Chinese_PRC_CI_AS'", "")
+                   for column in columns_list}
         columns.update({'autoincrement': flag})
         return columns
 
@@ -116,6 +117,7 @@ class ExtTableService(object):
     def download_table_once(self, **data):
         source_id = data.get('source_id')
         is_dbs = data.get('is_dbs')
+        db_type = data.get('da_type')
         db_name = data.get('database')
         schema = data.get('schema')
 
@@ -125,19 +127,26 @@ class ExtTableService(object):
 
         tables = self._get_tables(schema)
         for table in tables:
-            table_name = db_name + '.' + table if is_dbs else table
+            if db_type == 'oracle':
+                table_name = f'{schema}.{table}' if schema else table
+            else:
+                if is_dbs:
+                    table_name = f'{db_name}.{schema}.{table}' if schema else f'{db_name}.{table}'
+                else:
+                    table_name = f'{schema}.{table}' if schema else table
+
             try:
                 ext_pri_key = self._get_ext_pri_key(table, schema)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
                 record_num = self._get_record_num(table)
-            except Exception as e:
+            except SQLAlchemyError as e:
                 continue
             table_info = self._get_table_from_pgsql(source_id=source_id, table_name=table_name)
 
-            weight = 0 if record_num == 0 else 2
-
             if len(table_info) == 0:
                 try:
+                    weight = 0 if record_num == 0 else 2
+
                     self._create_ext_table(
                         source_id=source_id,
                         table_name=table_name,
@@ -146,8 +155,8 @@ class ExtTableService(object):
                         record_num=record_num,
                         weight=weight
                     )
-                except Exception as e:
-                    pass
+                except SQLAlchemyError as e:
+                    print(e)
 
                 continue
 
@@ -162,10 +171,10 @@ class ExtTableService(object):
                     table_info,
                     ext_pri_key=ext_pri_key,
                     ext_column=ext_column,
-                    weight=weight
+                    record_num=record_num
                 )
-            except Exception:
-                pass
+            except SQLAlchemyError as e:
+                print(e)
 
         self.conn.close()
 
