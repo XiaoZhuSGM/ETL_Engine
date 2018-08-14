@@ -49,3 +49,15 @@ class ModifyExtTableInfo(Inputs):
         _v["type"] = [_v["type"], "null"]
     _schema = {"type": "object", "properties": _optional}
     json = [JsonSchema(schema=_schema)]
+
+
+class CopyExtTableInfo(Inputs):
+    _schema = {
+        "type": "object",
+        "properties": {
+            "template_source_id": {"type": "string"},
+            "target_source_id": {"type": "string"},
+        },
+        "required": ["template_source_id", "target_source_id"]
+    }
+    json = [JsonSchema(schema=_schema)]

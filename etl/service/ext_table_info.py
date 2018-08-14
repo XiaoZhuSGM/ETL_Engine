@@ -1,13 +1,28 @@
 from flask import request
-
 from etl.constant import PER_PAGE
 from etl.models import session_scope
 from etl.models.ext_table_info import ExtTableInfo
+from etl.models.datasource import ExtDatasource
 
 
 class ExtTableInfoNotExist(Exception):
     def __str__(self):
         return "ext_table_info not found"
+
+
+class ErpNotMatch(Exception):
+    def __str__(self):
+        return "datasrouce's erp_vendor is not match"
+
+
+class ExtDatasourceNotExist(Exception):
+    def __str__(self):
+        return "not found datasource by source_id"
+
+
+class TableNotExist(Exception):
+    def __str__(self):
+        return "not found table by source_id"
 
 
 class ExtTableInfoService:
@@ -40,7 +55,7 @@ class ExtTableInfoService:
         page = int(request.args.get("page", 1))
         per_page = int(request.args.get("per_page", PER_PAGE))
         source_id = args.get("source_id")
-        weight = args.get("weight") if args.get("weight") else 1
+        weight = args.get("weight")
         table_name = args.get("table_name")
         record_num = args.get("record_num")
         query = ExtTableInfo.query
@@ -51,7 +66,8 @@ class ExtTableInfoService:
         if table_name:
             query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%"))
         if record_num:
-            query = query.filter(ExtTableInfo.record_num >= int(record_num))
+            record_num = int(record_num) if record_num.isdigit() else 0
+            query = query.filter(ExtTableInfo.record_num >= record_num)
         if per_page != -1:
             pagination = query.order_by(ExtTableInfo.table_name).paginate(page=page, per_page=per_page, error_out=False)
             items = pagination.items
@@ -107,3 +123,42 @@ class ExtTableInfoService:
             raise ExtTableInfoNotExist()
         ext_table_info.update(**info)
         return ext_table_info
+
+    @session_scope
+    def copy_ext_table_info(self, data):
+        """
+            实现同个erp下数据表配置一键复制功能
+        """
+        template_source_id = data.get("template_source_id")
+        target_source_id = data.get("target_source_id")
+        template_datasource = ExtDatasource.query.filter_by(source_id=template_source_id).first()
+        target_datasource = ExtDatasource.query.filter_by(source_id=target_source_id).first()
+        if not all([template_datasource, target_datasource]):
+            raise ExtDatasourceNotExist
+        if template_datasource.erp_vendor != target_datasource.erp_vendor:
+            raise ErpNotMatch
+        template_table_infos = ExtTableInfo.query.filter_by(source_id=template_source_id).all()
+        target_table_infos = ExtTableInfo.query.filter_by(source_id=target_source_id).all()
+        if not all([template_table_infos, target_table_infos]):
+            raise TableNotExist
+
+        # 同步同样表名的配置
+        for template_table in template_table_infos:
+
+            target_table = ExtTableInfo.query.filter_by(
+                source_id=target_source_id,
+                table_name=template_table.table_name).first()
+            if not target_table:
+                continue
+            print(target_table.source_id, target_table.table_name)
+            info = {
+                "alias_table_name": template_table.alias_table_name,
+                "order_column": template_table.order_column,
+                "sync_column": template_table.sync_column,
+                "limit_num": template_table.limit_num,
+                "filter": template_table.filter,
+                "filter_format": template_table.filter_format,
+                "weight": template_table.weight,
+                "strategy": template_table.strategy
+            }
+            target_table.update(**info)
