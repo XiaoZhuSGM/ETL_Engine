@@ -1,8 +1,16 @@
 import json
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy.orm import joinedload
 
-from common.common import PAGE_SQL, upload_body_to_s3, SQL_PREFIX, now_timestamp, S3_BUCKET
+
+from common.common import (
+    PAGE_SQL,
+    upload_body_to_s3,
+    SQL_PREFIX,
+    now_timestamp,
+    S3_BUCKET,
+)
 from etl import db
 from ..models import ExtDatasource, ExtTableInfo
 
@@ -27,52 +35,53 @@ class DatasourceSqlService(object):
         :return:
         """
         tables = (
-            db.session.query(
-                ExtTableInfo.table_name,
-                ExtTableInfo.filter,
-                ExtTableInfo.filter_format,
-                ExtTableInfo.limit_num,
-                ExtTableInfo.order_column,
-                ExtTableInfo.alias_table_name
-            ).filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1).all()
+            db.session.query(ExtTableInfo)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .options(
+                joinedload(ExtTableInfo.datasource).selectinload(
+                    ExtDatasource.ext_datasource_config
+                )
+            )
+            .all()
         )
 
         tables_sqls = {
             "type": "full",
             "query_date": extract_date,
             "source_id": source_id,
-            "sqls": self._generate_by_correct_mould(tables, extract_date)
-
+            "sqls": self._generate_by_correct_mould(tables, extract_date),
         }
 
-        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + str(now_timestamp()) + ".json"
+        key = (
+            SQL_PREFIX.format(source_id=source_id, date=extract_date)
+            + str(now_timestamp())
+            + ".json"
+        )
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls
 
     def generate_table_sql(self, source_id, table_names, extract_date):
         tables = (
-            db.session.query(
-                ExtTableInfo.table_name,
-                ExtTableInfo.filter,
-                ExtTableInfo.filter_format,
-                ExtTableInfo.limit_num,
-                ExtTableInfo.order_column,
-                ExtTableInfo.alias_table_name
-            )
-                .filter(
+            db.session.query(ExtTableInfo)
+            .filter(
                 ExtTableInfo.source_id == source_id,
                 ExtTableInfo.weight == 1,
                 ExtTableInfo.table_name.in_(table_names.split(",")),
-            ).all()
+            )
+            .all()
         )
         tables_sqls = {
-            "type": "single_table",
+            "type": "tables",
             "query_date": extract_date,
             "source_id": source_id,
-            "sqls": self._generate_by_correct_mould(tables, extract_date)
+            "sqls": self._generate_by_correct_mould(tables, extract_date),
         }
 
-        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + str(now_timestamp()) + ".json"
+        key = (
+            SQL_PREFIX.format(source_id=source_id, date=extract_date)
+            + str(now_timestamp())
+            + ".json"
+        )
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls
 
@@ -85,7 +94,9 @@ class DatasourceSqlService(object):
                 db_type = table.datasource.db_type
                 sql_str = self._page_by_limit_mould(table, db_type, extract_date)
 
-            sqls[table.alias_table_name if table.alias_table_name else table.table_name].extend(sql_str)
+            sqls[
+                table.alias_table_name if table.alias_table_name else table.table_name
+            ].extend(sql_str)
         return sqls
 
     def _page_by_limit_mould(self, table, db_type, extract_date):
@@ -101,10 +112,10 @@ class DatasourceSqlService(object):
 
         where = ""
         if table.filter is not None:
-            format_date = datetime.strptime(extract_date, "%Y-%m-%d").strftime(
-                table.filter_format
+            format_date = datetime.strptime(extract_date, "%Y-%m-%d")
+            where = self._formated_where(
+                table, format_date, table.datasource.ext_datasource_config.roll_back
             )
-            where = table.filter.format(recorddate=format_date)
         sql_str = []
         for i in range(table.limit_num):
             sql_str.append(
@@ -123,13 +134,20 @@ class DatasourceSqlService(object):
             tablename=table.table_name
         )
         if table.filter is not None:
-            format_date = datetime.strptime(extract_date, "%Y-%m-%d").strftime(
-                table.filter_format
+            format_date = datetime.strptime(extract_date, "%Y-%m-%d")
+            sql_str = sql_str + self._formated_where(
+                table, format_date, table.datasource.ext_datasource_config.roll_back
             )
-
-            sql_str = sql_str + table.filter.format(recorddate=format_date)
 
         return [sql_str]
 
     def generate_sync_sql_by_source_id(self, source_id, extract_date):
         pass
+
+    def _formated_where(self, table, date, rollback):
+        if not rollback:
+            rollback = 1
+        recorddate = date.strftime(table.filter_format)
+        date_e = date.strftime(table.filter_format)
+        date_s = (date - timedelta(days=rollback)).strftime(table.filter_format)
+        return table.filter.format(recorddate=recorddate, date_s=date_s, date_e=date_e)
