@@ -1,4 +1,5 @@
 from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String, Column
+from sqlalchemy.orm import relationship
 from etl.etl import db
 from .base import CRUDMixin
 
@@ -36,5 +37,18 @@ class ExtLogInfo(CRUDMixin, db.Model):
     cost_time = Column(Integer)
     result = Column(Integer)
     remark = Column(VARCHAR(1000))
+
+
+class ExtCleanInfo(CRUDMixin, db.Model):
+    """
+    合成目标表所需要信息
+    """
+    source_id = Column(String(15))
+    origin_table = Column(VARCHAR(255), comment="合成目标表需要的原始表")
+    target_table = Column(VARCHAR(50), comment="目标表，譬如goodsflew,chain_goods等")
+
+    ext_erp = relationship(
+        'ExtErpEnterprise',
+        primaryjoin='remote(ExtCleanInfo.source_id) == foreign(ExtErpEnterprise.source_id)')
 
 
