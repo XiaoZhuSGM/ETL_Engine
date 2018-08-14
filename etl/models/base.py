@@ -67,4 +67,5 @@ class CRUDMixin(object):
         db.session.flush()
 
     def to_dict(self):
-        return self.__dict__
+        data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
+        return data
