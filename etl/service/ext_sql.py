@@ -1,7 +1,6 @@
 import json
 from collections import defaultdict
 from datetime import datetime, timedelta
-from sqlalchemy.orm import joinedload
 
 
 from common.common import (
@@ -35,13 +34,15 @@ class DatasourceSqlService(object):
         :return:
         """
         tables = (
-            db.session.query(ExtTableInfo)
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
-            .options(
-                joinedload(ExtTableInfo.datasource).selectinload(
-                    ExtDatasource.ext_datasource_config
-                )
+            db.session.query(
+                ExtTableInfo.table_name,
+                ExtTableInfo.filter,
+                ExtTableInfo.filter_format,
+                ExtTableInfo.limit_num,
+                ExtTableInfo.order_column,
+                ExtTableInfo.alias_table_name,
             )
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
             .all()
         )
 
@@ -62,7 +63,14 @@ class DatasourceSqlService(object):
 
     def generate_table_sql(self, source_id, table_names, extract_date):
         tables = (
-            db.session.query(ExtTableInfo)
+            db.session.query(
+                ExtTableInfo.table_name,
+                ExtTableInfo.filter,
+                ExtTableInfo.filter_format,
+                ExtTableInfo.limit_num,
+                ExtTableInfo.order_column,
+                ExtTableInfo.alias_table_name,
+            )
             .filter(
                 ExtTableInfo.source_id == source_id,
                 ExtTableInfo.weight == 1,
@@ -113,9 +121,7 @@ class DatasourceSqlService(object):
         where = ""
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
-            where = self._formated_where(
-                table, format_date, table.datasource.ext_datasource_config.roll_back
-            )
+            where = self._formated_where(table, format_date)
         sql_str = []
         for i in range(table.limit_num):
             sql_str.append(
@@ -135,19 +141,15 @@ class DatasourceSqlService(object):
         )
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
-            sql_str = sql_str + self._formated_where(
-                table, format_date, table.datasource.ext_datasource_config.roll_back
-            )
+            sql_str = sql_str + self._formated_where(table, format_date)
 
         return [sql_str]
 
     def generate_sync_sql_by_source_id(self, source_id, extract_date):
         pass
 
-    def _formated_where(self, table, date, rollback):
-        if not rollback:
-            rollback = 1
+    def _formated_where(self, table, date):
         recorddate = date.strftime(table.filter_format)
-        date_e = date.strftime(table.filter_format)
-        date_s = (date - timedelta(days=rollback)).strftime(table.filter_format)
+        date_s = date.strftime(table.filter_format)
+        date_e = (date + timedelta(days=1)).strftime(table.filter_format)
         return table.filter.format(recorddate=recorddate, date_s=date_s, date_e=date_e)
