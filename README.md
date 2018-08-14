@@ -58,7 +58,7 @@ pytest tests --cov=etl --cov-report=term --cov-report=html --cov-branch
     数据库操作
 
 ### validators
-数据效颜，检查前端传来的数据是否正确，在API层通过装饰器使用
+数据校验，检查前端传来的数据是否正确，在API层通过装饰器使用
 
 ### models
 数据库ORM对象关系定义
