@@ -248,6 +248,45 @@ datasource_config_update = {
     }
 }
 
+enterprise_add = {
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+        },
+        "version": {
+            "type": "string"
+        },
+        "remark": {
+            "type": "string"
+        }
+    },
+    'required': [
+        'name'
+    ]
+}
+
+enterprise_update = {
+    "type": "object",
+    "properties": {
+        'id': {
+            'type': 'integer'
+        },
+        "name": {
+            "type": "string",
+        },
+        "version": {
+            "type": "string"
+        },
+        "remark": {
+            "type": "string"
+        }
+    },
+    'required': [
+        'name', 'id'
+    ]
+}
+
 
 class JsonDatasourceAddInput(Inputs):
     json = [JsonSchema(schema=datasource_config_add)]
@@ -255,6 +294,14 @@ class JsonDatasourceAddInput(Inputs):
 
 class JsonDatasourceUpdateInput(Inputs):
     json = [JsonSchema(schema=datasource_config_update)]
+
+
+class JsonErpEnterpriseAddInput(Inputs):
+    json = [JsonSchema(schema=enterprise_add)]
+
+
+class JsonErpEnterpriseUpdateInput(Inputs):
+    json = [JsonSchema(schema=enterprise_update)]
 
 
 class PageInput(Inputs):

@@ -9,6 +9,7 @@ class ExtErpEnterprise(CRUDMixin, db.Model):
     remark = Column(VARCHAR(1000))
 
 
+
 class ExtChainStoreOnline(CRUDMixin, db.Model):
     source_id = Column(String(15))
     cmid = Column(Integer)
