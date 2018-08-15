@@ -162,3 +162,24 @@ class ExtTableInfoService:
                 "strategy": template_table.strategy
             }
             target_table.update(**info)
+
+    @session_scope
+    def batch_ext_table_info(self, data):
+        """
+            批量配置相似表的策略
+        """
+        table_id_list = data.pop("id")
+        total, success_num = len(table_id_list), 0
+        if data.get("sync_column") is not None:
+            data["sync_column"] = ",".join(data["sync_column"])
+        if data.get("order_column") is not None:
+            data["order_column"] = ",".join(data["order_column"])
+
+        for table_id in table_id_list:
+            ext_table_info = ExtTableInfo.query.get(table_id)
+            if not ext_table_info:
+
+                continue
+            ext_table_info.update(**data)
+            success_num += 1
+        return total, success_num

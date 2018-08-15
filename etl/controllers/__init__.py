@@ -14,6 +14,7 @@ class APIError(object):
     UNAUTHORIZED = (401, 'unauthorized')
     PROCESSING = (101, 'task is running')
     CONFLICT = (409, 'conflict')
+    PARTIALLY_SUCCESS = (206, "partially successful")
 
 
 def jsonify_with_data(err, **kwargs):

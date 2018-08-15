@@ -12,7 +12,8 @@ from etl.validators.ext_table_info import (
     GetExtTableInfos,
     CreateExtTableInfo,
     ModifyExtTableInfo,
-    CopyExtTableInfo
+    CopyExtTableInfo,
+    BatchModifyExtTableInfo
 )
 from . import etl_admin_api
 
@@ -71,4 +72,15 @@ def copy_ext_table_info():
         service.copy_ext_table_info(data)
     except (ExtDatasourceNotExist, ErpNotMatch, TableNotExist) as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
+    return jsonify_with_data(APIError.OK, data={})
+
+
+@etl_admin_api.route("/ext_table_info/batch", methods=["POST"])
+@validate_arg(BatchModifyExtTableInfo)
+def batch_modify_ext_table_info():
+    data = request.json
+    total, success = service.batch_ext_table_info(data)
+    if total != success:
+        message = "total:%s, success:%s" % (total, success)
+        return jsonify_with_error(APIError.PARTIALLY_SUCCESS, message)
     return jsonify_with_data(APIError.OK, data={})
