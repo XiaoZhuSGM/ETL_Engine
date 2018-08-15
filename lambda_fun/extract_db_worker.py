@@ -157,5 +157,12 @@ if __name__ == '__main__':
     event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
                  filename="2018-08-13 16:32:40.557536.json",
                  db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
+    # erp79 = {
+    #     'source_id': '79YYYYYYYYYYYYY',
+    #     'query_date': '2018-08-14',
+    #     'task_type': 'full',
+    #     'filename': '2018-08-14 19:36:07.258060.json',
+    #     'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
+    # }
     handler(event, None)
     print('spend time: ', time.time() - start)
