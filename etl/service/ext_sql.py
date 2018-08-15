@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from datetime import datetime, timedelta
+from sqlalchemy.orm import joinedload
 
 
 from common.common import (
@@ -34,15 +35,9 @@ class DatasourceSqlService(object):
         :return:
         """
         tables = (
-            db.session.query(
-                ExtTableInfo.table_name,
-                ExtTableInfo.filter,
-                ExtTableInfo.filter_format,
-                ExtTableInfo.limit_num,
-                ExtTableInfo.order_column,
-                ExtTableInfo.alias_table_name,
-            )
+            db.session.query(ExtTableInfo)
             .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
 
@@ -63,19 +58,13 @@ class DatasourceSqlService(object):
 
     def generate_table_sql(self, source_id, table_names, extract_date):
         tables = (
-            db.session.query(
-                ExtTableInfo.table_name,
-                ExtTableInfo.filter,
-                ExtTableInfo.filter_format,
-                ExtTableInfo.limit_num,
-                ExtTableInfo.order_column,
-                ExtTableInfo.alias_table_name,
-            )
+            db.session.query(ExtTableInfo)
             .filter(
                 ExtTableInfo.source_id == source_id,
                 ExtTableInfo.weight == 1,
                 ExtTableInfo.table_name.in_(table_names.split(",")),
             )
+            .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
         tables_sqls = {
@@ -124,10 +113,18 @@ class DatasourceSqlService(object):
             where = self._formated_where(table, format_date)
         sql_str = []
         for i in range(table.limit_num):
+            order_by = table.order_column
+            if not order_by:
+                order_by = table.ext_pri_key
+            if not order_by:
+                order_by = ''
+            if order_by:
+                order_by = f'order by {order_by} desc'
+
             sql_str.append(
                 sql_template.format(
                     table=table.table_name,
-                    order_rows=table.order_column,
+                    order_by=order_by,
                     wheres=where,
                     small=i * 200000,
                     large=(i + 1) * 200000,
