@@ -61,3 +61,21 @@ class CopyExtTableInfo(Inputs):
         "required": ["template_source_id", "target_source_id"]
     }
     json = [JsonSchema(schema=_schema)]
+
+
+class BatchModifyExtTableInfo(Inputs):
+    _schema = {
+        "type": "object",
+        "properties": {
+            "id": {"type": "array", "items": {"type": "integer"}, "uniqueItems": True},
+            "alias_table_name": {"type": ["string", "null"]},
+            "sync_column": {"type": ["array", "null"], "items": {"type": "string"}, "uniqueItems": True},
+            "order_column": {"type": ["array", "null"], "items": {"type": "string"}, "uniqueItems": True},
+            "limit_num": {"type": ["integer", "null"]},
+            "filter": {"type": ["string", "null"]},
+            "filter_format": {"type": ["string", "null"]},
+            "weight": {"type": ["integer", "null"]},
+        },
+        "required": ["id"],
+    }
+    json = [JsonSchema(schema=_schema)]
