@@ -6,7 +6,9 @@ from datetime import datetime
 from enum import Enum
 
 import boto3
+import botocore
 import pytz
+from botocore.config import Config
 
 _TZINFO = pytz.timezone('Asia/Shanghai')
 
@@ -20,7 +22,9 @@ FULL_JSON = 'data/source_id={source_id}/ext_date={date}/' \
             'dump={date}_whole_path.json'
 
 S3_CLIENT = boto3.resource('s3')
-LAMBDA_CLIENT = boto3.client('lambda')
+session = botocore.session.get_session()
+BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
+LAMBDA_CLIENT = session.create_client('lambda', config=BOTO3_CONFIG)
 
 
 class Method(Enum):
@@ -135,7 +139,7 @@ class ExtDBWork(object):
     def thread_query_tables(self, sql, _type):
         msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
         # from executor_sql import handler
-        # payload = handler(msg)
+        # payload = handler(msg, None)
         invoke_response = LAMBDA_CLIENT.invoke(
             FunctionName="executor_sql", InvocationType='RequestResponse',
             Payload=json.dumps(msg), Qualifier='prod')
@@ -157,5 +161,19 @@ if __name__ == '__main__':
     event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
                  filename="2018-08-13 16:32:40.557536.json",
                  db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
-    handler(event, None)
+    erp79 = {
+        'source_id': '79YYYYYYYYYYYYY',
+        'query_date': '2018-08-14',
+        'task_type': 'full',
+        'filename': '2018-08-14 19:36:07.258060.json',
+        'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
+    }
+    erp32 = {
+        'source_id': '32YYYYYYYYYYYYY',
+        'query_date': '2018-08-10',
+        'task_type': 'full',
+        'filename': '2018-08-15 14:47:33.369885.json',
+        'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
+    }
+    handler(erp32, None)
     print('spend time: ', time.time() - start)

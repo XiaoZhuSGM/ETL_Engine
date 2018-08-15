@@ -56,14 +56,12 @@ class TestExtDatasource:
                 "port": 212,
                 "username": "fanjianan",
                 "password": "fabfa",
-                "db_name": [
-                    {
-                        "database": "fdsffdsf",
-                        "schema": [
-                            "fsdfsafsfff"
-                        ]
-                    }
-                ],
+                "db_name": {
+                    "database": "fdsffdsf",
+                    "schema": [
+                        "fsdfsafsfff"
+                    ]
+                },
                 "traversal": True,
                 "delta": 1,
                 "status": 1
@@ -94,7 +92,7 @@ class TestExtDatasource:
 
         data = {
             "datasource": {
-                'id' : old_id,
+                'id': old_id,
                 "source_id": source_id,
                 "cmid": [
                     34
@@ -106,14 +104,12 @@ class TestExtDatasource:
                 "port": 212,
                 "username": "fanjianan",
                 "password": "fabfa",
-                "db_name": [
-                    {
-                        "database": "fdsffdsf",
-                        "schema": [
-                            "fsdfsafsfff"
-                        ]
-                    }
-                ],
+                "db_name": {
+                    "database": "fdsffdsf",
+                    "schema": [
+                        "fsdfsafsfff"
+                    ]
+                },
                 "traversal": True,
                 "delta": 1,
                 "status": 1
