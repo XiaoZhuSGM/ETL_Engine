@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import json
 import tempfile
 import time
@@ -52,6 +53,7 @@ def handler(event, context):
     db_url = message["db_url"]
     _type = message["type"]
     query_date = message["query_date"]
+    os.environ["NLS_LANG"] = "SIMPLIFIED CHINESE_CHINA.UTF8"
     engine = create_engine(db_url, echo=False, poolclass=NullPool)
     try:
         sql_data_frame = pd.read_sql(sql, engine)

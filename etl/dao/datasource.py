@@ -4,7 +4,6 @@ from ..models.datasource import ExtDatasource
 
 
 class DatasourceDao(Dao):
-
     def __init__(self):
         super().__init__(ExtDatasource)
 
@@ -13,7 +12,11 @@ class DatasourceDao(Dao):
         datasource.save()
 
     def find_all(self):
-        datasource_list = db.session.query(ExtDatasource).order_by(ExtDatasource.source_id.asc()).all()
+        datasource_list = (
+            db.session.query(ExtDatasource)
+            .order_by(ExtDatasource.source_id.asc())
+            .all()
+        )
         return datasource_list
 
     def update(self, old_datasource, new_datasource_json):
@@ -23,5 +26,8 @@ class DatasourceDao(Dao):
         return self.model.query.filter_by(source_id=source_id).one_or_none()
 
     def find_datasource_by_erp(self, erp_vendor):
-        return self.model.query.filter(
-            ExtDatasource.erp_vendor.like(f'%{erp_vendor}%')).order_by(ExtDatasource.source_id.asc()).all()
+        return (
+            self.model.query.filter(ExtDatasource.erp_vendor.like(f"%{erp_vendor}%"))
+            .order_by(ExtDatasource.source_id.asc())
+            .all()
+        )
