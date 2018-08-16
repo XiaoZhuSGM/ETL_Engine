@@ -82,10 +82,6 @@ def clean_cost(source_id, date, target_table, frames):
     return True
 
 
-def clean_store(source_id, date, target_table, frames):
-    pass
-
-
 def clean_goods(source_id, date, target_table, frames):
     """
     清洗商品
@@ -194,6 +190,14 @@ def clean_sales_target(source_id, date, target_table, frames):
 
 
 def clean_category(source_id, date, target_table, frames):
+    """
+    分类清洗
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
     cmid = source_id.split("Y")[0]
     category1 = frames["t_bc_master"].query('flvl_num == 1')[:]
     category1["cmid"] = cmid
@@ -262,6 +266,46 @@ def clean_category(source_id, date, target_table, frames):
     category = pd.concat([category1, category2, category3])
 
     upload_to_s3(category, source_id, date, target_table)
+
+    return True
+
+
+def clean_store(source_id, date, target_table, frames):
+    """
+    门店清洗
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
+    cmid = source_id.split("Y")[0]
+    store_frame = frames["t_br_master"].merge(frames["t_br_ext"], how="left", on="fbrh_no")
+    store_frame = store_frame[store_frame['fbrh_type'].isin([5, 6])]
+    store_frame["cmid"] = cmid
+    store_frame["address_code"] = None
+    store_frame["device_id"] = None
+    store_frame["lat"] = None
+    store_frame["lng"] = None
+    store_frame["area_code"] = ''
+    store_frame["area_name"] = ''
+    store_frame["business_area"] = None
+    store_frame["property_id"] = None
+    store_frame["source_id"] = source_id
+    store_frame["last_updated"] = datetime.now()
+    store_frame["show_code"] = store_frame["fbrh_no"]
+
+    store_frame["store_status"] = store_frame.fstatus.apply(lambda x: '闭店' if x == 9 else '正常')
+    store_frame["property"] = store_frame.fbrh_type.apply(lambda x: '直营店' if x == 5 else '加盟店')
+    store_frame = store_frame.rename(
+        columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "faddr": "store_address",
+                 "fcr_date": "create_date", "ftel": "phone_number", "fman": "contacts"})
+    store_frame = store_frame[
+        ['cmid', 'foreign_store_id', 'store_name', 'store_address', 'address_code', 'device_id', 'store_status',
+         'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
+         'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
+
+    upload_to_s3(store_frame, source_id, date, target_table)
 
     return True
 
