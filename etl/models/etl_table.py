@@ -1,4 +1,5 @@
 from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String, Column
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from etl.etl import db
 from .base import CRUDMixin
@@ -8,7 +9,6 @@ class ExtErpEnterprise(CRUDMixin, db.Model):
     name = Column(VARCHAR(100))
     version = Column(VARCHAR(50))
     remark = Column(VARCHAR(1000))
-
 
 
 class ExtChainStoreOnline(CRUDMixin, db.Model):
@@ -43,13 +43,17 @@ class ExtLogInfo(CRUDMixin, db.Model):
 class ExtCleanInfo(CRUDMixin, db.Model):
     """
     合成目标表所需要信息
+    like   {"t_sl_master": ['fbrh_no', 'fflow_no', 'ftrade_date', 'fcr_time', 'fsell_way'],
+                "t_sl_detail": ['fprice', 'fpack_qty', 'famt', 'fflow_no', 'fitem_subno', 'fitem_id'],
+                "t_br_master": ['fbrh_name', 'fbrh_no'],
+                "t_bi_master": ['fitem_id', 'fitem_subno', 'fitem_name', 'funit_no', 'fitem_clsno'],
+                "t_bc_master": ['fitem_clsno', 'fitem_clsname', 'fprt_no'],
+                "t_bi_barcode": ['funit_qty', 'fitem_id', 'fitem_subno']}
+    like     {"t_sl_master": {"fbrh_no": str}, "t_br_master": {"fbrh_no": str},
+           "t_bi_master": {"fitem_clsno": str},
+           "t_bc_master": {"fitem_clsno": str, "fprt_no": str}}
     """
     source_id = Column(String(15))
-    origin_table = Column(VARCHAR(255), comment="合成目标表需要的原始表")
-    target_table = Column(VARCHAR(50), comment="目标表，譬如goodsflew,chain_goods等")
-
-    ext_erp = relationship(
-        'ExtErpEnterprise',
-        primaryjoin='remote(ExtCleanInfo.source_id) == foreign(ExtErpEnterprise.source_id)')
-
-
+    origin_table = Column(JSONB, comment="合成目标表需要的原始表何所需要的字段")
+    covert_str = Column(JSONB, comment="需要格式转换的字段，防止pandas家在丢失数据位")
+    target_table = Column(VARCHAR(50), comment="目标表，譬如goodsflow_32yyyyyyyyyyyyy,chain_goods等")
