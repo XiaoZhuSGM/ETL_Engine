@@ -34,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix='', suffix=''):
     while True:
 
         resp = S3.list_objects_v2(**kwargs)
-        for obj in resp['Contents']:
+        for obj in resp['Contents'][::-1]:  # 倒序
             key = obj['Key']
             if key.startswith(prefix) and key.endswith(suffix):
                 yield key
