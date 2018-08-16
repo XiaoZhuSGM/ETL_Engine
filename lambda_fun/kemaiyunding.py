@@ -19,12 +19,12 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 def clean_kemaiyunding(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
-        clen_goodsflow(source_id, date, target_table, data_frames)
+        clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
-        clen_cost(source_id, date, target_table, data_frames)
+        clean_cost(source_id, date, target_table, data_frames)
 
 
-def clen_goodsflow(source_id, date, target_table, data_frames):
+def clean_goodsflow(source_id, date, target_table, data_frames):
     cmid = source_id.split("Y")[0]
     data_frame1 = frame1(cmid, source_id, data_frames)
     data_frame2 = frame2(cmid, source_id, data_frames)
@@ -33,17 +33,37 @@ def clen_goodsflow(source_id, date, target_table, data_frames):
 
     upload_to_s3(goodsflow, source_id, date, target_table)
 
-    return goodsflow
+    return True
 
 
-def clen_cost(source_id, date, target_table, data_frames):
-    pass
+def clean_cost(source_id, date, target_table, frames):
+    cmid = source_id.split("Y")[0]
+    cost_frame = frames["t_rpt_sl_detail"].merge(frames["t_bi_master"], how="left", on="fitem_id")
+    cost_frame["source_id"] = source_id
+    cost_frame["costtype"] = ''
+    cost_frame["foreign_category_lv4"] = ''
+    cost_frame["foreign_category_lv5"] = ''
+    cost_frame["cmid"] = cmid
+    cost_frame["foreign_category_lv1"] = cost_frame.fitem_clsno.apply(lambda x: str(x)[:2] if x is not None else '')
+    cost_frame["foreign_category_lv2"] = cost_frame.fitem_clsno.apply(lambda x: str(x)[:4] if x is not None else '')
+    cost_frame["foreign_category_lv3"] = cost_frame.fitem_clsno.apply(lambda x: str(x) if x is not None else '')
+    cost_frame = cost_frame.rename(
+        columns={"fbrh_no": "foreign_store_id", "fitem_id": "foreign_item_id", "ftrade_date": "date",
+                 "fsl_qty": "total_quantity", "famt": "total_sale", "fcost_amt": "total_cost"})
+    cost_frame = cost_frame[
+        ["source_id", "foreign_store_id", "foreign_item_id", "date", "costtype", "total_quantity", "total_sale",
+         "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+         "foreign_category_lv5"]]
+
+    upload_to_s3(cost_frame, source_id, date, target_table)
+
+    return True
 
 
 def upload_to_s3(frame, source_id, date, target_table):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
     count = len(frame)
-    frame.to_csv(filename.name, index=False, compression="gzip")
+    frame.to_csv(filename.name, index=False, compression="gzip", float_format='%.4f')
     filename.seek(0)
     key = CLEANED_PATH.format(
         source_id=source_id,
