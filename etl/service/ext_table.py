@@ -81,6 +81,11 @@ class ExtTableService(object):
         record_num = rows[0][0]
         return record_num
 
+    def _get_views(self, schema):
+        res = self.inspector.get_view_names(schema=schema)
+        views = [f'v_{view}' for view in res]
+        return views
+
     @staticmethod
     def _get_table_from_pgsql(**kwargs):
         source_id = kwargs.get('source_id')
@@ -114,39 +119,34 @@ class ExtTableService(object):
         }
         return data_dict
 
-    def download_table_once(self, **data):
+    def download_table_once(self, data):
         source_id = data.get('source_id')
-        is_dbs = data.get('is_dbs')
-        db_type = data.get('da_type')
-        db_name = data.get('database')
         schema = data.get('schema')
 
-        res = self.connect_test(**data)
-        if res:
-            return
-
         tables = self._get_tables(schema)
+        views = self._get_views(schema)
+        tables.extend(views)
         for table in tables:
-            if db_type == 'oracle':
-                table_name = f'{schema}.{table}' if schema else table
-            else:
-                if is_dbs:
-                    table_name = f'{db_name}.{schema}.{table}' if schema else f'{db_name}.{table}'
+            try:
+                if table.startswith('v_'):
+                    table = table.replace('v_', '', 1)
+                    table_name = f'{schema}.{table}' if schema else table
+                    ext_pri_key = ''
+                    record_num = 0
                 else:
                     table_name = f'{schema}.{table}' if schema else table
-
-            try:
-                ext_pri_key = self._get_ext_pri_key(table, schema)
+                    ext_pri_key = self._get_ext_pri_key(table, schema)
+                    record_num = self._get_record_num(table_name)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
-                record_num = self._get_record_num(table)
             except SQLAlchemyError as e:
+                print(e)
                 continue
             table_info = self._get_table_from_pgsql(source_id=source_id, table_name=table_name)
 
             if len(table_info) == 0:
-                try:
-                    weight = 0 if record_num == 0 else 2
+                weight = 0 if record_num == 0 else 2
 
+                try:
                     self._create_ext_table(
                         source_id=source_id,
                         table_name=table_name,
@@ -157,7 +157,6 @@ class ExtTableService(object):
                     )
                 except SQLAlchemyError as e:
                     print(e)
-
                 continue
 
             table_info = table_info[0]
@@ -176,36 +175,28 @@ class ExtTableService(object):
             except SQLAlchemyError as e:
                 print(e)
 
-        self.conn.close()
-
     def download_tables(self, app, **data):
         with app.app_context():
             source_id = data.get('source_id')
             self._update_status(source_id, 'running')
 
+            db_name = data.get("db_name")
+            schema_list = db_name.get('schema')
+
             try:
-                db_name = data.get('db_name', [])
-                if len(db_name) > 1:
-                    data['is_dbs'] = True
-
-                for db_dict in db_name:
-                    database = db_dict.get('database')
-                    data['database'] = database
-
-                    schema_list = db_dict.get('schema')
-                    if not schema_list:
-                        self.download_table_once(**data)
-                        continue
+                if not schema_list:
+                    self.download_table_once(data)
+                else:
                     for scheam in schema_list:
                         data['schema'] = scheam
-                        self.download_table_once(**data)
+                        self.download_table_once(data)
 
-            # 如果任务异常结束，保证状态能及时更新
+                self._update_status(source_id, 'success')
             except Exception as e:
-                print(repr(e))
+                print(str(e))
                 self._update_status(source_id, 'fail')
 
-            self._update_status(source_id, 'success')
+        self.conn.close()
 
     def get_status(self, source_id):
         datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
