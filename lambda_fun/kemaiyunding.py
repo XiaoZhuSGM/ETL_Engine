@@ -22,9 +22,23 @@ def clean_kemaiyunding(source_id, date, target_table, data_frames):
         clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
         clean_cost(source_id, date, target_table, data_frames)
+    elif target_table == "store":
+        clean_store(source_id, date, target_table, data_frames)
+    elif target_table == "goods":
+        clean_goods(source_id, date, target_table, data_frames)
+    elif target_table == "sales_target":
+        clean_sales_target(source_id, date, target_table, data_frames)
 
 
 def clean_goodsflow(source_id, date, target_table, data_frames):
+    """
+    清洗销售流水
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param data_frames:
+    :return:
+    """
     cmid = source_id.split("Y")[0]
     data_frame1 = frame1(cmid, source_id, data_frames)
     data_frame2 = frame2(cmid, source_id, data_frames)
@@ -37,6 +51,14 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
 
 
 def clean_cost(source_id, date, target_table, frames):
+    """
+    清洗成本
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
     cmid = source_id.split("Y")[0]
     cost_frame = frames["t_rpt_sl_detail"].merge(frames["t_bi_master"], how="left", on="fitem_id")
     cost_frame["source_id"] = source_id
@@ -60,6 +82,141 @@ def clean_cost(source_id, date, target_table, frames):
     return True
 
 
+def clean_store(source_id, date, target_table, frames):
+    pass
+
+
+def clean_goods(source_id, date, target_table, frames):
+    """
+    清洗商品
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
+    cmid = source_id.split("Y")[0]
+
+    goods_frame = frames["t_bi_master"].merge(frames["t_bi_price"], how="left", on="fitem_id") \
+        .merge(frames["t_bs_master"], how="left", on="fsup_no") \
+        .merge(frames["t_bb_master"], how="left", on="fitem_brdno")
+
+    def set_status(x):
+        if x == '6':
+            y = "正常"
+        elif x == '5':
+            y = '新品'
+        elif x == '7':
+            y = '停购'
+        elif x == 'B':
+            y = '停配'
+        elif x == '9':
+            y = '淘汰'
+        elif x == '6':
+            y = '正常'
+        else:
+            y = '其他'
+        return y
+
+    goods_frame['item_status'] = goods_frame.fstatus.apply(lambda x: set_status(x))
+    goods_frame['foreign_category_lv1'] = goods_frame.fitem_clsno.apply(lambda x: str(x)[:2])
+    goods_frame['foreign_category_lv2'] = goods_frame.fitem_clsno.apply(lambda x: str(x)[:4])
+    goods_frame['foreign_category_lv4'] = ''
+    goods_frame['foreign_category_lv5'] = ''
+    goods_frame["last_updated"] = datetime.now()
+    goods_frame["isvalid"] = 1
+    goods_frame["cmid"] = cmid
+
+    def allot_method(x):
+        if x == '1':
+            y = '统配'
+        elif x == '2':
+            y = '中转'
+        elif x == '3':
+            y = "直者"
+        else:
+            y = ''
+        return y
+
+    goods_frame["allot_method"] = goods_frame.fsale_way.apply(lambda x: allot_method(x))
+
+    goods_frame = goods_frame.rename(
+        columns={"fitem_subno": "barcode", "fitem_id": "foreign_item_id", "fitem_name": "item_name",
+                 "fin_price": "lastin_price", "fsale_price": "sale_price", "fitem_brdname": "brand_name",
+                 "funit_no": "item_unit", "fitem_clsno": "foreign_category_lv3", "fap_date": "storage_time",
+                 "fexp_date": "warranty", "fitem_no": "show_code", "fsup_name": "supplier_name",
+                 "fsup_no": "supplier_code"})
+
+    goods_frame = goods_frame[
+        ["cmid", "barcode", "foreign_item_id", "item_name", "lastin_price", "sale_price", "item_unit",
+         "item_status", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+         "storage_time", "last_updated", "isvalid", "warranty", "show_code", "foreign_category_lv5", "allot_method",
+         "supplier_name", "supplier_code", "brand_name"]]
+
+    upload_to_s3(goods_frame, source_id, date, target_table)
+
+    return True
+
+
+def clean_sales_target(source_id, date, target_table, frames):
+    """
+    清洗销售目标
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
+    cmid = source_id.split("Y")[0]
+    target_frame = frames["t_sv_sale_manage"].merge(frames["t_br_master"], how="left", on="fbrh_no")
+    target_frame["target_date"] = datetime.now().strftime("%Y-%m-01")
+    target_frame["last_updated"] = datetime.now()
+    target_frame["category_level"] = 1
+    target_frame['foreign_category_lv1'] = ''
+    target_frame['foreign_category_lv2'] = ''
+    target_frame['foreign_category_lv3'] = ''
+    target_frame['foreign_category_lv4'] = ''
+    target_frame['foreign_category_lv5'] = ''
+    target_frame["cmid"] = cmid
+    target_frame["source_id"] = source_id
+
+    target_frame = target_frame.rename(
+        columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "fsale_amt": "target_sales",
+                 "fprofit_amt": "target_gross_profit"})
+    target_frame["store_show_code"] = target_frame["foreign_store_id"]
+
+    target_frame = target_frame[
+        ["source_id", "cmid", "target_date", "foreign_store_id", "store_show_code", "store_name", "target_sales",
+         "target_gross_profit", "category_level", "foreign_category_lv1", "foreign_category_lv2",
+         "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5", "last_updated"]]
+
+    upload_to_s3(target_frame, source_id, date, target_table)
+
+
+def clean_category(source_id, date, target_table, frames):
+    cmid = source_id.split("Y")[0]
+    category1 = frames["t_bc_master"].query('flvl_num = 1')
+    category1["cmid"] = cmid
+    category1["level"] = 1
+    category1['foreign_category_lv2'] = ''
+    category1['foreign_category_lv2_name'] = ''
+    category1['foreign_category_lv3'] = ''
+    category1['foreign_category_lv3_name'] = ''
+    category1['foreign_category_lv4'] = ''
+    category1['foreign_category_lv4_name'] = ''
+    category1['foreign_category_lv5'] = ''
+    category1['foreign_category_lv5_name'] = ''
+    category1["last_updated"] = datetime.now()
+    category1 = category1.rename(
+        columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name"})
+    category1 = category1[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
+                           'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
+                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'foreign_category_lv5_name']]
+
+    upload_to_s3(category1, source_id, date, target_table)
+
+
 def upload_to_s3(frame, source_id, date, target_table):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
     count = len(frame)
@@ -72,7 +229,6 @@ def upload_to_s3(frame, source_id, date, target_table):
         timestamp=now_timestamp(),
         rowcount=count,
     )
-    # S3.Object(bucket_name=S3_BUCKET, key=key).put(Body=filename)
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
     pass
 
