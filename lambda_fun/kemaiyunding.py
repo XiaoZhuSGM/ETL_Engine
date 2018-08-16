@@ -28,6 +28,10 @@ def clean_kemaiyunding(source_id, date, target_table, data_frames):
         clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "sales_target":
         clean_sales_target(source_id, date, target_table, data_frames)
+    elif target_table == "category":
+        clean_category(source_id, date, target_table, data_frames)
+    else:
+        pass
 
 
 def clean_goodsflow(source_id, date, target_table, data_frames):
