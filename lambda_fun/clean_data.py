@@ -89,7 +89,7 @@ def handler(event, context):
         for csv_path in datas[table]:
             key = "s3://" + S3_BUCKET + "/" + csv_path
             if table in converts:
-                frame = pd.read_csv(key, compression="gzip", usecols=columns, converters=coverts[table])
+                frame = pd.read_csv(key, compression="gzip", usecols=columns, converters=converts[table])
             else:
                 frame = pd.read_csv(key, compression="gzip", usecols=columns)
             if frame_table is None:

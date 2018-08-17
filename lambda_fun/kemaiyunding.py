@@ -219,7 +219,7 @@ def clean_category(source_id, date, target_table, frames):
         columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name"})
     category1 = category1[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category2 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
@@ -241,7 +241,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category2 = category2[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category3 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
@@ -264,7 +264,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category3 = category3[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updateds', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category = pd.concat([category1, category2, category3])
