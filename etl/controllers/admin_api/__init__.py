@@ -26,6 +26,7 @@ from .ext_sql import *  # noqa
 
 from .ext_erp_enterprise import *
 
+from .ext_clean_info import *
 
 class APIError(object):
     """
