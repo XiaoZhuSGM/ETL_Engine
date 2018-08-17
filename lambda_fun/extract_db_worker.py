@@ -135,7 +135,7 @@ class ExtDBWork(object):
     def thread_query_tables(self, sql, _type):
         msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
         # from executor_sql import handler
-        # payload = handler(msg)
+        # payload = handler(msg, None)
         invoke_response = LAMBDA_CLIENT.invoke(
             FunctionName="executor_sql", InvocationType='RequestResponse',
             Payload=json.dumps(msg), Qualifier='prod')
