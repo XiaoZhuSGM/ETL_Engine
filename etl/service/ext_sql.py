@@ -48,13 +48,13 @@ class DatasourceSqlService(object):
             "sqls": self._generate_by_correct_mould(tables, extract_date),
         }
 
+        file_name = str(now_timestamp()) + ".json"
         key = (
             SQL_PREFIX.format(source_id=source_id, date=extract_date)
-            + str(now_timestamp())
-            + ".json"
+            + file_name
         )
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
-        return tables_sqls
+        return file_name
 
     def generate_table_sql(self, source_id, table_names, extract_date):
         tables = (
@@ -74,10 +74,10 @@ class DatasourceSqlService(object):
             "sqls": self._generate_by_correct_mould(tables, extract_date),
         }
 
+        file_name = str(now_timestamp()) + ".json"
         key = (
             SQL_PREFIX.format(source_id=source_id, date=extract_date)
-            + str(now_timestamp())
-            + ".json"
+            + file_name
         )
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls

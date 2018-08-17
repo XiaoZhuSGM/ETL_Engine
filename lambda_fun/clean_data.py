@@ -104,3 +104,5 @@ def handler(event, context):
         pass
     elif erp_name == "海鼎":
         pass
+    elif erp_name == "思迅":
+        pass
