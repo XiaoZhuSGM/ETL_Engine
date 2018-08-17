@@ -76,7 +76,7 @@ class ExtTableService(object):
         return columns
 
     def _get_record_num(self, tab):
-        rows = select([func.count()]).select_from(table(tab))
+        rows = """select count(*) from {table}""".format(table=tab)
         rows = self.conn.execute(rows).fetchall()
         record_num = rows[0][0]
         return record_num
@@ -115,13 +115,19 @@ class ExtTableService(object):
             'username': datasource.username,
             'password': datasource.password,
             'host': datasource.host,
-            'port': datasource.port
+            'port': datasource.port,
+            'erp_vendor': datasource.erp_vendor
         }
         return data_dict
 
     def download_table_once(self, data):
         source_id = data.get('source_id')
         schema = data.get('schema')
+        erp_vendor = data.get('erp_vendor')
+
+        schema_new = None
+        if erp_vendor == "百年创纪云":
+            schema_new = f"[{schema}]"
 
         tables = self._get_tables(schema)
         views = self._get_views(schema)
@@ -134,10 +140,15 @@ class ExtTableService(object):
                     ext_pri_key = ''
                     record_num = 0
                 else:
-                    table_name = f'{schema}.{table}' if schema else table
                     ext_pri_key = self._get_ext_pri_key(table, schema)
+
+                    if schema_new:
+                        schema = schema_new
+                    table_name = f'{schema}.{table}' if schema else table
                     record_num = self._get_record_num(table_name)
+                    print(table_name)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
+                print(table, record_num)
             except SQLAlchemyError as e:
                 print(e)
                 continue
