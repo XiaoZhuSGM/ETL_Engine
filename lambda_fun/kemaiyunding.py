@@ -195,7 +195,7 @@ def clean_sales_target(source_id, date, target_table, frames):
 
 def clean_category(source_id, date, target_table, frames):
     cmid = source_id.split("Y")[0]
-    category1 = frames["t_bc_master"].query('flvl_num = 1')
+    category1 = frames["t_bc_master"].query('flvl_num == 1')[:]
     category1["cmid"] = cmid
     category1["level"] = 1
     category1['foreign_category_lv2'] = ''
@@ -214,7 +214,56 @@ def clean_category(source_id, date, target_table, frames):
                            'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
-    upload_to_s3(category1, source_id, date, target_table)
+    category2 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
+                                            right_on="fitem_clsno", suffixes=('lv2', 'lv1'))
+    category2 = category2.query('flvl_numlv2 == 2')[:]
+    category2["level"] = 2
+    category2["cmid"] = cmid
+    category2['foreign_category_lv3'] = ''
+    category2['foreign_category_lv3_name'] = ''
+    category2['foreign_category_lv4'] = ''
+    category2['foreign_category_lv4_name'] = ''
+    category2['foreign_category_lv5'] = ''
+    category2['foreign_category_lv5_name'] = ''
+    category2["last_updated"] = datetime.now()
+
+    category2 = category2.rename(
+        columns={"fitem_clsnolv1": "foreign_category_lv1", "fitem_clsnamelv1": "foreign_category_lv1_name",
+                 "fitem_clsnolv2": "foreign_category_lv2", "fitem_clsnamelv2": "foreign_category_lv2_name"})
+
+    category2 = category2[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
+                           'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
+                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'foreign_category_lv5_name']]
+
+    category3 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
+                                            right_on="fitem_clsno", suffixes=('lv3', 'lv2')).merge(
+        frames["t_bc_master"], how="left", left_on="fprt_nolv2", right_on="fitem_clsno")
+
+    category3 = category3.query('flvl_numlv3 == 3')[:]
+    category3["level"] = 3
+    category3["cmid"] = cmid
+    category3['foreign_category_lv4'] = ''
+    category3['foreign_category_lv4_name'] = ''
+    category3['foreign_category_lv5'] = ''
+    category3['foreign_category_lv5_name'] = ''
+    category3["last_updated"] = datetime.now()
+
+    category3 = category3.rename(
+        columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name",
+                 "fitem_clsnolv2": "foreign_category_lv2", "fitem_clsnamelv2": "foreign_category_lv2_name",
+                 "fitem_clsnolv3": "foreign_category_lv3", "fitem_clsnamelv3": "foreign_category_lv3_name"})
+
+    category3 = category3[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
+                           'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
+                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'foreign_category_lv5_name']]
+
+    category = pd.concat([category1, category2, category3])
+
+    upload_to_s3(category, source_id, date, target_table)
+
+    return True
 
 
 def upload_to_s3(frame, source_id, date, target_table):
