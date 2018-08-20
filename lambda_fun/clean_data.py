@@ -3,10 +3,11 @@
 清洗逻辑的入口
 """
 import json
+from collections import defaultdict
+
 import boto3
 import pandas as pd
 import pytz
-from collections import defaultdict
 
 S3_BUCKET = "ext-etl-data"
 
@@ -92,6 +93,7 @@ def handler(event, context):
                 frame = pd.read_csv(key, compression="gzip", usecols=columns, converters=converts[table])
             else:
                 frame = pd.read_csv(key, compression="gzip", usecols=columns)
+
             if frame_table is None:
                 frame_table = frame.copy(deep=True)
             else:
@@ -105,4 +107,153 @@ def handler(event, context):
     elif erp_name == "海鼎":
         pass
     elif erp_name == "思迅":
-        pass
+        from lambda_fun.sixun import clean_sixun
+        clean_sixun(source_id, date, target_table, data_frames)
+
+
+if __name__ == '__main__':
+    store_event = {
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-08-13",
+        "target_table": "store",
+        'origin_table_columns': {
+            "t_bd_branch_info": ['branch_no',
+                                 'branch_name',
+                                 'address',
+                                 'dj_yw',
+                                 'init_date',
+                                 'branch_no',
+                                 'branch_tel',
+                                 'branch_fax',
+                                 'other1',
+                                 'trade_type',
+                                 'property',
+                                 ]
+        },
+
+        'converts': {"t_bd_branch_info": {'branch_no': str, 'property': int, 'trade_type': int, 'dj_yw': int}}
+    }
+
+    category_event = {
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-08-13",
+        "target_table": "category",
+        'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno',
+                              'item_clsname',
+                              'cls_parent',
+                              ]
+        },
+
+        'converts': {"t_bd_item_cls": {'item_clsno': str, 'item_clsname': str, 'cls_parent': str}}
+    }
+
+    goods_event = {
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-08-13",
+        "target_table": "goods",
+        'origin_table_columns': {
+            't_bd_item_info': ['item_clsno',
+                               'main_supcust',
+                               'status',
+                               'num2',
+                               'item_no',
+                               'item_name',
+                               'price',
+                               'sale_price',
+                               'unit_no',
+                               'item_subno',
+                               'item_brandname',
+                               'build_date'
+                               ],
+            't_bd_supcust_info': ['supcust_no', 'sup_name', 'supcust_flag'],
+            "t_bd_item_cls": ['item_clsno']
+
+        },
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': str},
+            't_bd_item_info': {'item_clsno': str, 'num2': float,
+                               'main_supcust': str,
+                               'status': int,
+                               'item_no': str,
+
+                               },
+            't_bd_supcust_info': {'supcust_no': str}
+        }
+    }
+
+    goodsflow_event = {
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-08-13",
+        "target_table": "goodsflow",
+        'origin_table_columns': {
+            't_rm_saleflow': ['branch_no',
+                              'item_no',
+                              'sale_price',
+                              'sale_qnty',
+                              'sell_way',
+                              'sale_money',
+                              'flow_no',
+                              'oper_date'],
+            't_bd_branch_info': ['branch_no', 'branch_name'],
+            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no', ],
+            't_bd_item_cls': ['item_clsno', 'item_clsname'],
+        },
+
+        'converts': {
+            't_rm_saleflow': {'branch_no': str,
+                              'item_no': str,
+                              'sale_price': float,
+                              'sale_qnty': float,
+                              'sell_way': str,
+                              'sale_money': float,
+                              'flow_no': str
+                              },
+
+            't_bd_branch_info': {'branch_no': str},
+            't_bd_item_info': {'item_no': str, 'item_clsno': str},
+            't_bd_item_cls': {'item_clsno': str},
+        }
+    }
+
+    cost_event = {
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-08-13",
+        "target_table": "cost",
+        'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno', ],
+            't_da_jxc_daysum': [
+                'branch_no',
+                'oper_date',
+                'so_qty',
+                'pos_qty',
+                'so_amt',
+                'pos_amt',
+                'fifo_cost_amt',
+                'item_no'
+            ],
+            't_bd_item_info': ['item_no', 'item_clsno']
+        },
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': str},
+            't_bd_item_info': {'item_no': str, 'item_clsno': str},
+            't_da_jxc_daysum': {
+                'branch_no': str,
+                'so_qty': float,
+                'pos_qty': float,
+                'so_amt': float,
+                'pos_amt': float,
+                'fifo_cost_amt': float,
+                'item_no': str
+            }
+        }
+    }
+
+    handler(cost_event, None)

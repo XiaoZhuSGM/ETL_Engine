@@ -158,6 +158,7 @@ class ExtDBWork(object):
 
 if __name__ == '__main__':
     start = time.time()
+
     event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
                  filename="2018-08-13 16:32:40.557536.json",
                  db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
