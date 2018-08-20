@@ -63,7 +63,6 @@ class ExtTableService(object):
     def _get_ext_column(self, table, ext_pri_key, schema):
         flag = 0
         columns_list = self.inspector.get_columns(table, schema=schema)
-
         # 判断主键是否是单主键自增
         if ext_pri_key != '' and ',' not in ext_pri_key:
             for col in columns_list:
@@ -126,7 +125,7 @@ class ExtTableService(object):
         erp_vendor = data.get('erp_vendor')
 
         schema_new = None
-        if erp_vendor == "百年创纪云":
+        if schema and erp_vendor == "百年创纪云":
             schema_new = f"[{schema}]"
 
         tables = self._get_tables(schema)
@@ -143,12 +142,11 @@ class ExtTableService(object):
                     ext_pri_key = self._get_ext_pri_key(table, schema)
 
                     if schema_new:
-                        schema = schema_new
-                    table_name = f'{schema}.{table}' if schema else table
+                        table_name = f'{schema_new}.{table}'
+                    else:
+                        table_name = f'{schema}.{table}'if schema else table
                     record_num = self._get_record_num(table_name)
-                    print(table_name)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
-                print(table, record_num)
             except SQLAlchemyError as e:
                 print(e)
                 continue

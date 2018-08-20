@@ -11,7 +11,12 @@ from etl.service.ext_clean_info import (
     TableNotExist
 )
 from etl.validators import validate_arg
-from etl.validators.ext_clean_info import ModiflyExtCleanInfo, CopyExtCleanInfo, GetEXtCleanInfos
+from etl.validators.ext_clean_info import (
+    ModiflyExtCleanInfo,
+    CopyExtCleanInfo,
+    GetEXtCleanInfos,
+    CreateExtCleanInfo
+)
 from . import etl_admin_api
 
 services = ExtCleanInfoService()
@@ -27,15 +32,24 @@ def get_ext_clean_infos():
     return jsonify_with_data(APIError.OK, data={"total": total, "items": items})
 
 
-# @etl_admin_api.route("/ext_clean_info", methods=["POST"])
-# @validate_arg(CreateExtCleanInfo)
-# def create_ext_clean_info():
-#     data = request.get_json()
-#     try:
-#         services.create_ext_clean_info(data)
-#     except Exception as e:
-#         return jsonify_with_error(APIError.BAD_REQUEST, str(e))
-#     return jsonify_with_data(APIError.OK, data={})
+@etl_admin_api.route("/ext_clean_info", methods=["POST"])
+@validate_arg(CreateExtCleanInfo)
+def create_ext_clean_info():
+    data = request.get_json()
+    try:
+        services.create_ext_clean_info(data)
+    except ExtDatasourceNotExist as e:
+        return jsonify_with_error(APIError.BAD_REQUEST, str(e))
+    return jsonify_with_data(APIError.OK, data={})
+
+
+@etl_admin_api.route("/ext_clean_info/<int:id>", methods=["DELETE"])
+def delete_ext_clean_info(id):
+    try:
+        services.delete_ext_clean_info(id)
+    except ExtCleanInfoNotFound as e:
+        return jsonify_with_error(APIError.BAD_REQUEST, str(e))
+    return jsonify_with_data(APIError.OK, data={})
 
 
 @etl_admin_api.route("/ext_clean_info/<int:id>", methods=["PATCH"])
@@ -47,6 +61,12 @@ def modifly_ext_clean_info(id):
     except (ExtCleanInfoNotFound, ExtCleanInfoTableNotFound, ExtCleanInfoColumnNotFound) as e:
         return jsonify_with_error(APIError.BAD_REQUEST, str(e))
     return jsonify_with_data(APIError.OK, data={})
+
+
+@etl_admin_api.route("/ext_clean_info/target_table/<source_id>", methods=["GET"])
+def get_ext_clean_info_target_table(source_id):
+    tables = services.get_ext_clean_info_target_table(source_id)
+    return jsonify_with_data(APIError.OK, data={"tables": tables})
 
 
 @etl_admin_api.route("/ext_clean_info/tables/<source_id>", methods=["GET"])
