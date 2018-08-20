@@ -1,6 +1,55 @@
 """
 科脉云鼎清洗逻辑
 销售，成本，库存，商品， 分类等
+
+# 销售流水
+origin_table_columns = {"t_sl_master": ['fbrh_no', 'fflow_no', 'ftrade_date', 'fcr_time', 'fsell_way'],
+                        "t_sl_detail": ['fprice', 'fpack_qty', 'famt', 'fflow_no', 'fitem_subno', 'fitem_id'],
+                        "t_br_master": ['fbrh_name', 'fbrh_no'],
+                        "t_bi_master": ['fitem_id', 'fitem_subno', 'fitem_name', 'funit_no', 'fitem_clsno'],
+                        "t_bc_master": ['fitem_clsno', 'fitem_clsname', 'fprt_no'],
+                        "t_bi_barcode": ['funit_qty', 'fitem_id', 'fitem_subno']}
+
+coverts = {"t_sl_master": {"fbrh_no": str}, "t_br_master": {"fbrh_no": str},
+           "t_bi_master": {"fitem_clsno": str},
+           "t_bc_master": {"fitem_clsno": str, "fprt_no": str}}
+
+# 成本
+origin_table_columns = {"t_rpt_sl_detail": ['fitem_id', 'fbrh_no', 'ftrade_date', 'fsl_qty', 'famt', 'fcost_amt'],
+                        "t_bi_master": ['fitem_clsno', 'fitem_id']
+                        }
+
+
+coverts = {"t_rpt_sl_detail": {"fbrh_no": str},
+           "t_bi_master": {"fitem_clsno": str}}
+
+
+# goods
+origin_table_columns = {
+    "t_bi_master": ['fitem_subno', 'fitem_id', 'fitem_name', 'fstatus', 'fitem_clsno', 'fap_date', 'fexp_date',
+                    'fitem_no', 'fitem_brdno', 'funit_no'],
+    "t_bs_master": ['fsup_name', 'fsup_no', 'fsale_way'],
+    "t_bi_price": ['fin_price', 'fsale_price', 'fitem_id', 'fsup_no'],
+    "t_bb_master": ['fitem_brdname', 'fitem_brdno']
+}
+
+coverts = {"t_bi_master": {"fitem_id": str, "fitem_clsno": str, "fitem_subno": str},
+           "t_bs_master": {"fsup_no": str, "fsale_way": str},
+           "t_bi_price": {"fitem_id": str, 'fsup_no': str}}
+
+#category
+origin_table_columns = {"t_bc_master": ['fitem_clsno', 'fitem_clsname', 'flvl_num', 'fprt_no']
+                        }
+
+coverts = {"t_bc_master": {"fitem_clsno": str, "fprt_no": str}}
+
+store
+origin_table_columns = {"t_br_master": ['fbrh_no', 'fbrh_name', 'fstatus', 'fcr_date', 'fbrh_type'],
+                        "t_br_ext": ['fbrh_no', 'faddr', 'ftel', 'fman']
+                        }
+
+coverts = {"t_br_master": {"fbrh_no": str}, "t_br_ext": {"fbrh_no": str}}
+
 """
 from datetime import datetime
 import pandas as pd
@@ -219,7 +268,7 @@ def clean_category(source_id, date, target_table, frames):
         columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name"})
     category1 = category1[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category2 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
@@ -241,7 +290,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category2 = category2[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category3 = frames["t_bc_master"].merge(frames["t_bc_master"], how="left", left_on="fprt_no",
@@ -264,7 +313,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category3 = category3[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updateds', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category = pd.concat([category1, category2, category3])

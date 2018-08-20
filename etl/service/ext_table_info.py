@@ -150,7 +150,6 @@ class ExtTableInfoService:
                 table_name=template_table.table_name).first()
             if not target_table:
                 continue
-            print(target_table.source_id, target_table.table_name)
             info = {
                 "alias_table_name": template_table.alias_table_name,
                 "order_column": template_table.order_column,
