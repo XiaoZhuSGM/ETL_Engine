@@ -42,15 +42,19 @@ class ExtLogInfo(CRUDMixin, db.Model):
 class ExtCleanInfo(CRUDMixin, db.Model):
     """
     合成目标表所需要信息
-    like   {"t_sl_master": ['fbrh_no', 'fflow_no', 'ftrade_date', 'fcr_time', 'fsell_way'],
+    like    {
+                "t_sl_master": ['fbrh_no', 'fflow_no', 'ftrade_date', 'fcr_time', 'fsell_way'],
                 "t_sl_detail": ['fprice', 'fpack_qty', 'famt', 'fflow_no', 'fitem_subno', 'fitem_id'],
                 "t_br_master": ['fbrh_name', 'fbrh_no'],
                 "t_bi_master": ['fitem_id', 'fitem_subno', 'fitem_name', 'funit_no', 'fitem_clsno'],
                 "t_bc_master": ['fitem_clsno', 'fitem_clsname', 'fprt_no'],
-                "t_bi_barcode": ['funit_qty', 'fitem_id', 'fitem_subno']}
-    like     {"t_sl_master": {"fbrh_no": str}, "t_br_master": {"fbrh_no": str},
-           "t_bi_master": {"fitem_clsno": str},
-           "t_bc_master": {"fitem_clsno": str, "fprt_no": str}}
+                "t_bi_barcode": ['funit_qty', 'fitem_id', 'fitem_subno']
+            }
+    like    {
+                "t_sl_master": {"fbrh_no": "str"}, "t_br_master": {"fbrh_no": "str"},
+                "t_bi_master": {"fitem_clsno": "str"},
+                "t_bc_master": {"fitem_clsno": "str", "fprt_no": "str"}
+            }
     """
     source_id = Column(String(15))
     origin_table = Column(JSONB, comment="合成目标表需要的原始表何所需要的字段")

@@ -162,19 +162,26 @@ if __name__ == '__main__':
     event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
                  filename="2018-08-13 16:32:40.557536.json",
                  db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
-    erp79 = {
+    erp = {
         'source_id': '79YYYYYYYYYYYYY',
-        'query_date': '2018-08-14',
+        'query_date': '2018-08-10',
         'task_type': 'full',
-        'filename': '2018-08-14 19:36:07.258060.json',
+        'filename': '2018-08-15 17:19:57.679742.json',
         'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
     }
-    erp32 = {
+    erp = {
         'source_id': '32YYYYYYYYYYYYY',
         'query_date': '2018-08-10',
         'task_type': 'full',
         'filename': '2018-08-15 14:47:33.369885.json',
         'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
     }
-    handler(erp32, None)
+    erp = {
+        'source_id': '43YYYYYYYYYYYYY',
+        'query_date': '2018-08-10',
+        'task_type': 'full',
+        'filename': '2018-08-17 10:37:17.277419.json',
+        'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
+    }
+    handler(erp, None)
     print('spend time: ', time.time() - start)
