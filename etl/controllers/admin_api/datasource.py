@@ -5,7 +5,7 @@ from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
 from ...service.datasource import ExtDatasourceNotExist,ExtDatasourceConfigNotExist
 from ...service.ext_table import ExtTableService
-from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput
+from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput,JsonDatasourceTestConnectionInput
 
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
@@ -68,7 +68,7 @@ def update_datasource(datasource_id):
 
 
 @etl_admin_api.route(DATASOURCE_API_TEST, methods=['POST'])
-@validate_arg(JsonDatasourceAddInput)
+@validate_arg(JsonDatasourceTestConnectionInput)
 def test_connection_datasource():
     data = request.json
     db_name = data.get('db_name', [])

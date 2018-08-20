@@ -3,40 +3,86 @@
 # @Author  : 范佳楠
 
 import ssl
+import tempfile
+import time
 from datetime import datetime
 
 import boto3
 import pandas as pd
-from sqlalchemy import create_engine
+import pytz
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-boto_client = boto3.client('s3')
-engine = create_engine('postgresql+psycopg2://beanan:root@123.206.60.59:5432/test')
-branch_info_path = 'https://s3.cn-north-1.amazonaws.com.cn/ext-etl-data/datapipeline/source_id%3D72YYYYYYYYYYYYY/ext_date%3D2018-08-13/table%3Dt_bd_branch_info/dump%3D2018-08-16+16%3A11%3A03.327773%2B08%3A00%26rowcount%3D24.csv.gz'
-item_cls_path = 'https://s3.cn-north-1.amazonaws.com.cn/ext-etl-data/datapipeline/source_id%3D72YYYYYYYYYYYYY/ext_date%3D2018-08-13/table%3Dt_bd_item_cls/dump%3D2018-08-16+16%3A11%3A04.803990%2B08%3A00%26rowcount%3D336.csv.gz'
-item_info_path = 'https://s3.cn-north-1.amazonaws.com.cn/ext-etl-data/datapipeline/source_id%3D72YYYYYYYYYYYYY/ext_date%3D2018-08-13/table%3Dt_bd_item_info/dump%3D2018-08-16+16%3A11%3A22.781142%2B08%3A00%26rowcount%3D29118.csv.gz'
-sale_flow = 'https://s3.cn-north-1.amazonaws.com.cn/ext-etl-data/datapipeline/source_id%3D72YYYYYYYYYYYYY/ext_date%3D2018-08-13/table%3Dt_rm_saleflow/dump%3D2018-08-16+16%3A11%3A08.865099%2B08%3A00%26rowcount%3D7992.csv.gz'
-cost_path = 'https://s3.cn-north-1.amazonaws.com.cn/ext-etl-data/datapipeline/source_id%3D72YYYYYYYYYYYYY/ext_date%3D2018-08-13/table%3Dt_da_jxc_daysum/dump%3D2018-08-16+16%3A11%3A08.502242%2B08%3A00%26rowcount%3D3745.csv.gz'
+_TZINFO = pytz.timezone("Asia/Shanghai")
+
+S3_BUCKET = "ext-etl-data"
+S3 = boto3.resource("s3")
+CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
+
+category_dict = {
+    '69YYYYYYYYYYYYY': (1, 2, 3),
+    '72YYYYYYYYYYYYY': (2, 4, 6)
+}
+
+branch_dict = {
+    '69YYYYYYYYYYYYY': 2,
+    '72YYYYYYYYYYYYY': 2
+}
+
+
+def clean_sixun(source_id, date, target_table, data_frames):
+    if target_table == "goodsflow":
+        clean_goodsflow(source_id, date, target_table, data_frames)
+    elif target_table == "cost":
+        clean_cost(source_id, date, target_table, data_frames)
+    elif target_table == "store":
+        clean_store(source_id, date, target_table, data_frames)
+    elif target_table == "goods":
+        clean_goods(source_id, date, target_table, data_frames)
+    elif target_table == "category":
+        clean_category(source_id, date, target_table, data_frames)
+    else:
+        pass
 
 
 # 门店表
-def store():
-    branch_info_frame = pd.read_csv(filepath_or_buffer=branch_info_path)
-    branch_info_frame['dj_yw'] = branch_info_frame['dj_yw'].map(lambda value: '已冻结' if value == '1' else '未冻结')
+'''
+    'origin_table_columns': {
+            "t_bd_branch_info": ['branch_no',
+                                 'branch_name',
+                                 'address',
+                                 'dj_yw',
+                                 'init_date',
+                                 'branch_no',
+                                 'branch_tel',
+                                 'branch_fax',
+                                 'other1',
+                                 'trade_type',
+                                 'property',
+                                 ]
+        },
+
+        'converts': {"t_bd_branch_info": {'branch_no': str, 'property': int, 'trade_type': int, 'dj_yw': int}}
+'''
+
+
+def clean_store(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    branch_info_frame = data_frames['t_bd_branch_info']
+    branch_info_frame['dj_yw'] = branch_info_frame['dj_yw'].map(lambda value: '已冻结' if value == 1 else '未冻结')
     branch_info_frame = (branch_info_frame[(branch_info_frame['property'] == 0)])
 
     def trade_type_convert(value):
-        if value == '2':
+        if value == 2:
             return '加盟店'
-        elif value == '0':
+        elif value == 0:
             return '总部托管'
         else:
             return '独立管理'
 
     branch_info_frame['property'] = branch_info_frame['trade_type'].map(trade_type_convert)
-    branch_info_frame['cmid'] = '72'
-    branch_info_frame['source_id'] = '72YYYYYYYYYYYYY'
+    branch_info_frame['cmid'] = cmid
+    branch_info_frame['source_id'] = source_id
     branch_info_frame['address_code'] = ''
     branch_info_frame['device_id'] = ''
     branch_info_frame['lat'] = None
@@ -79,21 +125,36 @@ def store():
         'source_id',
         'last_updated'
     ]]
-
-    branch_info_frame.to_csv(path_or_buf='store.csv', index=False)
+    upload_to_s3(branch_info_frame, source_id, date, target_table)
 
 
 # 商品分类
-def category():
-    item_cls_frame_1 = pd.read_csv(filepath_or_buffer=item_cls_path)
+
+'''
+    'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno',
+                              'item_clsname',
+                              'cls_parent',
+                              ]
+        },
+
+    'converts': {"t_bd_item_cls": {'item_clsno': str, 'item_clsname': str, 'cls_parent': str}}
+'''
+
+
+def clean_category(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    lv1_len, lv2_len, lv3_len = category_dict[source_id]
+    item_cls_frame_1 = data_frames['t_bd_item_cls']
+    # item_cls_frame_1 = pd.read_csv(filepath_or_buffer=item_cls_path)
     item_cls_frame_2 = item_cls_frame_1.copy(deep=True)
     item_cls_frame_3 = item_cls_frame_1.copy(deep=True)
     # 处理item_cls_frame1
-    item_cls_frame_1 = item_cls_frame_1[(item_cls_frame_1['item_clsno'].str.strip()).str.len() == 2]
+    item_cls_frame_1 = item_cls_frame_1[(item_cls_frame_1['item_clsno'].str.strip()).str.len() == lv1_len]
     item_cls_frame_1 = item_cls_frame_1[['item_clsno', 'item_clsname']]
     item_cls_frame_1 = item_cls_frame_1.rename(columns={'item_clsno': 'foreign_category_lv1',
                                                         'item_clsname': 'foreign_category_lv1_name'})
-    item_cls_frame_1['cmid'] = '72'
+    item_cls_frame_1['cmid'] = cmid
     item_cls_frame_1['level'] = 1
     item_cls_frame_1['last_updated'] = datetime.now()
     item_cls_frame_1['foreign_category_lv2'] = ''
@@ -104,6 +165,7 @@ def category():
     item_cls_frame_1['foreign_category_lv4_name'] = None
     item_cls_frame_1['foreign_category_lv5'] = ''
     item_cls_frame_1['foreign_category_lv5_name'] = None
+    item_cls_frame_1['last_updated'] = datetime.now()
 
     # 处理item_cls_frame2
     item_cls_frame_2['cls_parent'] = item_cls_frame_2['cls_parent'].str.strip()
@@ -111,7 +173,7 @@ def category():
     item_cls_frame_2 = pd.merge(item_cls_frame_2, item_cls_frame_2, how='left', left_on='item_clsno',
                                 right_on='cls_parent',
                                 suffixes=('_lv1', '_lv2'))
-    item_cls_frame_2 = item_cls_frame_2[(item_cls_frame_2['item_clsno_lv2'].str.strip()).str.len() == 4]
+    item_cls_frame_2 = item_cls_frame_2[(item_cls_frame_2['item_clsno_lv2'].str.strip()).str.len() == lv2_len]
 
     item_cls_frame_2 = item_cls_frame_2[['item_clsno_lv1', 'item_clsname_lv1', 'item_clsno_lv2', 'item_clsname_lv2']]
     item_cls_frame_2 = item_cls_frame_2.rename(columns={'item_clsno_lv1': 'foreign_category_lv1',
@@ -125,7 +187,7 @@ def category():
     item_cls_frame_2['foreign_category_lv4_name'] = None
     item_cls_frame_2['foreign_category_lv5'] = ''
     item_cls_frame_2['foreign_category_lv5_name'] = None
-    item_cls_frame_2['cmid'] = 72
+    item_cls_frame_2['cmid'] = cmid
     item_cls_frame_2['last_updated'] = datetime.now()
 
     # 处理item_cls_frame3
@@ -140,7 +202,7 @@ def category():
                                 how='left').merge(item_cls_frame_3, how='left', left_on='item_clsno_lv2',
                                                   right_on='cls_parent')
 
-    item_cls_frame_3 = item_cls_frame_3[(item_cls_frame_3['item_clsno'].str.strip()).str.len() == 6]
+    item_cls_frame_3 = item_cls_frame_3[(item_cls_frame_3['item_clsno'].str.strip()).str.len() == lv3_len]
     item_cls_frame_3 = item_cls_frame_3[
         ['item_clsno_lv1', 'item_clsname_lv1', 'item_clsno_lv2', 'item_clsname_lv2', 'item_clsno', 'item_clsname']]
     item_cls_frame_3 = item_cls_frame_3.rename(columns={'item_clsno_lv1': 'foreign_category_lv1',
@@ -154,54 +216,97 @@ def category():
     item_cls_frame_3['foreign_category_lv5'] = ''
     item_cls_frame_3['foreign_category_lv5_name'] = None
     item_cls_frame_3['level'] = 3
-    item_cls_frame_3['cmid'] = 72
+    item_cls_frame_3['cmid'] = cmid
     item_cls_frame_3['last_updated'] = datetime.now()
 
     category_frame = pd.concat([item_cls_frame_1, item_cls_frame_2, item_cls_frame_3])
     category_frame = category_frame[[
-        'cmid',
-        'level',
-        'foreign_category_lv1',
-        'foreign_category_lv1_name',
-        'foreign_category_lv2',
-        'foreign_category_lv2_name',
-        'foreign_category_lv3',
-        'foreign_category_lv3_name',
-        'foreign_category_lv4',
-        'foreign_category_lv4_name',
-        'foreign_category_lv5',
-        'foreign_category_lv5_name',
-        'last_updated'
+        "cmid",
+        "level",
+        "foreign_category_lv1",
+        "foreign_category_lv1_name",
+        "foreign_category_lv2",
+        "foreign_category_lv2_name",
+        "foreign_category_lv3",
+        "foreign_category_lv3_name",
+        "last_updated",
+        "foreign_category_lv4",
+        "foreign_category_lv4_name",
+        "foreign_category_lv5",
+        "foreign_category_lv5_name"
     ]]
-    category_frame.to_csv(path_or_buf='category.csv', index=False)
+    upload_to_s3(category_frame, source_id, date, target_table)
 
 
 # 商品
-def goods():
-    goods_frame = pd.read_csv(filepath_or_buffer=item_info_path, dtype={'item_clsno': str})
-    item_cls_frame = pd.read_csv(filepath_or_buffer=item_cls_path, dtype={'item_clsno': str})
 
+'''
+     'origin_table_columns': {
+            't_bd_item_info': ['item_clsno',
+                               'main_supcust',
+                               'status',
+                               'num2',
+                               'item_no',
+                               'item_name',
+                               'price',
+                               'sale_price',
+                               'unit_no',
+                               'item_subno',
+                               'item_brandname',
+                               'build_date'
+                               ],
+            't_bd_supcust_info': ['supcust_no', 'sup_name', 'supcust_flag'],
+            "t_bd_item_cls": ['item_clsno']
+
+        },
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': str},
+            't_bd_item_info': {'item_clsno': str, 'num2': float,
+                               'main_supcust': str,
+                               'status': int,
+                               'item_no': str,
+
+                               },
+            't_bd_supcust_info': {'supcust_no': str}
+        }
+
+'''
+
+
+def clean_goods(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    lv1_len, lv2_len, lv3_len = category_dict[source_id]
+    goods_frame = data_frames['t_bd_item_info']
+    item_cls_frame = data_frames['t_bd_item_cls']
+    supcust_info_frame = data_frames['t_bd_supcust_info']
+
+    supcust_info_frame['supcust_no'] = supcust_info_frame['supcust_no'].str.strip()
     item_cls_frame['item_clsno'] = item_cls_frame['item_clsno'].str.strip()
 
     goods_frame_1 = goods_frame.copy(deep=True)
-    goods_frame_1['item_clsno_1'] = goods_frame['item_clsno'].str.strip().str.slice(0, 2)
-    goods_frame_1['item_clsno_2'] = goods_frame['item_clsno'].str.strip().str.slice(0, 4)
-    goods_frame_1['item_clsno_3'] = goods_frame['item_clsno'].str.strip().str.slice(0, 6)
+    goods_frame_1['item_clsno_1'] = goods_frame['item_clsno'].str.strip().str.slice(0, lv1_len)
+    goods_frame_1['item_clsno_2'] = goods_frame['item_clsno'].str.strip().str.slice(0, lv2_len)
+    goods_frame_1['item_clsno_3'] = goods_frame['item_clsno'].str.strip().str.slice(0, lv3_len)
+    goods_frame_1['main_supcust'] = goods_frame_1['main_supcust'].str.strip()
 
     goods_frame_1 = pd.merge(goods_frame_1, item_cls_frame, left_on='item_clsno_1', right_on='item_clsno', how='left',
                              suffixes=('_goods', '_lv1'))
 
     lv2 = item_cls_frame.copy(deep=True)
-    lv2 = lv2[lv2['item_clsno'].str.len() == 4]
+    lv2 = lv2[lv2['item_clsno'].str.len() == lv2_len]
 
     goods_frame_1 = pd.merge(goods_frame_1, lv2, left_on='item_clsno_2', right_on='item_clsno', how='left',
                              suffixes=('_2', '_lv2'))
 
     lv3 = item_cls_frame.copy(deep=True)
-    lv3 = lv3[lv3['item_clsno'].str.len() == 6]
+    lv3 = lv3[lv3['item_clsno'].str.len() == lv3_len]
 
     goods_frame_1 = pd.merge(goods_frame_1, lv3, how='left', left_on='item_clsno_3', right_on='item_clsno',
                              suffixes=('_end', '_lv3'))
+
+    goods_frame_1 = pd.merge(goods_frame_1, supcust_info_frame, left_on='main_supcust', right_on='supcust_no')
+    goods_frame_1 = goods_frame_1[goods_frame_1['supcust_flag'] == 'S']
 
     # 映射字段
     goods_frame_1 = goods_frame_1.rename(columns={
@@ -217,88 +322,119 @@ def goods():
         'build_date': 'storage_time',
         'num2': 'warranty',
         'item_subno': 'show_code',
+        'sup_name': 'supplier_name',
+        'supcust_no': 'supplier_code',
+        'item_brandname': 'brand_name'
     })
 
     def status_convert(status):
-        if status == '0':
+        if status == 0:
             return '建档'
-        elif status == '1':
+        elif status == 1:
             return '新品'
-        elif status == '2':
+        elif status == 2:
             return '正常'
-        elif status == '3' or status == '5':
+        elif status == 3 or status == 5:
             return '停购'
-        elif status == '4':
+        elif status == 4:
             return '停售'
         else:
             return '其他'
 
     goods_frame_1['item_status'] = goods_frame_1['item_status'].map(status_convert)
-    goods_frame_1['cmid'] = '72'
+    goods_frame_1['cmid'] = cmid
     goods_frame_1['last_updated'] = datetime.now()
     goods_frame_1['isvalid'] = '1'
     goods_frame_1['foreign_category_lv4'] = ''
     goods_frame_1['foreign_category_lv5'] = ''
     goods_frame_1['allot_method'] = ''
-    goods_frame_1['supplier_name'] = ''
-    goods_frame_1['supplier_code'] = ''
-    goods_frame_1['brand_name'] = ''
     goods_frame_1['foreign_item_id'] = goods_frame_1['barcode']
 
+    goods_frame_1['warranty'] = goods_frame_1['warranty'].round(decimals=1)
+
     goods_frame_1 = goods_frame_1[[
-        'cmid',
-        'barcode',
-        'foreign_item_id',
-        'item_name',
-        'lastin_price',
-        'sale_price',
-        'item_unit',
-        'item_status',
-        'foreign_category_lv1',
-        'foreign_category_lv2',
-        'foreign_category_lv3',
-        'foreign_category_lv4',
-        'foreign_category_lv5',
-        'storage_time',
-        'last_updated',
-        'isvalid',
-        'warranty',
-        'show_code',
-        'allot_method',
-        'supplier_name',
-        'supplier_code',
-        'brand_name'
+        "cmid",
+        "barcode",
+        "foreign_item_id",
+        "item_name",
+        "lastin_price",
+        "sale_price",
+        "item_unit",
+        "item_status",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "storage_time",
+        "last_updated",
+        "isvalid",
+        "warranty",
+        "show_code",
+        "foreign_category_lv5",
+        "allot_method",
+        "supplier_name",
+        "supplier_code",
+        "brand_name",
     ]]
 
-    # print(goods_frame_1)
-    goods_frame_1.to_csv(path_or_buf='goods.csv', index=False)
+    upload_to_s3(goods_frame_1, source_id, date, target_table)
 
 
 # 商品销售表
-def goodsflow():
-    sale_flow_frame = pd.read_csv(filepath_or_buffer=sale_flow, dtype={'branch_no': str,
-                                                                       'item_no': str,
-                                                                       'sell_price': float,
-                                                                       'flow_no': str})
+'''
+     'origin_table_columns': {
+            't_rm_saleflow': ['branch_no',
+                              'item_no',
+                              'sale_price',
+                              'sale_qnty',
+                              'sell_way',
+                              'sale_money',
+                              'flow_no',
+                              'oper_date'],
+            't_bd_branch_info': ['branch_no', 'branch_name'],
+            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no', ],
+            't_bd_item_cls': ['item_clsno', 'item_clsname'],
+        },
 
-    # print(sale_flow_frame['flow_no'])
-    branch_info_frame = pd.read_csv(filepath_or_buffer=branch_info_path, dtype={'branch_no': str})
-    goods_frame = pd.read_csv(filepath_or_buffer=item_info_path, dtype={'item_no': str, 'item_clsno': str})
-    item_cls_frame = pd.read_csv(filepath_or_buffer=item_cls_path, dtype={"item_clsno": str})
+        'converts': {
+            't_rm_saleflow': {'branch_no': str,
+                              'item_no': str,
+                              'sale_price': float,
+                              'sale_qnty': float,
+                              'sell_way': str,
+                              'sale_money': float,
+                              'flow_no': str
+                              },
 
-    # print(item_cls_frame['item'])
+            't_bd_branch_info': {'branch_no': str},
+            't_bd_item_info': {'item_no': str, 'item_clsno': str},
+            't_bd_item_cls': {'item_clsno': str},
+        }
+
+'''
+
+
+def clean_goodsflow(source_id, date, target_table, data_frames):
+    lv1_len, lv2_len, lv3_len = category_dict[source_id]
+    cmid = source_id.split("Y")[0]
+    branch_no_len = branch_dict[source_id]
+    sale_flow_frame = data_frames['t_rm_saleflow']
+    branch_info_frame = data_frames['t_bd_branch_info']
+    goods_frame = data_frames['t_bd_item_info']
+    item_cls_frame = data_frames['t_bd_item_cls']
+
     # 分类
     item_cls_frame['item_clsno'] = item_cls_frame['item_clsno'].str.strip()
 
     # 商品
-    goods_frame['item_clsno_1'] = goods_frame['item_clsno'].str.strip().str.slice(0, 2)
-    goods_frame['item_clsno_2'] = goods_frame['item_clsno'].str.strip().str.slice(0, 4)
-    goods_frame['item_clsno_3'] = goods_frame['item_clsno'].str.strip().str.slice(0, 6)
+    goods_frame['item_clsno'] = goods_frame['item_clsno'].str.strip()
+    goods_frame['item_clsno_1'] = goods_frame['item_clsno'].str.slice(0, lv1_len)
+    goods_frame['item_clsno_2'] = goods_frame['item_clsno'].str.slice(0, lv2_len)
+    goods_frame['item_clsno_3'] = goods_frame['item_clsno'].str.slice(0, lv3_len)
     goods_frame['item_no'] = goods_frame['item_no'].str.strip()
 
-    # print(goods_frame['item_no'])
     # 销售
-    sale_flow_frame['branch_no_1'] = sale_flow_frame['branch_no'].str.strip().str.slice(0, 2)
+    sale_flow_frame['branch_no_1'] = sale_flow_frame['branch_no'].str.strip().str.slice(0, branch_no_len)
     sale_flow_frame['item_no'] = sale_flow_frame['item_no'].str.strip()
 
     # 门店
@@ -313,11 +449,11 @@ def goodsflow():
     '''
         lv1: item_cls_lv1 item_clsname
     '''
-    print(result_frame['item_clsno_1'])
+
     result_frame = pd.merge(result_frame, item_cls_frame, left_on='item_clsno_1', right_on='item_clsno', how='left',
                             suffixes=('_s3', '_lv1'))
 
-    lv2 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == 4]
+    lv2 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == lv2_len]
 
     '''
         lv1 item_cls_lv1 item_clsname_s4
@@ -326,7 +462,7 @@ def goodsflow():
     result_frame = pd.merge(result_frame, lv2, left_on='item_clsno_2', right_on='item_clsno', how='left',
                             suffixes=('_s4', '_lv2'))
 
-    lv3 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == 6]
+    lv3 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == lv3_len]
 
     '''
         lv2 item_clsno_s5  item_clsname_lv2
@@ -335,16 +471,14 @@ def goodsflow():
     result_frame = pd.merge(result_frame, lv3, left_on='item_clsno_3', right_on='item_clsno', how='left',
                             suffixes=('_s5', '_lv3'))
 
-    # print(result_frame['item_no_goods'])
-
     result_frame = result_frame[(result_frame['item_no'].notna()) & (result_frame['branch_no_store'].notna())]
 
     def saleprice_convert(row):
-        # print(row['sale_price'])
+
         if row['sell_way'] == 'C':
             return 0
         else:
-            return row['sale_price_s2']
+            return row['sale_price']
 
     def quantity_convert(row):
         if row['sell_way'] == 'A' or row['sell_way'] == 'C':
@@ -384,8 +518,8 @@ def goodsflow():
         'item_clsname': 'foreign_category_lv3_name',
     })
 
-    result_frame['source_id'] = '72YYYYYYYYYYYYY'
-    result_frame['cmid'] = '72'
+    result_frame['source_id'] = source_id
+    result_frame['cmid'] = cmid
     result_frame['consumer_id'] = None
     result_frame['last_updated'] = datetime.now()
     result_frame['barcode'] = result_frame['foreign_item_id']
@@ -423,22 +557,58 @@ def goodsflow():
         'foreign_category_lv5_name',
         'pos_id'
     ]]
-    result_frame.to_csv(path_or_buf='goodsflow.csv', index=False)
+    upload_to_s3(result_frame, source_id, date, target_table)
 
 
 # 成本表
-def cost():
-    cost_frame = pd.read_csv(filepath_or_buffer=cost_path, dtype={'item_no': 'str', 'branch_no': str})
-    goods_frame = pd.read_csv(filepath_or_buffer=item_info_path, dtype={'item_no': str, 'item_clsno': str,
-                                                                        'branch_no': str})
-    goods_frame['item_clsno_1'] = goods_frame['item_clsno'].str.strip().str.slice(0, 2)
-    goods_frame['item_clsno_2'] = goods_frame['item_clsno'].str.strip().str.slice(0, 4)
-    goods_frame['item_clsno_3'] = goods_frame['item_clsno'].str.strip().str.slice(0, 6)
+'''
+    'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno', ],
+            't_da_jxc_daysum': [
+                'branch_no',
+                'oper_date',
+                'so_qty',
+                'pos_qty',
+                'so_amt',
+                'pos_amt',
+                'fifo_cost_amt',
+                'item_no'
+            ],
+            't_bd_item_info': ['item_no', 'item_clsno']
+        },
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': str},
+            't_bd_item_info': {'item_no': str, 'item_clsno': str},
+            't_da_jxc_daysum': {
+                'branch_no': str,
+                'so_qty': float,
+                'pos_qty': float,
+                'so_amt': float,
+                'pos_amt': float,
+                'fifo_cost_amt': float,
+                'item_no': str
+            }
+        }
+'''
+
+
+def clean_cost(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    cost_frame = data_frames['t_da_jxc_daysum']
+    goods_frame = data_frames['t_bd_item_info']
+    item_cls_frame = data_frames['t_bd_item_cls']
+
+    lv1_len, lv2_len, lv3_len = category_dict[source_id]
+    branch_no_len = branch_dict[source_id]
+    goods_frame['item_clsno'] = goods_frame['item_clsno'].str.strip()
+    goods_frame['item_clsno_1'] = goods_frame['item_clsno'].str.slice(0, lv1_len)
+    goods_frame['item_clsno_2'] = goods_frame['item_clsno'].str.slice(0, lv2_len)
+    goods_frame['item_clsno_3'] = goods_frame['item_clsno'].str.slice(0, lv3_len)
 
     goods_frame['item_no'] = goods_frame['item_no'].str.strip()
     cost_frame['item_no'] = cost_frame['item_no'].str.strip()
 
-    item_cls_frame = pd.read_csv(filepath_or_buffer=item_cls_path, dtype={"item_clsno": str})
     item_cls_frame['item_clsno'] = item_cls_frame['item_clsno'].str.strip()
 
     result_frame = pd.merge(cost_frame, goods_frame, left_on='item_no', right_on='item_no', how='left',
@@ -451,7 +621,7 @@ def cost():
     result_frame = pd.merge(result_frame, item_cls_frame, left_on='item_clsno_1', right_on='item_clsno', how='left',
                             suffixes=('_c1', '_lv1'))
 
-    lv2 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == 4]
+    lv2 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == lv2_len]
 
     '''
         lv1 item_clsno_lv1 item_clsname_c2
@@ -461,7 +631,7 @@ def cost():
     result_frame = pd.merge(result_frame, lv2, left_on='item_clsno_2', right_on='item_clsno', how='left',
                             suffixes=('_c2', '_lv2'))
 
-    lv3 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == 6]
+    lv3 = item_cls_frame[item_cls_frame['item_clsno'].str.len() == lv3_len]
 
     '''
         lv1 item_clsno_lv1 item_clsname_c2
@@ -477,14 +647,16 @@ def cost():
                                 | (result_frame['so_amt'] != 0)
                                 | (result_frame['pos_amt'] != 0)
                                 ]
-    result_frame['branch_no_cost'] = result_frame['branch_no_cost'].str.slice(0, 2)
-    result_frame = result_frame[(result_frame['branch_no_cost'] != '00') & (result_frame['item_no'].notna())]
+    result_frame['branch_no'] = result_frame['branch_no'].str.slice(0, branch_no_len)
+
+    branch_no_zero = '0' * branch_no_len
+    result_frame = result_frame[(result_frame['branch_no'] != branch_no_zero) & (result_frame['item_no'].notna())]
 
     result_frame['item_clsno_c3'] = result_frame['item_clsno_c3'].map(lambda x: x if x else '')
     result_frame['item_clsno_lv3'] = result_frame['item_clsno_lv3'].map(lambda x: x if x else '')
 
     result_frame = result_frame.rename(columns={
-        'branch_no_cost': 'foreign_store_id',
+        'branch_no': 'foreign_store_id',
         'item_no': 'foreign_item_id',
         'fifo_cost_amt': 'total_cost',
         'item_clsno_lv1': 'foreign_category_lv1',
@@ -492,9 +664,7 @@ def cost():
         'item_clsno_lv3': 'foreign_category_lv3',
     })
 
-    # result_frame['date'] = result_frame['oper_date'].map()
     result_frame['date'] = pd.to_datetime(result_frame['oper_date'], format='%Y-%m-%d')
-    # print(result_frame['oper_date'].dtype)
     result_frame['cost_type'] = ''
 
     def total_qualtity_convert(row):
@@ -508,8 +678,8 @@ def cost():
 
     result_frame['foreign_category_lv4'] = ''
     result_frame['foreign_category_lv5'] = ''
-    result_frame['source_id'] = '72YYYYYYYYYYYYY'
-    result_frame['cmid'] = '72'
+    result_frame['source_id'] = source_id
+    result_frame['cmid'] = cmid
 
     result_frame = result_frame[[
         'source_id',
@@ -527,13 +697,24 @@ def cost():
         'foreign_category_lv5',
         'cmid'
     ]]
-    print(result_frame['foreign_category_lv1'])
-    result_frame.to_csv(path_or_buf='cost.csv', index=False)
+    upload_to_s3(result_frame, source_id, date, target_table)
 
 
-# cost()
-# goodsflow()
+def upload_to_s3(frame, source_id, date, target_table):
+    filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
+    count = len(frame)
+    frame.to_csv(filename.name, index=False, compression="gzip", float_format='%.4f')
+    filename.seek(0)
+    key = CLEANED_PATH.format(
+        source_id=source_id,
+        target_table=target_table,
+        date=date,
+        timestamp=now_timestamp(),
+        rowcount=count,
+    )
+    S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
 
-store()
-category()
-goods()
+
+def now_timestamp():
+    _timestamp = datetime.fromtimestamp(time.time(), tz=_TZINFO)
+    return _timestamp

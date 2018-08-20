@@ -6,7 +6,9 @@ from datetime import datetime
 from enum import Enum
 
 import boto3
+import botocore
 import pytz
+from botocore.config import Config
 
 _TZINFO = pytz.timezone('Asia/Shanghai')
 
@@ -20,7 +22,9 @@ FULL_JSON = 'data/source_id={source_id}/ext_date={date}/' \
             'dump={date}_whole_path.json'
 
 S3_CLIENT = boto3.resource('s3')
-LAMBDA_CLIENT = boto3.client('lambda')
+session = botocore.session.get_session()
+BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
+LAMBDA_CLIENT = session.create_client('lambda', config=BOTO3_CONFIG)
 
 
 class Method(Enum):
@@ -154,8 +158,23 @@ class ExtDBWork(object):
 
 if __name__ == '__main__':
     start = time.time()
-    event = dict(source_id="72YYYYYYYYYYYYY", query_date="2018-08-13", task_type="full",
-                 filename="2018-08-15 13:59:13.167657.json",
-                 db_url="mssql+pymssql://sa:hyqykj@172.31.0.18:40072/hbposv8")
-    handler(event, None)
+
+    event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
+                 filename="2018-08-13 16:32:40.557536.json",
+                 db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
+    erp79 = {
+        'source_id': '79YYYYYYYYYYYYY',
+        'query_date': '2018-08-14',
+        'task_type': 'full',
+        'filename': '2018-08-14 19:36:07.258060.json',
+        'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
+    }
+    erp32 = {
+        'source_id': '32YYYYYYYYYYYYY',
+        'query_date': '2018-08-10',
+        'task_type': 'full',
+        'filename': '2018-08-15 14:47:33.369885.json',
+        'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
+    }
+    handler(erp32, None)
     print('spend time: ', time.time() - start)

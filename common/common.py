@@ -6,10 +6,11 @@ from datetime import datetime
 import hashlib
 import random
 import time
+import json
 
 import boto3
 
-s3 = boto3.resource('s3')
+S3 = boto3.resource('s3')
 
 
 def timestamp2format_time(timestamp):
@@ -52,7 +53,7 @@ def upload_body_to_s3(bucket, key, body):
     :param body:
     :return:
     """
-    s3.Object(bucket_name=bucket, key=key).put(
+    S3.Object(bucket_name=bucket, key=key).put(
         Body=body)
 
 
@@ -64,24 +65,24 @@ def upload_file_to_s3(bucket, key, file):
     :param file:
     :return:
     """
-    s3.Bucket(bucket).upload_file(file, key)
+    S3.Bucket(bucket).upload_file(file, key)
 
 
-def get_s3_keys(bucket):
-    """Get a list of keys in an S3 bucket.
-        This call only returns the first 1000 keys
+def get_content(bucket, key):
     """
-    keys = []
-    resp = s3.list_objects_v2(Bucket=bucket)
-    for obj in resp['Contents']:
-        keys.append(obj['Key'])
-    return keys
+    get body from s3 key
+    :param bucket:
+    :param key:
+    :return:
+    """
+    content = S3.get_object(Bucket=bucket, Key=key)
+    return json.loads(content["Body"].read().decode("utf-8"))
 
 
 def get_all_s3_keys(bucket):
     """Get a list of all keys in an S3 bucket."""
+    s3 = boto3.client('s3')
     keys = []
-
     kwargs = {'Bucket': bucket}
     while True:
         resp = s3.list_objects_v2(**kwargs)
@@ -98,6 +99,7 @@ def get_all_s3_keys(bucket):
 
 def get_s3_keys_as_generator(bucket):
     """Generate all the keys in an S3 bucket."""
+    s3 = boto3.client('s3')
     kwargs = {'Bucket': bucket}
     while True:
         resp = s3.list_objects_v2(**kwargs)
@@ -118,6 +120,7 @@ def get_matching_s3_keys(bucket, prefix='', suffix=''):
     :param prefix: Only fetch keys that start with this prefix (optional).
     :param suffix: Only fetch keys that end with this suffix (optional).
     """
+    s3 = boto3.client('s3')
     kwargs = {'Bucket': bucket}
 
     # If the prefix is a single string (not a tuple of strings), we can
@@ -141,10 +144,9 @@ def get_matching_s3_keys(bucket, prefix='', suffix=''):
 
 # 分页模版
 PAGE_SQL = {
-    "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} order by  {order_rows} desc ) RPT WHERE  ROWNUM <= {large} )  temp_rpt WHERE RN > {small}",
+    "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} {order_by} ) RPT WHERE  ROWNUM <= {large} )  temp_rpt WHERE RN > {small}",
     "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ( ORDER BY {order_rows} desc ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
 }
-
 
 S3_BUCKET = 'ext-etl-data'
 

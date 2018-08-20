@@ -73,21 +73,19 @@ datasource_config_add = {
                     "type": "string",
                 },
                 "db_name": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "database": {
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "type": "string",
+                        },
+                        "schema": {
+                            "type": "array",
+                            "items": {
                                 "type": "string",
-                            },
-                            "schema": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                }
                             }
                         }
                     }
+
                 },
                 "traversal": {
                     "type": "boolean",
@@ -178,21 +176,20 @@ datasource_config_update = {
                     "type": "string",
                 },
                 "db_name": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "database": {
+
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "type": "string",
+                        },
+                        "schema": {
+                            "type": "array",
+                            "items": {
                                 "type": "string",
-                            },
-                            "schema": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                }
                             }
                         }
                     }
+
                 },
                 "traversal": {
                     "type": "boolean",
@@ -286,6 +283,47 @@ enterprise_update = {
         'name', 'id'
     ]
 }
+
+datasource_test_connection = {
+    "type": "object",
+    "properties": {
+        "db_type": {
+            "type": "string",
+        },
+        "host": {
+            "type": "string",
+        },
+        "port": {
+            "type": "integer",
+        },
+        "username": {
+            "type": "string",
+        },
+        "password": {
+            "type": "string",
+        },
+        "db_name": {
+            "type": "object",
+            "properties": {
+                "database": {
+                    "type": "string",
+                },
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                    }
+                }
+            }
+
+        }
+    },
+    'required': ['db_type', 'host', 'port', 'username', 'password', 'db_name']
+}
+
+
+class JsonDatasourceTestConnectionInput(Inputs):
+    json = [JsonSchema(schema=datasource_test_connection)]
 
 
 class JsonDatasourceAddInput(Inputs):
