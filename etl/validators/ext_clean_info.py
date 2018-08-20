@@ -27,35 +27,14 @@ class CreateExtCleanInfo(Inputs):
             "source_id": {
                 "type": "string"
             },
-            "data": {
+            "tables": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "origin_table": {
-                            "type": "string"
-                        },
-                        "columns": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            },
-                        },
-                        "convert_str": {
-                            "type": "object",
-                            "patternProperties": {
-                                ".*": {
-                                    "type": "string"
-                                },
-                            },
-                        },
-                    },
-                    "required": ["origin_table", "columns"],
+                    "type": "string",
                 },
-
             },
         },
-        "required": ["source_id", "data"]
+        "required": ["source_id", "tables"],
     }
     json = [JsonSchema(schema=_schema)]
 
@@ -65,34 +44,6 @@ class ModiflyExtCleanInfo(Inputs):
     [{"origin_table":"table1", "columns":["columns1", "columns2"], "convert_str":{"column1":"type1"}},
         {"origin_table":"table2", "columns":["columns1", "columns2"], "convert_str":{"column2":"type2"}},  ]
     """
-    # _schema = {
-    #     "type": "object",
-    #     "properties": {
-    #         "origin_table": {
-    #             "type": "object",
-    #             "patternProperties": {
-    #                 ".*": {
-    #                     "type": "array",
-    #                     "items": {"type": "string"}
-    #                 },
-    #             },
-    #         },
-    #         "covert_str": {
-    #             "type": "object",
-    #             "patternProperties": {
-    #                 ".*": {
-    #                     "type": "object",
-    #                     "patternProperties": {
-    #                         ".*": {
-    #                             "type": "string"
-    #                         },
-    #                     },
-    #                 },
-    #             },
-    #         }
-    #     },
-    #     "required": ["origin_table"]
-    # }
     _schema = {
         "type": "object",
         "properties": {
