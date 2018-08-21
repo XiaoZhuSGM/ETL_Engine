@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String, Column
+from sqlalchemy import VARCHAR, REAL, Integer, DateTime, String, Boolean, Column
 from sqlalchemy.dialects.postgresql import JSONB
 from etl.etl import db
 from .base import CRUDMixin
@@ -60,7 +60,7 @@ class ExtCleanInfo(CRUDMixin, db.Model):
     origin_table = Column(JSONB, comment="合成目标表需要的原始表何所需要的字段")
     covert_str = Column(JSONB, comment="需要格式转换的字段，防止pandas家在丢失数据位")
     target_table = Column(VARCHAR(50), comment="目标表，譬如goodsflow_32yyyyyyyyyyyyy,chain_goods等")
-    status = Column(Integer)
+    deleted = Column(Boolean)
 
 
 class ExtTargetInfo(CRUDMixin, db.Model):

@@ -73,7 +73,7 @@ class ExtCleanInfoService:
         if not datasource:
             raise ExtDatasourceNotExist(source_id)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, status=1).\
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).\
                                         paginate(page, per_page=per_page, error_out=False)
 
         items = pagination.items
@@ -95,9 +95,9 @@ class ExtCleanInfoService:
             return total, []
 
         for item in items:
-            ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, status=1)
+            ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, deleted=False)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, status=1). \
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
                                         paginate(page, per_page=per_page, error_out=False)
         items = pagination.items
         total = pagination.total
@@ -117,20 +117,20 @@ class ExtCleanInfoService:
             # 如果目标表已经创建就跳过，不在创建
             ext_clean_info = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=table).first()
             if ext_clean_info:
-                ext_clean_info.status = 1
+                ext_clean_info.deleted = False
                 continue
             ext_target_info = ExtTargetInfo.query.filter_by(target_table=table).first()
             # 如果目标基础表没有想要添加的表就跳过
             if not ext_target_info:
                 continue
-            ExtCleanInfo.create(source_id=source_id, target_table=table, status=1)
+            ExtCleanInfo.create(source_id=source_id, target_table=table, deleted=False)
 
     @session_scope
     def delete_ext_clean_info(self, id):
         ext_clean_info = ExtCleanInfo.query.get(id)
         if not ext_clean_info:
             raise ExtCleanInfoNotFound
-        ext_clean_info.status = 0
+        ext_clean_info.deleted = True
 
     @session_scope
     def modifly_ext_clean_info(self, id, data):
@@ -205,7 +205,7 @@ class ExtCleanInfoService:
         return tables
 
     def get_ext_clean_info_target_table(self, source_id):
-        ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, status=1).all()
+        ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
         ext_clean_tables = [model.target_table for model in ext_clean_info_models]
         print(f"source_id:{source_id}, {ext_clean_tables}")
         ext_target_info_models = ExtTargetInfo.query.filter(ExtTargetInfo.target_table.notin_(ext_clean_tables)).all()
@@ -228,8 +228,8 @@ class ExtCleanInfoService:
         if template_datasource.erp_vendor != target_datasource.erp_vendor:
             raise ErpNotMatch()
 
-        template_table_infos = ExtCleanInfo.query.filter_by(source_id=template_source_id, status=1).all()
-        target_table_infos = ExtCleanInfo.query.filter_by(source_id=target_source_id, status=1).all()
+        template_table_infos = ExtCleanInfo.query.filter_by(source_id=template_source_id, deleted=False).all()
+        target_table_infos = ExtCleanInfo.query.filter_by(source_id=target_source_id, deleted=False).all()
         if not all([template_table_infos, target_table_infos]):
             raise TableNotExist()
 
@@ -246,13 +246,13 @@ class ExtCleanInfoService:
                     target_table=template_table.target_table,
                     origin_table=template_table.origin_table,
                     covert_str=template_table.covert_str,
-                    status=template_table.status
+                    deleted=template_table.deleted
                 )
                 continue
             info = {
                 "origin_table": template_table.origin_table,
                 "covert_str": template_table.covert_str,
-                "status": template_table.status
+                "deleted": template_table.deleted
             }
             target_table.update(**info)
 
