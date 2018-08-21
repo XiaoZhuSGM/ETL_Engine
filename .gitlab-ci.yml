@@ -6,7 +6,6 @@ test:
   stage: test
   script:
     - export ETL_ENVIREMENT=dev
-    - pip install pytest
     - pytest
 
 
