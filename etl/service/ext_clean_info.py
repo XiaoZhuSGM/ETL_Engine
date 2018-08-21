@@ -73,8 +73,8 @@ class ExtCleanInfoService:
         if not datasource:
             raise ExtDatasourceNotExist(source_id)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).order_by(ExtCleanInfo.origin_table).\
-                                            paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, status=1).\
+                                        paginate(page, per_page=per_page, error_out=False)
 
         items = pagination.items
         total = pagination.total
@@ -82,15 +82,22 @@ class ExtCleanInfoService:
         if total != 0:
             return total, [item.to_dict() for item in items]
 
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).paginate(page, per_page=per_page, error_out=False)
+
+        total = pagination.total
+
+        if total != 0:
+            return total, []
+
         items = ExtTargetInfo.query.filter_by(weight=1).all()
         total = len(items)
         if total == 0:
             return total, []
 
         for item in items:
-            ExtCleanInfo.create(source_id=source_id, target_table=item.target_table)
+            ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, status=1)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).order_by(ExtCleanInfo.origin_table). \
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, status=1). \
                                         paginate(page, per_page=per_page, error_out=False)
         items = pagination.items
         total = pagination.total
@@ -110,19 +117,20 @@ class ExtCleanInfoService:
             # 如果目标表已经创建就跳过，不在创建
             ext_clean_info = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=table).first()
             if ext_clean_info:
+                ext_clean_info.status = 1
                 continue
             ext_target_info = ExtTargetInfo.query.filter_by(target_table=table).first()
             # 如果目标基础表没有想要添加的表就跳过
             if not ext_target_info:
                 continue
-            ExtCleanInfo.create(source_id=source_id, target_table=table)
+            ExtCleanInfo.create(source_id=source_id, target_table=table, status=1)
 
     @session_scope
     def delete_ext_clean_info(self, id):
         ext_clean_info = ExtCleanInfo.query.get(id)
         if not ext_clean_info:
             raise ExtCleanInfoNotFound
-        ext_clean_info.delete()
+        ext_clean_info.status = 0
 
     @session_scope
     def modifly_ext_clean_info(self, id, data):
@@ -197,8 +205,9 @@ class ExtCleanInfoService:
         return tables
 
     def get_ext_clean_info_target_table(self, source_id):
-        ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id).all()
+        ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, status=1).all()
         ext_clean_tables = [model.target_table for model in ext_clean_info_models]
+        print(f"source_id:{source_id}, {ext_clean_tables}")
         ext_target_info_models = ExtTargetInfo.query.filter(ExtTargetInfo.target_table.notin_(ext_clean_tables)).all()
         tables = [model.target_table for model in ext_target_info_models]
         return tables
@@ -219,8 +228,8 @@ class ExtCleanInfoService:
         if template_datasource.erp_vendor != target_datasource.erp_vendor:
             raise ErpNotMatch()
 
-        template_table_infos = ExtCleanInfo.query.filter_by(source_id=template_source_id).all()
-        target_table_infos = ExtCleanInfo.query.filter_by(source_id=target_source_id).all()
+        template_table_infos = ExtCleanInfo.query.filter_by(source_id=template_source_id, status=1).all()
+        target_table_infos = ExtCleanInfo.query.filter_by(source_id=target_source_id, status=1).all()
         if not all([template_table_infos, target_table_infos]):
             raise TableNotExist()
 
@@ -229,12 +238,21 @@ class ExtCleanInfoService:
 
             target_table = ExtCleanInfo.query.filter_by(
                 source_id=target_source_id,
-                target_table=template_table.target_table).first()
+                target_table=template_table.target_table,
+            ).first()
             if not target_table:
+                ExtCleanInfo.create(
+                    source_id=target_source_id,
+                    target_table=template_table.target_table,
+                    origin_table=template_table.origin_table,
+                    covert_str=template_table.covert_str,
+                    status=template_table.status
+                )
                 continue
             info = {
                 "origin_table": template_table.origin_table,
                 "covert_str": template_table.covert_str,
+                "status": template_table.status
             }
             target_table.update(**info)
 
