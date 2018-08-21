@@ -1,18 +1,13 @@
 stages:
-  - build
   - test
   - staging
-
-build:
-  stage: build
-  script: echo "build"
 
 test:
   stage: test
   script:
     - export ETL_ENVIREMENT=dev
-    - pip install -r requirements.txt
-    - pytests
+    - pip install pytest
+    - pytest
 
 
 staging:
