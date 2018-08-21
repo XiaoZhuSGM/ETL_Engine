@@ -71,13 +71,17 @@ def update_datasource(datasource_id):
 @validate_arg(JsonDatasourceTestConnectionInput)
 def test_connection_datasource():
     data = request.json
-    db_name = data.get('db_name', [])
-    for db_dict in db_name:
-        database = db_dict.get('database')
-        data['database'] = database
-        error = table_service.connect_test(**data)
-        if error:
-            return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
+    db_name = data.get('db_name')
+    if db_name is None:
+        return jsonify_with_error(APIError.BAD_REQUEST, "db_name is missing")
+    database = db_name.get('database')
+    if database is None:
+        return jsonify_with_error(APIError.BAD_REQUEST, "database is missing")
+    data['database'] = database
+    error = table_service.connect_test(**data)
+    if error:
+        return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
+
     return jsonify_with_data(APIError.OK)
 
 
