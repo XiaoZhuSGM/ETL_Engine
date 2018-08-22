@@ -588,7 +588,7 @@ from typing import Dict
 
 
 S3_BUCKET = "ext-etl-data"
-S3 = boto3.client("s3")
+S3 = boto3.resource("s3")
 _TZINFO = pytz.timezone("Asia/Shanghai")
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
@@ -604,8 +604,7 @@ class HaiDingCleaner:
         method = getattr(self, target_table, None)
         if method and callable(method):
             df = getattr(self, target_table)()
-            df.to_csv(f"{target_table}-8-10-1.csv", index=False)
-            # self.up_load_to_s3(df, target_table)
+            self.up_load_to_s3(df, target_table)
         else:
             raise RuntimeError(f"没有这个表: {target_table}")
 
