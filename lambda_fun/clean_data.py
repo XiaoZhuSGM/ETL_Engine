@@ -260,5 +260,5 @@ if __name__ == '__main__':
             }
         }
     }
-
-    handler(cost_event, None)
+    event = {}
+    handler(event, None)

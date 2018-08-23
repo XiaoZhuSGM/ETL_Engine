@@ -180,7 +180,7 @@ if __name__ == '__main__':
         'source_id': '43YYYYYYYYYYYYY',
         'query_date': '2018-08-10',
         'task_type': 'full',
-        'filename': '2018-08-17 10:37:17.277419.json',
+        'filename': '2018-08-21 11:35:02.125030.json',
         'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
     }
     handler(erp, None)
