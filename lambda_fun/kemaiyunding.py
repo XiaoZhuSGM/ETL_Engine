@@ -98,9 +98,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     data_frame3 = frame3(cmid, source_id, data_frames)
     goodsflow = pd.concat([data_frame1, data_frame2, data_frame3])
 
-    upload_to_s3(goodsflow, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(goodsflow, source_id, date, target_table)
 
 
 def clean_cost(source_id, date, target_table, frames):
@@ -130,9 +128,7 @@ def clean_cost(source_id, date, target_table, frames):
          "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
          "foreign_category_lv5"]]
 
-    upload_to_s3(cost_frame, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(cost_frame, source_id, date, target_table)
 
 
 def clean_goods(source_id, date, target_table, frames):
@@ -202,9 +198,7 @@ def clean_goods(source_id, date, target_table, frames):
          "storage_time", "last_updated", "isvalid", "warranty", "show_code", "foreign_category_lv5", "allot_method",
          "supplier_name", "supplier_code", "brand_name"]]
 
-    upload_to_s3(goods_frame, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(goods_frame, source_id, date, target_table)
 
 
 def clean_sales_target(source_id, date, target_table, frames):
@@ -239,7 +233,7 @@ def clean_sales_target(source_id, date, target_table, frames):
          "target_gross_profit", "category_level", "foreign_category_lv1", "foreign_category_lv2",
          "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5", "last_updated"]]
 
-    upload_to_s3(target_frame, source_id, date, target_table)
+    return upload_to_s3(target_frame, source_id, date, target_table)
 
 
 def clean_category(source_id, date, target_table, frames):
@@ -318,9 +312,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category = pd.concat([category1, category2, category3])
 
-    upload_to_s3(category, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(category, source_id, date, target_table)
 
 
 def clean_store(source_id, date, target_table, frames):
@@ -358,9 +350,7 @@ def clean_store(source_id, date, target_table, frames):
          'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
          'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
 
-    upload_to_s3(store_frame, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(store_frame, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):

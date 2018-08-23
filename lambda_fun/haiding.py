@@ -604,7 +604,7 @@ class HaiDingCleaner:
         method = getattr(self, target_table, None)
         if method and callable(method):
             df = getattr(self, target_table)()
-            self.up_load_to_s3(df, target_table)
+            return self.up_load_to_s3(df, target_table)
         else:
             raise RuntimeError(f"没有这个表: {target_table}")
 
@@ -623,6 +623,8 @@ class HaiDingCleaner:
             rowcount=count,
         )
         S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
+
+        return key
 
     def goodsflow(self):
         buy2s = self.data["HD40.buy2s"]

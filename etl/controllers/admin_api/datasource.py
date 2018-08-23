@@ -3,9 +3,10 @@ from flask import request
 from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
-from ...service.datasource import ExtDatasourceNotExist,ExtDatasourceConfigNotExist
+from ...service.datasource import ExtDatasourceNotExist, ExtDatasourceConfigNotExist
 from ...service.ext_table import ExtTableService
-from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput,JsonDatasourceTestConnectionInput
+from ...validators.validator import validate_arg, JsonDatasourceAddInput, JsonDatasourceUpdateInput, \
+    JsonDatasourceTestConnectionInput
 
 DATASOURCE_API_CREATE = '/datasource'
 DATASOURCE_API_GET = '/datasource/<string:source_id>'
@@ -14,8 +15,29 @@ DATASOURCE_API_UPDATE = '/datasource/<int:datasource_id>'
 DATASOURCE_API_TEST = '/datasource/test'
 DATASOURCE_API_GET_BY_ERP = '/datasource/erp/<string:erp_vendor>'
 
+DATASOURCE_API_GENERATOR_CRON = '/crontab/<string:source_id>'
+DATASOURCE_API_GENERATOR_EXTRACT_EVENT = '/extract/event/<string:source_id>'
+
 datasource_service = DatasourceService()
 table_service = ExtTableService()
+
+
+@etl_admin_api.route(DATASOURCE_API_GENERATOR_EXTRACT_EVENT, methods=['GET'])
+def generator_extract_event(source_id):
+    try:
+        event = datasource_service.generator_extract_event(source_id)
+        return jsonify_with_data(APIError.OK, data=event)
+    except ExtDatasourceNotExist:
+        return jsonify_with_error(APIError.NOTFOUND)
+
+
+@etl_admin_api.route(DATASOURCE_API_GENERATOR_CRON, methods=['GET'])
+def generator_crontab(source_id):
+    cron_expression = datasource_service.generator_crontab_expression(source_id)
+    if cron_expression:
+        return jsonify_with_data(APIError.OK, data=cron_expression)
+    else:
+        return jsonify_with_error(APIError.NOTFOUND)
 
 
 @etl_admin_api.route(DATASOURCE_API_CREATE, methods=['POST'])

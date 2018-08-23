@@ -28,6 +28,8 @@ from .ext_erp_enterprise import *
 
 from .ext_clean_info import *
 
+from .ext_log import *
+
 class APIError(object):
     """
     定义状态码

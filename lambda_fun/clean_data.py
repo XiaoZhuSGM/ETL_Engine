@@ -14,7 +14,7 @@ HISTORY_HUMP_JSON = (
     "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/"
 )
 
-CONVERTERS = {"str": str, "int": int}
+CONVERTERS = {"str": str, "int": int, 'float': float}
 
 _TZINFO = pytz.timezone("Asia/Shanghai")
 S3 = boto3.resource("s3")
@@ -49,12 +49,10 @@ def fetch_data_frames(keys, origin_table_columns, converts):
     for key in keys:
         content = S3.Object(S3_BUCKET, key).get()
         data = json.loads(content["Body"].read().decode("utf-8"))
-        for table_info in data["extract_data"]:
-            if (
-                table_info["table"] in origin_table_columns.keys()
-                and table_info["table"] not in datas.keys()
-            ):
-                datas[table_info["table"]] = table_info["records"]
+        extract_data_dict = data['extract_data']
+        for table_name, records in extract_data_dict.items():
+            if table_name in origin_table_columns.keys() and table_name not in datas.keys():
+                datas[table_name] = records
 
     data_frames = {}
 
@@ -105,22 +103,22 @@ def handler(event, context):
     if erp_name == "科脉云鼎":
         from kemaiyunding import clean_kemaiyunding
 
-        clean_kemaiyunding(source_id, date, target_table, data_frames)
+        return clean_kemaiyunding(source_id, date, target_table, data_frames)
     elif erp_name == "海鼎":
         from haiding import HaiDingCleaner
 
         cleaner = HaiDingCleaner(source_id, date, data_frames)
-        cleaner.clean(target_table)
+        return cleaner.clean(target_table)
     elif erp_name == "思迅":
-        from lambda_fun.sixun import clean_sixun
-        clean_sixun(source_id, date, target_table, data_frames)
+        from sixun import clean_sixun
+        return clean_sixun(source_id, date, target_table, data_frames)
 
 
 if __name__ == '__main__':
     store_event = {
         "source_id": "72YYYYYYYYYYYYY",
         "erp_name": "思迅",
-        "date": "2018-08-13",
+        "date": "2018-08-22",
         "target_table": "store",
         'origin_table_columns': {
             "t_bd_branch_info": ['branch_no',
@@ -137,7 +135,7 @@ if __name__ == '__main__':
                                  ]
         },
 
-        'converts': {"t_bd_branch_info": {'branch_no': str, 'property': int, 'trade_type': int, 'dj_yw': int}}
+        'converts': {"t_bd_branch_info": {'branch_no': 'str', 'property': 'int', 'trade_type': 'int', 'dj_yw': 'int'}}
     }
 
     category_event = {
@@ -260,5 +258,3 @@ if __name__ == '__main__':
             }
         }
     }
-    event = {}
-    handler(event, None)

@@ -344,5 +344,5 @@ class JsonErpEnterpriseUpdateInput(Inputs):
 
 class PageInput(Inputs):
     args = {
-        'page': (IntegerField, [InputRequired(), NumberRange(min=1)]),
+        'page': [InputRequired()]
     }

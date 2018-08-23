@@ -112,25 +112,10 @@ class ExtDBWork(object):
         results = [f.result() for f in futures]
         extracted_data_list = [r for r in results if r is not None]
 
-        if len(sql_info["sqls"]) == len(extracted_data_list):
-            print("OK")
-
-        extracted_data = list()
-        sign_has_record_in_extracted_data_table_name = list()
+        extracted_data = defaultdict(list)
         for data_road in extracted_data_list:
             (table, road), = data_road.items()
-            if table not in sign_has_record_in_extracted_data_table_name:
-                temp = defaultdict(list)
-                temp["table"] = table
-                temp["records"].append(road)
-                extracted_data.append(temp)
-                sign_has_record_in_extracted_data_table_name.append(table)
-            else:
-                for target_dict in extracted_data:
-                    if target_dict["table"] == table:
-                        target_dict["records"].append(road)
-                        break
-                    continue
+            extracted_data[table].append(road)
 
         response["extract_data"] = extracted_data
 
@@ -159,29 +144,32 @@ class ExtDBWork(object):
 if __name__ == '__main__':
     start = time.time()
 
-    event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
-                 filename="2018-08-13 16:32:40.557536.json",
-                 db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
-    erp = {
-        'source_id': '79YYYYYYYYYYYYY',
-        'query_date': '2018-08-10',
-        'task_type': 'full',
-        'filename': '2018-08-15 17:19:57.679742.json',
-        'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
-    }
-    erp = {
-        'source_id': '32YYYYYYYYYYYYY',
-        'query_date': '2018-08-10',
-        'task_type': 'full',
-        'filename': '2018-08-15 14:47:33.369885.json',
-        'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
-    }
-    erp = {
-        'source_id': '43YYYYYYYYYYYYY',
-        'query_date': '2018-08-10',
-        'task_type': 'full',
-        'filename': '2018-08-21 11:35:02.125030.json',
-        'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
-    }
-    handler(erp, None)
+    # event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
+    #              filename="2018-08-13 16:32:40.557536.json",
+    #              db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
+    # erp = {
+    #     'source_id': '79YYYYYYYYYYYYY',
+    #     'query_date': '2018-08-10',
+    #     'task_type': 'full',
+    #     'filename': '2018-08-15 17:19:57.679742.json',
+    #     'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
+    # }
+    # erp = {
+    #     'source_id': '32YYYYYYYYYYYYY',
+    #     'query_date': '2018-08-10',
+    #     'task_type': 'full',
+    #     'filename': '2018-08-15 14:47:33.369885.json',
+    #     'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
+    # }
+    # erp = {
+    #     'source_id': '43YYYYYYYYYYYYY',
+    #     'query_date': '2018-08-10',
+    #     'task_type': 'full',
+    #     'filename': '2018-08-17 10:37:17.277419.json',
+    #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
+    # }
+
+
+    # response = handler(erp, None)
+    # print(response['Payload'])
     print('spend time: ', time.time() - start)
