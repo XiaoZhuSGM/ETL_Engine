@@ -258,5 +258,3 @@ if __name__ == '__main__':
             }
         }
     }
-
-    handler(store_event, None)

@@ -169,14 +169,7 @@ if __name__ == '__main__':
     #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
     # }
 
-    erp = {
-        'source_id': '72YYYYYYYYYYYYY',
-        'query_date': '2018-08-13',
-        'task_type': 'full',
-        'filename': '2018-08-15 13:59:13.167657.json',
-        'db_url': 'mssql+pymssql://sa:hyqykj@172.31.0.18:40072/hbposv8 ',
-    }
 
-    response = handler(erp, None)
+    # response = handler(erp, None)
     # print(response['Payload'])
     print('spend time: ', time.time() - start)
