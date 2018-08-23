@@ -112,6 +112,11 @@ def handler(event, context):
     elif erp_name == "思迅":
         from sixun import clean_sixun
         return clean_sixun(source_id, date, target_table, data_frames)
+    elif erp_name == "宏业":
+        from hongye import HongYeCleaner
+
+        cleaner = HongYeCleaner(source_id, date, data_frames)
+        cleaner.clean(target_table)
 
 
 if __name__ == '__main__':

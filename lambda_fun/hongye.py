@@ -1,0 +1,1180 @@
+"""
+# goodsflow:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "goodsflow",
+    "origin_table_columns": {
+        "bil_goodsflow": [
+            "actualpay",
+            "amount",
+            "flowno",
+            "gdsincode",
+            "recorddate",
+            "shopcode",
+        ],
+        "inf_shop_message": ["deptcode", "shotname"],
+        "inf_goods": ["baseunit", "classcode", "gdsincode", "gdsname", "stripecode"],
+        "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+    },
+    "converts": {
+        "bil_goodsflow": {
+            "flowno": "str",
+            "gdsincode": "str",
+            "recorddate": "str",
+            "shopcode": "str",
+        },
+        "inf_shop_message": {"deptcode": "str", "shotname": "str"},
+        "inf_goods": {
+            "baseunit": "str",
+            "classcode": "str",
+            "gdsincode": "str",
+            "gdsname": "str",
+            "stripecode": "str",
+        },
+        "inf_goodsclass": {
+            "classcode": "str",
+            "classname": "str",
+            "fatherclass": "str",
+        },
+    },
+}
+# cost:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "cost",
+    "origin_table_columns": {
+        "rep_goods_sale": [
+            "deptcode",
+            "gdsincode",
+            "recorddate",
+            "totalamount",
+            "totalinmoney",
+            "totalsalemoney",
+        ],
+        "inf_goods": ["gdsincode", "classcode"],
+        "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+    },
+    "converts": {
+        "rep_goods_sale": {"deptcode": "str", "gdsincode": "str", "recorddate": "str"},
+        "inf_goods": {"classcode": "str", "gdsincode": "str"},
+        "inf_goodsclass": {
+            "classcode": "str",
+            "classname": "str",
+            "fatherclass": "str",
+        },
+    },
+}
+# goods:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "goods",
+    "origin_table_columns": {
+        "inf_goods": [
+            "baseunit",
+            "brandcode",
+            "classcode",
+            "gdsincode",
+            "gdsname",
+            "lastinprice",
+            "lastsupplier",
+            "qcdays",
+            "salecircle",
+            "saleprice",
+            "sendmode",
+            "stripecode",
+        ],
+        "inf_goods_salecircle": ["circlename", "circlevalue"],
+        "inf_brand": ["brand", "brandcode"],
+        "inf_tradeunit": ["unitname", "unitcode"],
+        "sys_sendmode": ["sendmode_name", "sendmode"],
+    },
+    "converts": {
+        "inf_goods": {
+            "baseunit": "str",
+            "brandcode": "str",
+            "classcode": "str",
+            "gdsincode": "str",
+            "gdsname": "str",
+            "lastsupplier": "str",
+            "stripecode": "str",
+        },
+        "inf_goods_salecircle": {"circlename": "str"},
+        "inf_brand": {"brand": "str", "brandcode": "str"},
+        "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
+        "sys_sendmode": {"sendmode_name": "str"},
+    },
+}
+# category:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "category",
+    "origin_table_columns": {
+        "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"]
+    },
+    "converts": {
+        "inf_goodsclass": {"classcode": "str", "classname": "str", "fatherclass": "str"}
+    },
+}
+# sales_target:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "sales_target",
+    "origin_table_columns": {
+        "mbo_classsale": [
+            "recorddate",
+            "objectsale",
+            "objectprofit",
+            "shopcode",
+            "classcode",
+        ],
+        "inf_shop_message": ["deptcode", "shotname"],
+        "inf_goodsclass": ["classgrade", "path", "classcode"],
+    },
+    "converts": {
+        "mbo_classsale": {"recorddate": "str", "shopcode": "str", "classcode": "str"},
+        "inf_shop_message": {"deptcode": "str", "shotname": "str"},
+        "inf_goodsclass": {"path": "str", "classcode": "str"},
+    },
+}
+# goods_loss:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "goods_loss",
+    "origin_table_columns": {
+        "bil_damagedtl": [
+            "billno",
+            "recorddate",
+            "amount",
+            "salemoney",
+            "deptcode",
+            "gdsincode",
+        ],
+        "inf_shop_message": ["deptcode", "shotname"],
+        "inf_goods": ["stripecode", "gdsname", "baseunit", "gdsincode", "classcode"],
+        "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+    },
+    "converts": {
+        "bil_damagedtl": {
+            "billno": "str",
+            "recorddate": "str",
+            "deptcode": "str",
+            "gdsincode": "str",
+        },
+        "inf_shop_message": {"deptcode": "str", "shotname": "str"},
+        "inf_goods": {
+            "baseunit": "str",
+            "classcode": "str",
+            "gdsincode": "str",
+            "gdsname": "str",
+            "stripecode": "str",
+        },
+        "inf_goodsclass": {
+            "classcode": "str",
+            "classname": "str",
+            "fatherclass": "str",
+        },
+    },
+}
+"""
+
+import pandas as pd
+import boto3
+from datetime import datetime
+import tempfile
+import time
+import pytz
+from typing import Dict
+import numpy as np
+
+
+S3_BUCKET = "ext-etl-data"
+S3 = boto3.resource("s3")
+_TZINFO = pytz.timezone("Asia/Shanghai")
+CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
+
+
+class HongYeCleaner:
+    def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
+        self.source_id = source_id
+        self.date = date
+        self.cmid = self.source_id.split("Y", 1)[0]
+        self.data = data
+
+    def clean(self, target_table):
+        method = getattr(self, target_table, None)
+        if method and callable(method):
+            df = getattr(self, target_table)()
+            df.to_csv(f"{target_table}-8-21.csv", index=False)
+            # self.up_load_to_s3(df, target_table)
+        else:
+            raise RuntimeError(f"没有这个表: {target_table}")
+
+    def up_load_to_s3(self, dataframe, target_table):
+        filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
+        count = len(dataframe)
+        dataframe.to_csv(
+            filename.name, index=False, compression="gzip", float_format="%.4f"
+        )
+        filename.seek(0)
+        key = CLEANED_PATH.format(
+            source_id=self.source_id,
+            target_table=target_table,
+            date=self.date,
+            timestamp=datetime.fromtimestamp(time.time(), tz=_TZINFO),
+            rowcount=count,
+        )
+        S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
+
+    def _goodsclass_subquery_1(self):
+        inf_goodsclass = self.data["inf_goodsclass"]
+        subquery = (
+            inf_goodsclass.merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass"],
+                right_on=["classcode"],
+                suffixes=("", ".lv3"),
+            )
+            .merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass.lv3"],
+                right_on=["classcode"],
+                suffixes=("", ".lv2"),
+            )
+            .merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass.lv2"],
+                right_on=["classcode"],
+                suffixes=("", ".lv1"),
+            )
+        )
+        subquery = subquery[subquery["classgrade"] == 4]
+        subquery_columns = [
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+        ]
+        subquery = subquery.rename(
+            columns={
+                "classcode.lv1": "foreign_category_lv1",
+                "classname.lv1": "foreign_category_lv1_name",
+                "classcode.lv2": "foreign_category_lv2",
+                "classname.lv2": "foreign_category_lv2_name",
+                "classcode.lv3": "foreign_category_lv3",
+                "classname.lv3": "foreign_category_lv3_name",
+                "classcode": "foreign_category_lv4",
+                "classname": "foreign_category_lv4_name",
+            }
+        )
+        subquery = subquery[subquery_columns]
+        return subquery
+
+    def _goodsclass_subquery_2(self):
+        inf_goodsclass = self.data["inf_goodsclass"]
+        subquery = inf_goodsclass.merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["fatherclass"],
+            right_on=["classcode"],
+            suffixes=("", ".lv2"),
+        ).merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["fatherclass"],
+            right_on=["classcode"],
+            suffixes=("", ".lv1"),
+        )
+        subquery = subquery[subquery["classgrade"] == 3]
+        subquery_columns = [
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+        ]
+        subquery = subquery.rename(
+            columns={
+                "classcode.lv1": "foreign_category_lv1",
+                "classname.lv1": "foreign_category_lv1_name",
+                "classcode.lv2": "foreign_category_lv2",
+                "classname.lv2": "foreign_category_lv2_name",
+                "classcode": "foreign_category_lv3",
+                "classname": "foreign_category_lv3_name",
+            }
+        )
+        subquery = subquery[subquery_columns]
+        return subquery
+
+    def goodsflow(self):
+        bil_goodsflow = self.data["bil_goodsflow"]
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_shop_message["deptcode"] = inf_shop_message.apply(
+            lambda row: row["deptcode"].strip(), axis=1
+        )
+        inf_goods = self.data["inf_goods"]
+        columns = [
+            "source_id",
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "receipt_id",
+            "consumer_id",
+            "saletime",
+            "last_updated",
+            "foreign_item_id",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "saleprice",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+            "pos_id",
+        ]
+        subquery1 = self._goodsclass_subquery_1()
+        part1 = (
+            bil_goodsflow.merge(
+                inf_shop_message,
+                how="left",
+                left_on=["shopcode"],
+                right_on=["deptcode"],
+                suffixes=("", ".inf_shop_message"),
+            )
+            .merge(
+                inf_goods,
+                how="left",
+                left_on=["gdsincode"],
+                right_on=["gdsincode"],
+                suffixes=("", ".inf_goods"),
+            )
+            .merge(
+                subquery1,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv4"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part1 = part1[
+            (~part1["flowno"].str.contains("NNN", regex=False))
+            & (part1["deptcode"].notnull())
+            & (part1["gdsincode"].notnull())
+        ]
+
+        part1["cmid"] = self.cmid
+        part1["source_id"] = self.source_id
+        part1["consumer_id"] = ""
+        part1["last_updated"] = datetime.now()
+        part1["saleprice"] = part1.apply(
+            lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+            axis=1,
+        )
+        part1["foreign_category_lv2"] = part1.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part1["foreign_category_lv3"] = part1.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part1["foreign_category_lv4"] = part1.apply(
+            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+            axis=1,
+        )
+        part1["foreign_category_lv5"] = ""
+        part1["foreign_category_lv5_name"] = None
+        part1["pos_id"] = ""
+
+        part1 = part1.rename(
+            columns={
+                "deptcode": "foreign_store_id",
+                "shotname": "store_name",
+                "flowno": "receipt_id",
+                "recorddate": "saletime",
+                "gdsincode": "foreign_item_id",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+                "amount": "quantity",
+                "actualpay": "subtotal",
+            }
+        )
+        part1 = part1[columns]
+
+        subquery2 = self._goodsclass_subquery_2()
+        part2 = (
+            bil_goodsflow.merge(
+                inf_shop_message,
+                how="left",
+                left_on=["shopcode"],
+                right_on=["deptcode"],
+                suffixes=("", ".inf_shop_message"),
+            )
+            .merge(
+                inf_goods,
+                how="left",
+                left_on=["gdsincode"],
+                right_on=["gdsincode"],
+                suffixes=("", ".inf_goods"),
+            )
+            .merge(
+                subquery2,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv3"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part2 = part2[
+            (~part2["flowno"].str.contains("NNN", regex=False))
+            & (part2["deptcode"].notnull())
+            & (part2["gdsincode"].notnull())
+        ]
+        part2["cmid"] = self.cmid
+        part2["source_id"] = self.source_id
+        part2["consumer_id"] = ""
+        part2["last_updated"] = datetime.now()
+        part2["saleprice"] = part2.apply(
+            lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+            axis=1,
+        )
+        part2["foreign_category_lv2"] = part2.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part2["foreign_category_lv3"] = part2.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part2["foreign_category_lv4"] = ""
+        part2["foreign_category_lv4_name"] = None
+        part2["foreign_category_lv5"] = ""
+        part2["foreign_category_lv5_name"] = None
+        part2["pos_id"] = ""
+
+        part2 = part2.rename(
+            columns={
+                "deptcode": "foreign_store_id",
+                "shotname": "store_name",
+                "flowno": "receipt_id",
+                "recorddate": "saletime",
+                "gdsincode": "foreign_item_id",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+                "amount": "quantity",
+                "actualpay": "subtotal",
+            }
+        )
+        part2 = part2[columns]
+
+        return pd.concat([part1, part2])
+
+    def cost(self):
+        rep_goods_sale = self.data["rep_goods_sale"]
+        inf_goods = self.data["inf_goods"]
+        columns = [
+            "source_id",
+            "foreign_store_id",
+            "foreign_item_id",
+            "date",
+            "cost_type",
+            "total_quantity",
+            "total_sale",
+            "total_cost",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+            "cmid",
+        ]
+
+        subquery1 = self._goodsclass_subquery_1()
+
+        part1 = rep_goods_sale.merge(
+            inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods")
+        ).merge(
+            subquery1,
+            how="inner",
+            left_on=["classcode"],
+            right_on=["foreign_category_lv4"],
+            suffixes=("", ".lv"),
+        )
+        part1 = part1.groupby(
+            [
+                "deptcode",
+                "gdsincode",
+                "recorddate",
+                "foreign_category_lv1",
+                "foreign_category_lv2",
+                "foreign_category_lv3",
+                "foreign_category_lv4",
+            ],
+            as_index=False,
+        ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+
+        part1["cmid"] = self.cmid
+        part1["source_id"] = self.source_id
+        part1["foreign_store_id"] = part1.apply(lambda row: row["deptcode"][:4], axis=1)
+        part1["cost_type"] = ""
+        part1["foreign_category_lv2"] = part1.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part1["foreign_category_lv3"] = part1.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part1["foreign_category_lv4"] = part1.apply(
+            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+            axis=1,
+        )
+        part1["foreign_category_lv5"] = ""
+
+        part1 = part1.rename(
+            columns={
+                "gdsincode": "foreign_item_id",
+                "recorddate": "date",
+                "totalamount": "total_quantity",
+                "totalsalemoney": "total_sale",
+                "totalinmoney": "total_cost",
+            }
+        )
+        part1 = part1[columns]
+
+        subquery2 = self._goodsclass_subquery_2()
+        part2 = rep_goods_sale.merge(
+            inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods")
+        ).merge(
+            subquery2,
+            how="inner",
+            left_on=["classcode"],
+            right_on=["foreign_category_lv3"],
+            suffixes=("", ".lv"),
+        )
+        part2 = part2.groupby(
+            [
+                "deptcode",
+                "gdsincode",
+                "recorddate",
+                "foreign_category_lv1",
+                "foreign_category_lv2",
+                "foreign_category_lv3",
+            ],
+            as_index=False,
+        ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+
+        part2["cmid"] = self.cmid
+        part2["source_id"] = self.source_id
+        part2["foreign_store_id"] = part2.apply(lambda row: row["deptcode"][:4], axis=1)
+        part2["cost_type"] = ""
+        part2["foreign_category_lv2"] = part2.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part2["foreign_category_lv3"] = part2.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part2["foreign_category_lv4"] = ""
+        part2["foreign_category_lv5"] = ""
+        part2 = part2.rename(
+            columns={
+                "gdsincode": "foreign_item_id",
+                "recorddate": "date",
+                "totalamount": "total_quantity",
+                "totalsalemoney": "total_sale",
+                "totalinmoney": "total_cost",
+            }
+        )
+        part2 = part2[columns]
+        return pd.concat([part1, part2])
+
+    def goods(self):
+        inf_goods = self.data["inf_goods"]
+        inf_goods_salecircle = self.data["inf_goods_salecircle"]
+        inf_brand = self.data["inf_brand"]
+        inf_tradeunit = self.data["inf_tradeunit"]
+        sys_sendmode = self.data["sys_sendmode"]
+        inf_goods["lastsupplier_trimed"] = inf_goods.apply(
+            lambda row: row["lastsupplier"].strip(), axis=1
+        )
+        inf_tradeunit["unitcode_trimed"] = inf_tradeunit.apply(
+            lambda row: row["unitcode"].strip(), axis=1
+        )
+
+        columns = [
+            "cmid",
+            "barcode",
+            "foreign_item_id",
+            "item_name",
+            "lastin_price",
+            "sale_price",
+            "item_unit",
+            "item_status",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+            "storage_time",
+            "last_updated",
+            "isvalid",
+            "warranty",
+            "show_code",
+            "allot_method",
+            "supplier_name",
+            "supplier_code",
+            "brand_name",
+        ]
+        subquery1 = self._goodsclass_subquery_1()
+        part1 = (
+            inf_goods.merge(
+                inf_goods_salecircle,
+                how="left",
+                left_on=["salecircle"],
+                right_on=["circlevalue"],
+                suffixes=("", ".inf_goods_salecircle"),
+            )
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
+                inf_tradeunit,
+                how="left",
+                left_on=["lastsupplier_trimed"],
+                right_on=["unitcode_trimed"],
+                suffixes=("", ".inf_tradeunit"),
+            )
+            .merge(
+                sys_sendmode,
+                how="left",
+                on=["sendmode"],
+                suffixes=("", ".sys_sendmode"),
+            )
+            .merge(
+                subquery1,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv4"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part1["cmid"] = self.cmid
+        part1["foreign_category_lv2"] = part1.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part1["foreign_category_lv3"] = part1.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part1["foreign_category_lv4"] = part1.apply(
+            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+            axis=1,
+        )
+        part1["foreign_category_lv5"] = ""
+        part1["storage_time"] = datetime.now()
+        part1["last_updated"] = datetime.now()
+        part1["isvalid"] = "1"
+        part1["show_code"] = part1["gdsincode"]
+
+        part1 = part1.rename(
+            columns={
+                "stripecode": "barcode",
+                "gdsincode": "foreign_item_id",
+                "gdsname": "item_name",
+                "lastinprice": "lastin_price",
+                "saleprice": "sale_price",
+                "baseunit": "item_unit",
+                "circlename": "item_status",
+                "qcdays": "warranty",
+                "sendmode_name": "allot_method",
+                "unitname": "supplier_name",
+                "unitcode": "supplier_code",
+                "brand": "brand_name",
+            }
+        )
+        part1 = part1[columns]
+
+        subquery2 = self._goodsclass_subquery_2()
+        part2 = (
+            inf_goods.merge(
+                inf_goods_salecircle,
+                how="left",
+                left_on=["salecircle"],
+                right_on=["circlevalue"],
+                suffixes=("", ".inf_goods_salecircle"),
+            )
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
+                inf_tradeunit,
+                how="left",
+                left_on=["lastsupplier_trimed"],
+                right_on=["unitcode_trimed"],
+                suffixes=("", ".inf_tradeunit"),
+            )
+            .merge(
+                sys_sendmode,
+                how="left",
+                on=["sendmode"],
+                suffixes=("", ".sys_sendmode"),
+            )
+            .merge(
+                subquery2,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv3"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part2["cmid"] = self.cmid
+        part2["foreign_category_lv2"] = part2.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part2["foreign_category_lv3"] = part2.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part2["foreign_category_lv4"] = ""
+        part2["foreign_category_lv5"] = ""
+        part2["storage_time"] = datetime.now()
+        part2["last_updated"] = datetime.now()
+        part2["isvalid"] = "1"
+        part2["show_code"] = part2["gdsincode"]
+        part2 = part2.rename(
+            columns={
+                "stripecode": "barcode",
+                "gdsincode": "foreign_item_id",
+                "gdsname": "item_name",
+                "lastinprice": "lastin_price",
+                "saleprice": "sale_price",
+                "baseunit": "item_unit",
+                "circlename": "item_status",
+                "qcdays": "warranty",
+                "sendmode_name": "allot_method",
+                "unitname": "supplier_name",
+                "unitcode": "supplier_code",
+                "brand": "brand_name",
+            }
+        )
+        part2 = part2[columns]
+
+        return pd.concat([part1, part2])
+
+    def category(self):
+        inf_goodsclass = self.data["inf_goodsclass"]
+
+        columns = [
+            "cmid",
+            "level",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+            "last_updated",
+        ]
+        part1 = inf_goodsclass[inf_goodsclass["classgrade"] == 1].copy()
+        part1["cmid"] = self.cmid
+        part1["foreign_category_lv2"] = ""
+        part1["foreign_category_lv2_name"] = None
+        part1["foreign_category_lv3"] = ""
+        part1["foreign_category_lv3_name"] = None
+        part1["foreign_category_lv4"] = ""
+        part1["foreign_category_lv4_name"] = None
+        part1["foreign_category_lv5"] = ""
+        part1["foreign_category_lv5_name"] = None
+        part1["last_updated"] = datetime.now()
+        part1 = part1.rename(
+            columns={
+                "classgrade": "level",
+                "classcode": "foreign_category_lv1",
+                "classname": "foreign_category_lv1_name",
+            }
+        )
+        part1 = part1[columns]
+
+        part2 = inf_goodsclass.merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["fatherclass"],
+            right_on=["classcode"],
+            suffixes=("", ".lv1"),
+        )
+        part2 = part2[part2["classgrade"] == 2]
+        part2["cmid"] = self.cmid
+        part2["foreign_category_lv2"] = part2.apply(
+            lambda row: row["classcode.lv1"] + row["classcode"], axis=1
+        )
+        part2["foreign_category_lv3"] = ""
+        part2["foreign_category_lv3_name"] = None
+        part2["foreign_category_lv4"] = ""
+        part2["foreign_category_lv4_name"] = None
+        part2["foreign_category_lv5"] = ""
+        part2["foreign_category_lv5_name"] = None
+        part2["last_updated"] = datetime.now()
+        part2 = part2.rename(
+            columns={
+                "classgrade": "level",
+                "classcode.lv1": "foreign_category_lv1",
+                "classname.lv1": "foreign_category_lv1_name",
+                "classname": "foreign_category_lv2_name",
+            }
+        )
+        part2 = part2[columns]
+
+        part3 = inf_goodsclass.merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["fatherclass"],
+            right_on=["classcode"],
+            suffixes=("", ".lv2"),
+        ).merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["fatherclass"],
+            right_on=["classcode"],
+            suffixes=("", ".lv1"),
+        )
+        part3 = part3[part3["classgrade"] == 3]
+        part3["cmid"] = self.cmid
+        part3["foreign_category_lv2"] = part3.apply(
+            lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
+        )
+        part3["foreign_category_lv3"] = part3.apply(
+            lambda row: row["foreign_category_lv2"] + row["classcode"], axis=1
+        )
+        part3["foreign_category_lv4"] = ""
+        part3["foreign_category_lv4_name"] = None
+        part3["foreign_category_lv5"] = ""
+        part3["foreign_category_lv5_name"] = None
+        part3["last_updated"] = datetime.now()
+        part3 = part3.rename(
+            columns={
+                "classgrade": "level",
+                "classcode.lv1": "foreign_category_lv1",
+                "classname.lv1": "foreign_category_lv1_name",
+                "classname.lv2": "foreign_category_lv2_name",
+                "classname": "foreign_category_lv3_name",
+            }
+        )
+        part3 = part3[columns]
+
+        part4 = (
+            inf_goodsclass.merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass"],
+                right_on=["classcode"],
+                suffixes=("", ".lv3"),
+            )
+            .merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass"],
+                right_on=["classcode"],
+                suffixes=("", ".lv2"),
+            )
+            .merge(
+                inf_goodsclass,
+                how="left",
+                left_on=["fatherclass"],
+                right_on=["classcode"],
+                suffixes=("", ".lv1"),
+            )
+        )
+        part4 = part4[part4["classgrade"] == 3]
+        part4["cmid"] = self.cmid
+        part4["foreign_category_lv2"] = part4.apply(
+            lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
+        )
+        part4["foreign_category_lv3"] = part4.apply(
+            lambda row: row["foreign_category_lv2"] + row["classcode.lv3"], axis=1
+        )
+        part4["foreign_category_lv4"] = part4.apply(
+            lambda row: row["foreign_category_lv3"] + row["classcode"], axis=1
+        )
+        part4["foreign_category_lv5"] = ""
+        part4["foreign_category_lv5_name"] = None
+        part4["last_updated"] = datetime.now()
+        part4 = part4.rename(
+            columns={
+                "classgrade": "level",
+                "classcode.lv1": "foreign_category_lv1",
+                "classname.lv1": "foreign_category_lv1_name",
+                "classname.lv2": "foreign_category_lv2_name",
+                "classname.lv3": "foreign_category_lv3_name",
+                "classname": "foreign_category_lv4_name",
+            }
+        )
+        part4 = part4[columns]
+
+        return pd.concat([part1, part2, part3, part4])
+
+    def sales_target(self):
+        mbo_classsale = self.data["mbo_classsale"]
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_goodsclass = self.data["inf_goodsclass"]
+        mbo_classsale["shopcode_trimed"] = mbo_classsale.apply(
+            lambda row: row["shopcode"].strip(), axis=1
+        )
+        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
+            lambda row: row["deptcode"].strip(), axis=1
+        )
+        columns = [
+            "source_id",
+            "cmid",
+            "target_date",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "target_sales",
+            "target_gross_profit",
+            "category_level",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+            "last_updated",
+        ]
+
+        part = mbo_classsale.merge(
+            inf_shop_message,
+            how="left",
+            left_on=["shopcode_trimed"],
+            right_on=["deptcode_trimed"],
+            suffixes=("", ".inf_shop_message"),
+        ).merge(
+            inf_goodsclass,
+            how="left",
+            left_on=["classcode"],
+            right_on=["classcode"],
+            suffixes=("", ".lv"),
+        )
+        part["foreign_category_lv1"] = part.apply(
+            lambda row: row["path"].split("/")[2], axis=1
+        )
+
+        def _foreign_category_lv2(path):
+            lst = path.split("/")
+            if len(lst) < 4 or lst[3] == "":
+                return ""
+            else:
+                return f"{lst[2]}{lst[3]}"
+
+        part["foreign_category_lv2"] = part.apply(
+            lambda row: _foreign_category_lv2(row["path"]), axis=1
+        )
+
+        def _foreign_category_lv3(path):
+            lst = path.split("/")
+            if len(lst) < 5 or lst[4] == "":
+                return ""
+            else:
+                return f"{lst[2]}{lst[3]}{lst[4]}"
+
+        part["foreign_category_lv3"] = part.apply(
+            lambda row: _foreign_category_lv3(row["path"]), axis=1
+        )
+
+        def _foreign_category_lv4(path):
+            lst = path.split("/")
+            if len(lst) < 6 or lst[5] == "":
+                return ""
+            else:
+                return f"{lst[2]}{lst[3]}{lst[4]}{lst[5]}"
+
+        part["foreign_category_lv4"] = part.apply(
+            lambda row: _foreign_category_lv4(row["path"]), axis=1
+        )
+
+        part["foreign_category_lv5"] = ""
+        part["last_updated"] = datetime.now()
+        part["cmid"] = self.cmid
+        part["source_id"] = self.source_id
+        part["store_show_code"] = part["deptcode"]
+
+        part = part.rename(
+            columns={
+                "recorddate": "target_date",
+                "deptcode": "foreign_store_id",
+                "shotname": "store_name",
+                "objectsale": "target_sales",
+                "objectprofit": "target_gross_profit",
+                "classgrade": "category_level",
+            }
+        )
+
+        part = part[columns]
+        return part
+
+    def goods_loss(self):
+        bil_damagedtl = self.data["bil_damagedtl"]
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_goods = self.data["inf_goods"]
+        bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
+            lambda row: row["deptcode"][:4], axis=1
+        )
+        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
+            lambda row: row["deptcode"].strip(), axis=1
+        )
+
+        columns = [
+            "cmid",
+            "source_id",
+            "lossnum",
+            "lossdate",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_showcode",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
+
+        subquery1 = self._goodsclass_subquery_1()
+        part1 = (
+            bil_damagedtl.merge(
+                inf_shop_message,
+                how="left",
+                left_on=["deptcode_sub"],
+                right_on=["deptcode_trimed"],
+                suffixes=("", ".inf_shop_message"),
+            )
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
+                subquery1,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv4"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part1 = part1[~part1["deptcode"].str.contains(r"^998.*$")]
+        part1["cmid"] = self.cmid
+        part1["source_id"] = self.source_id
+        part1["quantity"] = part1.apply(lambda row: row["amount"] * -1, axis=1)
+        part1["subtotal"] = part1.apply(lambda row: row["salemoney"] * -1, axis=1)
+        part1["foreign_category_lv2"] = part1.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part1["foreign_category_lv3"] = part1.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part1["foreign_category_lv4"] = part1.apply(
+            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+            axis=1,
+        )
+        part1["foreign_category_lv5"] = ""
+        part1["store_show_code"] = part1["deptcode.inf_shop_message"]
+        part1["item_showcode"] = part1["gdsincode"]
+
+        part1 = part1.rename(
+            columns={
+                "billno": "lossnum",
+                "recorddate": "lossdate",
+                "deptcode.inf_shop_message": "foreign_store_id",
+                "shotname": "store_name",
+                "gdsincode": "foreign_item_id",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+            }
+        )
+        part1 = part1[columns]
+
+        subquery2 = self._goodsclass_subquery_2()
+        part2 = (
+            bil_damagedtl.merge(
+                inf_shop_message,
+                how="left",
+                left_on=["deptcode_sub"],
+                right_on=["deptcode_trimed"],
+                suffixes=("", ".inf_shop_message"),
+            )
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
+                subquery2,
+                how="inner",
+                left_on=["classcode"],
+                right_on=["foreign_category_lv3"],
+                suffixes=("", ".lv"),
+            )
+        )
+        part2 = part2[~part2["deptcode"].str.contains(r"^998.*$")]
+        part2["cmid"] = self.cmid
+        part2["source_id"] = self.source_id
+        part2["quantity"] = part2.apply(lambda row: row["amount"] * -1, axis=1)
+        part2["subtotal"] = part2.apply(lambda row: row["salemoney"] * -1, axis=1)
+        part2["foreign_category_lv2"] = part2.apply(
+            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+            axis=1,
+        )
+        part2["foreign_category_lv3"] = part2.apply(
+            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+            axis=1,
+        )
+        part2["foreign_category_lv4"] = ""
+        part2["foreign_category_lv5"] = ""
+        part2["store_show_code"] = part2["deptcode.inf_shop_message"]
+        part2["item_showcode"] = part2["gdsincode"]
+        part2 = part2.rename(
+            columns={
+                "billno": "lossnum",
+                "recorddate": "lossdate",
+                "deptcode.inf_shop_message": "foreign_store_id",
+                "shotname": "store_name",
+                "gdsincode": "foreign_item_id",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+            }
+        )
+        part2 = part2[columns]

@@ -144,32 +144,22 @@ class ExtDBWork(object):
 if __name__ == '__main__':
     start = time.time()
 
-    # event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
-    #              filename="2018-08-13 16:32:40.557536.json",
-    #              db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
-    # erp = {
-    #     'source_id': '79YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-15 17:19:57.679742.json',
-    #     'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
-    # }
-    # erp = {
-    #     'source_id': '32YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-15 14:47:33.369885.json',
-    #     'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
-    # }
-    # erp = {
-    #     'source_id': '43YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-17 10:37:17.277419.json',
-    #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
-    # }
-
-
-    # response = handler(erp, None)
-    # print(response['Payload'])
+    event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
+                 filename="2018-08-13 16:32:40.557536.json",
+                 db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
+    event = {
+        'source_id': '43YYYYYYYYYYYYY',
+        'query_date': '2018-08-10',
+        'task_type': 'full',
+        'filename': '2018-08-21 11:35:02.125030.json',
+        'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
+    }
+    event = {
+        'source_id': '34YYYYYYYYYYYYY',
+        'query_date': '2018-08-21',
+        'task_type': 'full',
+        'filename': '2018-08-23 15:42:20.379897.json',
+        'db_url': 'mssql+pymssql://cm:cmmarket@49.4.82.107:15598/jyfmarket',
+    }
+    handler(event, None)
     print('spend time: ', time.time() - start)
