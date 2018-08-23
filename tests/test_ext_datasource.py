@@ -85,6 +85,22 @@ class TestExtDatasource:
         ext_datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
         assert isinstance(ext_datasource, ExtDatasource)
 
+    def test_generator_crontab_expression(self, client, token):
+        datasource = ExtDatasource.query.order_by(ExtDatasource.id.desc()).first()
+        res = client.get(
+            url_for('admin_api.generator_crontab', source_id=datasource.source_id),
+            headers={"token": token},
+        )
+        assert res.json["meta"]["code"] == 200 or res.json['meta']['code'] == 404
+
+    def test_generator_extract_event(self, client, token):
+        datasource = ExtDatasource.query.order_by(ExtDatasource.id.desc()).first()
+        res = client.get(
+            url_for('admin_api.generator_extract_event', source_id=datasource.source_id),
+            headers={"token": token},
+        )
+        assert res.json["meta"]["code"] == 200 or res.json['meta']['code'] == 404
+
     def test_modify_ext_datasource(self, client, token):
         old = ExtDatasource.query.order_by(ExtDatasource.id.desc()).first()
         old_id = old.id

@@ -13,10 +13,11 @@ def add_log():
     """
     task_type --> 0: 抓数,  1--> 入库
     {"source_id":"32YYYYYYYYYYYYY","cmid":3201,"task_type":1,"table_name":"goods","record_num":120,
-    "start_time":1111111111111,"end_time":11111111222,"cost_time":111,"result":1}
+    "start_time":2018-02-02,"end_time":2018-02-02,"cost_time":111,"result":1}
     :return:
     """
-    kwargs = request.json["logs"]
+    kwargs = request.json
+    print(kwargs)
     log = service.add_log(**kwargs)
     if log is not None:
         return jsonify_with_data(APIError.OK)
@@ -27,7 +28,7 @@ def add_log():
 def get_log():
     """
     根据条件搜索日志
-    source_id, table_name, task_type, begin_time, end_time, result
+    source_id, table_name, task_type, start_time, end_time, result
     可以根据此字段查询失败的日志(result)
     分页字段 ，page, per_page
     :return:

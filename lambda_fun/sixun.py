@@ -32,15 +32,15 @@ branch_dict = {
 
 def clean_sixun(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
-        clean_goodsflow(source_id, date, target_table, data_frames)
+        return clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
-        clean_cost(source_id, date, target_table, data_frames)
+        return clean_cost(source_id, date, target_table, data_frames)
     elif target_table == "store":
-        clean_store(source_id, date, target_table, data_frames)
+        return clean_store(source_id, date, target_table, data_frames)
     elif target_table == "goods":
-        clean_goods(source_id, date, target_table, data_frames)
+        return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
-        clean_category(source_id, date, target_table, data_frames)
+        return clean_category(source_id, date, target_table, data_frames)
     else:
         pass
 
@@ -125,7 +125,7 @@ def clean_store(source_id, date, target_table, data_frames):
         'source_id',
         'last_updated'
     ]]
-    upload_to_s3(branch_info_frame, source_id, date, target_table)
+    return upload_to_s3(branch_info_frame, source_id, date, target_table)
 
 
 # 商品分类
@@ -235,7 +235,7 @@ def clean_category(source_id, date, target_table, data_frames):
         "foreign_category_lv5",
         "foreign_category_lv5_name"
     ]]
-    upload_to_s3(category_frame, source_id, date, target_table)
+    return upload_to_s3(category_frame, source_id, date, target_table)
 
 
 # 商品
@@ -377,7 +377,7 @@ def clean_goods(source_id, date, target_table, data_frames):
         "brand_name",
     ]]
 
-    upload_to_s3(goods_frame_1, source_id, date, target_table)
+    return upload_to_s3(goods_frame_1, source_id, date, target_table)
 
 
 # 商品销售表
@@ -557,7 +557,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         'foreign_category_lv5_name',
         'pos_id'
     ]]
-    upload_to_s3(result_frame, source_id, date, target_table)
+    return upload_to_s3(result_frame, source_id, date, target_table)
 
 
 # 成本表
@@ -697,7 +697,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         'foreign_category_lv5',
         'cmid'
     ]]
-    upload_to_s3(result_frame, source_id, date, target_table)
+    return upload_to_s3(result_frame, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):
@@ -713,6 +713,8 @@ def upload_to_s3(frame, source_id, date, target_table):
         rowcount=count,
     )
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
+
+    return key
 
 
 def now_timestamp():

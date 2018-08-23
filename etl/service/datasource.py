@@ -21,6 +21,11 @@ class DatasourceService(object):
     def __init__(self):
         self.__datasourceDao = DatasourceDao()
         self.__datasourceConfigDao = DatasourceConfigDao()
+        self.db_url_template = {
+            'sqlserver': 'mssql+pymssql://{username}:{password}@{host}:{port}/{db_name}',
+            'postgresql': 'postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}',
+            'oracle': 'oracle+cx_oracle://{username}:{password}@{host}:{port}/?service_name={db_name}'
+        }
 
     @session_scope
     def add_datasource(self, datasource_add_config_json):
@@ -81,7 +86,7 @@ class DatasourceService(object):
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)
 
-    def generator_crontab(self, source_id):
+    def generator_crontab_expression(self, source_id):
         """
         根据source_id生成cron表达式
         :param source_id: source_id
@@ -97,8 +102,9 @@ class DatasourceService(object):
         frequency = datasource_config.frequency
         cron_list = [x.lstrip('0') for x in ext_time.split(':')]
         cron_list = [x if x else '0' for x in cron_list]
-        hour, minute, second = cron_list
-        cron_expression = f'{second} {minute} {hour}-23/{frequency} * *'
+        hour = cron_list[0]
+        minute = cron_list[1]
+        cron_expression = f'{minute} {hour}-23/{frequency} * * *'
         return cron_expression
 
     def check_datasource_config_empty(self, datasource_config):
@@ -115,6 +121,9 @@ class DatasourceService(object):
         """
         # 1. 计算日期 计算日期
         datasource = self.__datasourceDao.find_datasource_by_source_id(source_id)
+        if not datasource:
+            raise ExtDatasourceNotExist()
+
         delta = datasource.delta
         now = datetime.now()
         query_date = (now + timedelta(days=-delta)).strftime('%Y-%m-%d')
@@ -122,7 +131,7 @@ class DatasourceService(object):
         # 2. 得到db_url
         db_url = self.generator_db_url(datasource)
 
-        # 3. 计算task_type类型是full还是增量,通过判断
+        # 3. 计算task_type类型是full还是增量
         task_type = self.generator_task_type(source_id, query_date)
 
         event = dict(source_id=source_id, query_date=query_date, task_type=task_type, db_url=db_url)
@@ -142,17 +151,7 @@ class DatasourceService(object):
         if not all([db_type, db_name, username, password, host, port]):
             return "DB_url parameter is missing"
 
-        if db_type == 'sqlserver':
-            db_type = 'mssql+pymssql'
-
-        elif db_type == 'postgresql':
-            db_type += r'+psycopg2'
-        elif db_type == 'oracle':
-            db_type += r'+cx_oracle'
-            db_name = r'?service_name=' + db_name
-
-        database_url = "{db_type}://{username}:{password}@{host}:{port}/{db_name}".format(
-            db_type=db_type,
+        database_url = self.db_url_template[db_type].format(
             username=username,
             password=password,
             host=host,

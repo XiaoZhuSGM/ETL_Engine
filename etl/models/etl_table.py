@@ -35,6 +35,7 @@ class ExtLogInfo(CRUDMixin, db.Model):
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     cost_time = Column(Integer)
+    extract_date = Column(DateTime)
     result = Column(Integer)
     remark = Column(VARCHAR(1000))
 
