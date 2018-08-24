@@ -144,8 +144,8 @@ class ExtDBWork(object):
 if __name__ == '__main__':
     start = time.time()
 
-    # event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-12", task_type="full",
-    #              filename="2018-08-13 16:32:40.557536.json",
+    # event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-23", task_type="full",
+    #              filename="2018-08-24 15:07:48.794299.json",
     #              db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
     # erp = {
     #     'source_id': '79YYYYYYYYYYYYY',
@@ -163,11 +163,12 @@ if __name__ == '__main__':
     # }
     # erp = {
     #     'source_id': '43YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
+    #     'query_date': '2018-08-23',
     #     'task_type': 'full',
-    #     'filename': '2018-08-17 10:37:17.277419.json',
+    #     'filename': '2018-08-24 15:30:20.597073.json',
     #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
     # }
+    handler(erp, None)
 
 
     # response = handler(erp, None)

@@ -258,3 +258,93 @@ if __name__ == '__main__':
             }
         }
     }
+
+    # event = {
+    #
+    #     "source_id": "59YYYYYYYYYYYYY",
+    #     "erp_name": "科脉云鼎",
+    #     "date": "2018-08-21",
+    #     "target_table": "store",
+    #     "origin_table_columns": {
+    #         "t_br_master": ["fbrh_no", "fbrh_name", "fstatus", "fcr_date", "fbrh_type"],
+    #         "t_br_ext": ["fbrh_no", "faddr", "ftel", "fman"]
+    #
+    #     },
+    #     "converts": {
+    #         "t_br_master": {"fbrh_no": "str"}, "t_br_ext": {"fbrh_no": "str"}
+    #     }
+    # }
+
+    event = {
+        "source_id": "43YYYYYYYYYYYYY",
+        "erp_name": "海鼎",
+        "date": "2018-08-23",
+        "target_table": "move_store",
+        "origin_table_columns": {
+            "HD40.invxf": [
+                "cls",
+                "fildate",
+                "fromstore",
+                "num",
+                "stat",
+                "tostore"
+            ],
+            "HD40.invxfdtl": [
+                "qty",
+                "price",
+                "total",
+                "num",
+                "cls",
+                "gdgid"
+            ],
+            "HD40.store": [
+                "gid",
+                "code",
+                "name"
+            ],
+            "HD40.goods": [
+                "code",
+                "code2",
+                "gid",
+                "munit",
+                "name",
+                "sort"
+            ],
+            "HD40.modulestat": [
+                "statname",
+                "no"
+            ]
+        },
+        "converts": {
+            "HD40.invxf": {
+                "cls": "str",
+                "fildate": "str",
+                "fromstore": "str",
+                "num": "str",
+                "tostore": "str"
+            },
+            "HD40.invxfdtl": {
+                "num": "str",
+                "cls": "str",
+                "gdgid": "str"
+            },
+            "HD40.store": {
+                "gid": "str",
+                "code": "str",
+                "name": "str"
+            },
+            "HD40.goods": {
+                "code": "str",
+                "code2": "str",
+                "gid": "str",
+                "munit": "str",
+                "name": "str",
+                "sort": "str"
+            },
+            "HD40.modulestat": {
+                "statname": "str"
+            }
+        }
+    }
+
+    handler(event, None)
