@@ -145,7 +145,7 @@ def get_matching_s3_keys(bucket, prefix='', suffix=''):
 # 分页模版
 PAGE_SQL = {
     "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} {order_by} ) RPT WHERE  ROWNUM <= {large} )  temp_rpt WHERE RN > {small}",
-    "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ( ORDER BY {order_rows} desc ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
+    "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ({order_by} ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
 }
 
 S3_BUCKET = 'ext-etl-data'
