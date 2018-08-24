@@ -206,10 +206,13 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 
 class HongYeCleaner:
+    store_id_len_map = {"34": 4, "61": 3, "65": 3}
+
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
-        self.date = date
         self.cmid = self.source_id.split("Y", 1)[0]
+        self.store_id_len = self.store_id_len_map[self.cmid]
+        self.date = date
         self.data = data
 
     def clean(self, target_table):
@@ -545,7 +548,9 @@ class HongYeCleaner:
 
         part1["cmid"] = self.cmid
         part1["source_id"] = self.source_id
-        part1["foreign_store_id"] = part1.apply(lambda row: row["deptcode"][:4], axis=1)
+        part1["foreign_store_id"] = part1.apply(
+            lambda row: row["deptcode"][: self.store_id_len], axis=1
+        )
         part1["cost_type"] = ""
         part1["foreign_category_lv2"] = part1.apply(
             lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
@@ -596,7 +601,9 @@ class HongYeCleaner:
 
         part2["cmid"] = self.cmid
         part2["source_id"] = self.source_id
-        part2["foreign_store_id"] = part2.apply(lambda row: row["deptcode"][:4], axis=1)
+        part2["foreign_store_id"] = part2.apply(
+            lambda row: row["deptcode"][: self.store_id_len], axis=1
+        )
         part2["cost_type"] = ""
         part2["foreign_category_lv2"] = part2.apply(
             lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
