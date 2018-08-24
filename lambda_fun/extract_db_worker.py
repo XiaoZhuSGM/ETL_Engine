@@ -168,7 +168,7 @@ if __name__ == '__main__':
     #     'filename': '2018-08-24 15:30:20.597073.json',
     #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
     # }
-    handler(erp, None)
+    # handler(erp, None)
 
 
     # response = handler(erp, None)
