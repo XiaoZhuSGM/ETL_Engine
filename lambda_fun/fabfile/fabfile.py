@@ -25,7 +25,7 @@ def deploy_lambda(path="clean_data"):
     volumn = f"../{path}/*"
     local(f'''
         cp -r {volumn} ./lambda_code && \
-        docker run -v $PWD/lambda_code:/var/task -it tools:env --name lambda_deploy dinstall.sh && \
+        docker run --name lambda_deploy -v $PWD/lambda_code:/var/task -it tools:env  dinstall.sh && \
         fab bundle
     ''')
 
