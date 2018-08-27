@@ -58,7 +58,6 @@ class ExtTableInfoService:
         weight = args.get("weight")
         table_name = args.get("table_name")
         record_num = args.get("record_num")
-        print(table_name)
         query = ExtTableInfo.query
         if source_id:
             query = query.filter_by(source_id=source_id)
