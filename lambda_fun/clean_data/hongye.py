@@ -219,8 +219,7 @@ class HongYeCleaner:
         method = getattr(self, target_table, None)
         if method and callable(method):
             df = getattr(self, target_table)()
-            df.to_csv(f"{target_table}-8-21.csv", index=False)
-            # self.up_load_to_s3(df, target_table)
+            return self.up_load_to_s3(df, target_table)
         else:
             raise RuntimeError(f"没有这个表: {target_table}")
 
@@ -239,6 +238,7 @@ class HongYeCleaner:
             rowcount=count,
         )
         S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
+        return key
 
     def _goodsclass_subquery_1(self):
         inf_goodsclass = self.data["inf_goodsclass"]
