@@ -58,13 +58,14 @@ class ExtTableInfoService:
         weight = args.get("weight")
         table_name = args.get("table_name")
         record_num = args.get("record_num")
+        print(table_name)
         query = ExtTableInfo.query
         if source_id:
             query = query.filter_by(source_id=source_id)
         if weight:
             query = query.filter_by(weight=int(weight))
         if table_name:
-            query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%"))
+            query = query.filter(ExtTableInfo.table_name.contains(table_name, autoescape=True))
         if record_num:
             record_num = int(record_num) if record_num.isdigit() else 0
             query = query.filter(ExtTableInfo.record_num >= record_num)
