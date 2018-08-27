@@ -57,6 +57,7 @@ def handler(event, context):
     engine = create_engine(db_url, echo=False, poolclass=NullPool)
     try:
         sql_data_frame = pd.read_sql(sql, engine)
+        sql_data_frame.columns = [c.lower() for c in sql_data_frame.columns]
 
         # if _type.lower() == Method.sync.name:
         #     return
