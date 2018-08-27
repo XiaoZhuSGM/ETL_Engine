@@ -64,7 +64,7 @@ class ExtTableInfoService:
         if weight:
             query = query.filter_by(weight=int(weight))
         if table_name:
-            query = query.filter(ExtTableInfo.table_name.contains(table_name, autoescape=True))
+            query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%"))
         if record_num:
             record_num = int(record_num) if record_num.isdigit() else 0
             query = query.filter(ExtTableInfo.record_num >= record_num)
