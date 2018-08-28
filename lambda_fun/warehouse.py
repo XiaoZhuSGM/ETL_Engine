@@ -2,9 +2,11 @@ import json
 import time
 from sqlalchemy import create_engine
 from datetime import timedelta, datetime
+import boto3
 
-
-BASIC_TABLE = {"store", "goods", "category"}
+S3_BUCKET = "ext-etl-data"
+TARGET_TABLE_KEY = "target_table/target_table.json"
+S3_CLIENT = boto3.resource("s3")
 
 
 def handler(event, context):
@@ -17,9 +19,15 @@ def handler(event, context):
     data_key = message["data_key"]
     data_date = message["data_date"]
     target_table = message["target_table"]
-    sync_column = message["sync_column"]
-    date_column = message["date_column"]
     warehouse_type = message["warehouse_type"]
+    target_tables = json.loads(
+        S3_CLIENT.Object(S3_BUCKET, TARGET_TABLE_KEY)
+        .get()["Body"]
+        .read()
+        .decode("utf-8")
+    )
+    sync_column = target_tables[target_table]["sync_column"]
+    date_column = target_tables[target_table]["date_column"]
 
     warehouser = Warehouser(
         redshift_url, target_table, data_key, sync_column, data_date, date_column
@@ -60,21 +68,25 @@ class Warehouser:
         print(f"拷贝到临时表：{r.rowcount}")
 
     def _upsert(self):
-        where = " AND ".join(
-            f"{self.target_table}.{sc} = #{self.target_table}.{sc}"
-            for sc in self.sync_column
-        )
-        if where:
+        if self.sync_column:
+            where = " AND ".join(
+                f"{self.target_table}.{sc} = #{self.target_table}.{sc}"
+                for sc in self.sync_column
+            )
             r = self.conn.execute(
                 f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
             )
             print(f"删除已存在的数据：{r.rowcount}")
+
         r = self.conn.execute(
             f"INSERT INTO {self.target_table} SELECT * FROM #{self.target_table}"
         )
         print(f"插入数据：{r.rowcount}")
 
     def _delete_old_data(self):
+        if not self.date_column:
+            return
+
         next_day = (
             datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
         ).strftime("%Y-%m-%d")
@@ -112,8 +124,6 @@ if __name__ == "__main__":
         "data_key": "ext-etl-data/clean_data/source_id=43YYYYYYYYYYYYY/clean_date=2018-08-23/target_table=goodsflow/dump=2018-08-27 17:44:14.026780+08:00&rowcount=135430.csv.gz",
         "target_table": "goodsflow",
         "data_date": "2018-08-23",
-        "sync_column": ["foreign_item_id"],
-        "date_column": "saletime",
         "warehouse_type": "copy",
     }
     begin = time.time()

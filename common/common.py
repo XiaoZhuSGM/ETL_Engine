@@ -151,3 +151,5 @@ PAGE_SQL = {
 S3_BUCKET = 'ext-etl-data'
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
+
+TARGET_TABLE_KEY = "target_table/target_table.json"
