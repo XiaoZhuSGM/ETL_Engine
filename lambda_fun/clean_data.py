@@ -31,7 +31,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -101,250 +101,47 @@ def handler(event, context):
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
 
     if erp_name == "科脉云鼎":
-        from kemaiyunding import clean_kemaiyunding
+        from .kemaiyunding import clean_kemaiyunding
 
         return clean_kemaiyunding(source_id, date, target_table, data_frames)
     elif erp_name == "海鼎":
-        from haiding import HaiDingCleaner
+        from .haiding import HaiDingCleaner
 
         cleaner = HaiDingCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "思迅":
-        from sixun import clean_sixun
+        from .sixun import clean_sixun
         return clean_sixun(source_id, date, target_table, data_frames)
+    elif erp_name == "宏业":
+        from .hongye import HongYeCleaner
+        cleaner = HongYeCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+    elif erp_name == '美食林':
+        from .meishilin import MeiShiLinCleaner
+        cleaner = MeiShiLinCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
 
 
 if __name__ == '__main__':
-    store_event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-08-22",
-        "target_table": "store",
-        'origin_table_columns': {
-            "t_bd_branch_info": ['branch_no',
-                                 'branch_name',
-                                 'address',
-                                 'dj_yw',
-                                 'init_date',
-                                 'branch_no',
-                                 'branch_tel',
-                                 'branch_fax',
-                                 'other1',
-                                 'trade_type',
-                                 'property',
-                                 ]
-        },
-
-        'converts': {"t_bd_branch_info": {'branch_no': 'str', 'property': 'int', 'trade_type': 'int', 'dj_yw': 'int'}}
-    }
-
-    category_event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-08-13",
-        "target_table": "category",
-        'origin_table_columns': {
-            "t_bd_item_cls": ['item_clsno',
-                              'item_clsname',
-                              'cls_parent',
-                              ]
-        },
-
-        'converts': {"t_bd_item_cls": {'item_clsno': str, 'item_clsname': str, 'cls_parent': str}}
-    }
-
-    goods_event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-08-13",
-        "target_table": "goods",
-        'origin_table_columns': {
-            't_bd_item_info': ['item_clsno',
-                               'main_supcust',
-                               'status',
-                               'num2',
-                               'item_no',
-                               'item_name',
-                               'price',
-                               'sale_price',
-                               'unit_no',
-                               'item_subno',
-                               'item_brandname',
-                               'build_date'
-                               ],
-            't_bd_supcust_info': ['supcust_no', 'sup_name', 'supcust_flag'],
-            "t_bd_item_cls": ['item_clsno']
-
-        },
-
-        'converts': {
-            "t_bd_item_cls": {'item_clsno': str},
-            't_bd_item_info': {'item_clsno': str, 'num2': float,
-                               'main_supcust': str,
-                               'status': int,
-                               'item_no': str,
-
-                               },
-            't_bd_supcust_info': {'supcust_no': str}
-        }
-    }
-
-    goodsflow_event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-08-13",
-        "target_table": "goodsflow",
-        'origin_table_columns': {
-            't_rm_saleflow': ['branch_no',
-                              'item_no',
-                              'sale_price',
-                              'sale_qnty',
-                              'sell_way',
-                              'sale_money',
-                              'flow_no',
-                              'oper_date'],
-            't_bd_branch_info': ['branch_no', 'branch_name'],
-            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no', ],
-            't_bd_item_cls': ['item_clsno', 'item_clsname'],
-        },
-
-        'converts': {
-            't_rm_saleflow': {'branch_no': str,
-                              'item_no': str,
-                              'sale_price': float,
-                              'sale_qnty': float,
-                              'sell_way': str,
-                              'sale_money': float,
-                              'flow_no': str
-                              },
-
-            't_bd_branch_info': {'branch_no': str},
-            't_bd_item_info': {'item_no': str, 'item_clsno': str},
-            't_bd_item_cls': {'item_clsno': str},
-        }
-    }
-
-    cost_event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-08-13",
-        "target_table": "cost",
-        'origin_table_columns': {
-            "t_bd_item_cls": ['item_clsno', ],
-            't_da_jxc_daysum': [
-                'branch_no',
-                'oper_date',
-                'so_qty',
-                'pos_qty',
-                'so_amt',
-                'pos_amt',
-                'fifo_cost_amt',
-                'item_no'
-            ],
-            't_bd_item_info': ['item_no', 'item_clsno']
-        },
-
-        'converts': {
-            "t_bd_item_cls": {'item_clsno': str},
-            't_bd_item_info': {'item_no': str, 'item_clsno': str},
-            't_da_jxc_daysum': {
-                'branch_no': str,
-                'so_qty': float,
-                'pos_qty': float,
-                'so_amt': float,
-                'pos_amt': float,
-                'fifo_cost_amt': float,
-                'item_no': str
-            }
-        }
-    }
-
-    # event = {
-    #
-    #     "source_id": "59YYYYYYYYYYYYY",
-    #     "erp_name": "科脉云鼎",
-    #     "date": "2018-08-21",
-    #     "target_table": "store",
-    #     "origin_table_columns": {
-    #         "t_br_master": ["fbrh_no", "fbrh_name", "fstatus", "fcr_date", "fbrh_type"],
-    #         "t_br_ext": ["fbrh_no", "faddr", "ftel", "fman"]
-    #
-    #     },
-    #     "converts": {
-    #         "t_br_master": {"fbrh_no": "str"}, "t_br_ext": {"fbrh_no": "str"}
-    #     }
-    # }
-
     event = {
-        "source_id": "43YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
-        "date": "2018-08-23",
-        "target_table": "move_store",
+        "source_id": "58YYYYYYYYYYYYY",
+        "erp_name": "美食林",
+        "date": "2018-08-26",
+        "target_table": "goodsflow",
         "origin_table_columns": {
-            "HD40.invxf": [
-                "cls",
-                "fildate",
-                "fromstore",
-                "num",
-                "stat",
-                "tostore"
-            ],
-            "HD40.invxfdtl": [
-                "qty",
-                "price",
-                "total",
-                "num",
-                "cls",
-                "gdgid"
-            ],
-            "HD40.store": [
-                "gid",
-                "code",
-                "name"
-            ],
-            "HD40.goods": [
-                "code",
-                "code2",
-                "gid",
-                "munit",
-                "name",
-                "sort"
-            ],
-            "HD40.modulestat": [
-                "statname",
-                "no"
-            ]
+            "dbo.SKStoreSellingWater": ['sgid', 'gid', 'flowno', 'RTLPRC', 'qty', 'Realamt', 'fildate'],
+            "dbo.SKstore": ['gid', 'name'],
+            "dbo.skgoods": ['gid', 'code2', 'name', 'munit'],
+            "dbo.SKGoodsSort": ['gid', 'ascode', 'asname', 'bscode', 'bsname', 'cscode', 'csname']
         },
+
         "converts": {
-            "HD40.invxf": {
-                "cls": "str",
-                "fildate": "str",
-                "fromstore": "str",
-                "num": "str",
-                "tostore": "str"
-            },
-            "HD40.invxfdtl": {
-                "num": "str",
-                "cls": "str",
-                "gdgid": "str"
-            },
-            "HD40.store": {
-                "gid": "str",
-                "code": "str",
-                "name": "str"
-            },
-            "HD40.goods": {
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str"
-            },
-            "HD40.modulestat": {
-                "statname": "str"
-            }
+            "dbo.SKStoreSellingWater": {"sgid": "str", "gid": "str",
+                                        "flowno": "str", "rtlprc": "float", 'qty': 'float', 'realamt': 'float'},
+            "dbo.skstore": {'gid': 'str', 'name': 'str'},
+            'dbo.skgoods': {'gid': 'str', 'code2': 'str', 'name': 'str', 'munit': 'str'},
+            'dbo.SKGoodsSort': {'gid': 'str', 'ascode': 'str', 'asname': 'str', 'bscode': 'str', 'bsname': 'str',
+                                'cscode': 'str', 'csname': 'str'}
         }
     }
-
     handler(event, None)

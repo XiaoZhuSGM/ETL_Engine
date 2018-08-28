@@ -146,6 +146,8 @@ class DatasourceSqlService(object):
         pass
 
     def _formated_where(self, table, date):
+        if not table.filter_format:
+            return table.filter
         recorddate = date.strftime(table.filter_format)
         date_s = date.strftime(table.filter_format)
         date_e = (date + timedelta(days=1)).strftime(table.filter_format)

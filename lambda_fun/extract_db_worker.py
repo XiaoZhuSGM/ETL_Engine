@@ -142,35 +142,7 @@ class ExtDBWork(object):
 
 
 if __name__ == '__main__':
-    start = time.time()
-
-    # event = dict(source_id="59YYYYYYYYYYYYY", query_date="2018-08-23", task_type="full",
-    #              filename="2018-08-24 15:07:48.794299.json",
-    #              db_url="mssql+pymssql://adbcmsj:adb88537660@36.41.172.83:1800/adbdb")
-    # erp = {
-    #     'source_id': '79YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-15 17:19:57.679742.json',
-    #     'db_url': 'oracle+cx_oracle://chaomeng:wxchaomeng1234@59.58.103.210:15210/?service_name=hdpos',
-    # }
-    # erp = {
-    #     'source_id': '32YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-10',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-15 14:47:33.369885.json',
-    #     'db_url': 'oracle+cx_oracle://MYT_DS:mytdgj@125.76.225.59:10502/?service_name=hdapp',
-    # }
-    # erp = {
-    #     'source_id': '43YYYYYYYYYYYYY',
-    #     'query_date': '2018-08-23',
-    #     'task_type': 'full',
-    #     'filename': '2018-08-24 15:30:20.597073.json',
-    #     'db_url': 'oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp',
-    # }
-    # handler(erp, None)
-
-
-    # response = handler(erp, None)
-    # print(response['Payload'])
-    print('spend time: ', time.time() - start)
+    event = dict(source_id="58YYYYYYYYYYYYY", query_date="2018-08-26", task_type="full",
+                 filename="2018-08-27 18:05:15.790966.json",
+                 db_url="mssql+pymssql://Sk:Sk2018@msl@221.193.212.134:6664/MSL_SKStoreDB")
+    handler(event, None)
