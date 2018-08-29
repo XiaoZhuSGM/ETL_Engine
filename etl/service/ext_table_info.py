@@ -3,6 +3,7 @@ from etl.constant import PER_PAGE
 from etl.models import session_scope
 from etl.models.ext_table_info import ExtTableInfo
 from etl.models.datasource import ExtDatasource
+import re
 
 
 class ExtTableInfoNotExist(Exception):
@@ -64,7 +65,8 @@ class ExtTableInfoService:
         if weight:
             query = query.filter_by(weight=int(weight))
         if table_name:
-            query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%"))
+            table_name = re.sub("([_%/])", r"/\1", table_name)
+            query = query.filter(ExtTableInfo.table_name.ilike(f"%{table_name}%", escape="/"))
         if record_num:
             record_num = int(record_num) if record_num.isdigit() else 0
             query = query.filter(ExtTableInfo.record_num >= record_num)

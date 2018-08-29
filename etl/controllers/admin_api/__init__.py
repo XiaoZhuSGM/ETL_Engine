@@ -30,6 +30,8 @@ from .ext_clean_info import *
 
 from .ext_log import *
 
+from .ext_target_table import *
+
 class APIError(object):
     """
     定义状态码
