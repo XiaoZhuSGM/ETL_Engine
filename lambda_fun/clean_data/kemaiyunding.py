@@ -68,17 +68,17 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 def clean_kemaiyunding(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
-        clean_goodsflow(source_id, date, target_table, data_frames)
+        return clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
-        clean_cost(source_id, date, target_table, data_frames)
+        return clean_cost(source_id, date, target_table, data_frames)
     elif target_table == "store":
-        clean_store(source_id, date, target_table, data_frames)
+        return clean_store(source_id, date, target_table, data_frames)
     elif target_table == "goods":
-        clean_goods(source_id, date, target_table, data_frames)
+        return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "sales_target":
-        clean_sales_target(source_id, date, target_table, data_frames)
+        return clean_sales_target(source_id, date, target_table, data_frames)
     elif target_table == "category":
-        clean_category(source_id, date, target_table, data_frames)
+        return clean_category(source_id, date, target_table, data_frames)
     else:
         pass
 
@@ -366,7 +366,7 @@ def upload_to_s3(frame, source_id, date, target_table):
         rowcount=count,
     )
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    pass
+    return key
 
 
 def now_timestamp():

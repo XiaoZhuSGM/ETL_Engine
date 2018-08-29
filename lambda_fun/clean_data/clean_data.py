@@ -31,7 +31,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -117,39 +117,45 @@ def handler(event, context):
 
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
+    elif erp_name == "美食林":
+        from meishilin import MeiShiLinCleaner
+        cleaner = MeiShiLinCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
 
 
 if __name__ == '__main__':
     event = {
-        "source_id": "43YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
+        "source_id": "58YYYYYYYYYYYYY",
+        "erp_name": "美食林",
         "date": "2018-08-23",
-        "target_table": "goodsflow",
+        "target_table": "goods_loss",
         "origin_table_columns": {
-            "HD40.buy2s": ["gdcode", "qty", "gid", "realamt", "flowno", "posno"],
-            "HD40.buy1s": ["cardno", "flowno", "posno", "fildate"],
-            "HD40.workstation": ["no", "storegid"],
-            "HD40.store": ["gid", "name"],
-            "HD40.goods": ["gid", "munit", "name", "sort"],
-            "HD40.sort": ["name", "code"],
+        "dbo.skcmckdatas": [
+            "rtlbal",
+            "acntqty",
+            "cktime",
+            "gdgid",
+            "num",
+            "qty",
+            "stat",
+            "store",
+        ],
+        "dbo.skstore": ["gid", "code", "name"],
+        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "dbo.skcmsort": ["code"],
+    },
+    "converts": {
+        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
+        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
+        "dbo.skgoods": {
+            "code": "str",
+            "code2": "str",
+            "gid": "str",
+            "munit": "str",
+            "name": "str",
+            "sort": "str",
         },
-        "converts": {
-            "HD40.buy2s": {
-                "gdcode": "str",
-                "flowno": "str",
-                "posno": "str",
-                "gid": "str",
-            },
-            "HD40.buy1s": {
-                "cardno": "str",
-                "flowno": "str",
-                "posno": "str",
-                "fildate": "str",
-            },
-            "HD40.workstation": {"no": "str", "storegid": "str"},
-            "HD40.store": {"gid": "str", "name": "str"},
-            "HD40.goods": {"sort": "str", "gid": "str", "munit": "str", "name": "str"},
-            "HD40.sort": {"code": "str", "name": "str"},
-        },
+        "dbo.skcmsort": {"code": "str"},
+    },
     }
     handler(event, None)
