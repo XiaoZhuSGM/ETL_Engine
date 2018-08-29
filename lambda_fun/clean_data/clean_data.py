@@ -101,23 +101,24 @@ def handler(event, context):
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
 
     if erp_name == "科脉云鼎":
-        from .clean_data.kemaiyunding import clean_kemaiyunding
+        from kemaiyunding import clean_kemaiyunding
 
         return clean_kemaiyunding(source_id, date, target_table, data_frames)
     elif erp_name == "海鼎":
-        from .clean_data.haiding import HaiDingCleaner
+        from haiding import HaiDingCleaner
 
         cleaner = HaiDingCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "思迅":
-        from .clean_data.sixun import clean_sixun
+        from sixun import clean_sixun
         return clean_sixun(source_id, date, target_table, data_frames)
     elif erp_name == "宏业":
-        from .clean_data.hongye import HongYeCleaner
+        from hongye import HongYeCleaner
+
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == '美食林':
-        from lambda_fun.clean_data.meishilin import MeiShiLinCleaner
+    elif erp_name == "美食林":
+        from meishilin import MeiShiLinCleaner
         cleaner = MeiShiLinCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
 
@@ -127,33 +128,34 @@ if __name__ == '__main__':
         "source_id": "58YYYYYYYYYYYYY",
         "erp_name": "美食林",
         "date": "2018-08-23",
-        "target_table": "move_warehouse",
+        "target_table": "goods_loss",
         "origin_table_columns": {
-            "dbo.skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
-            "dbo.skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
-            "dbo.skcmwarehouse": ["gid", "code", "name"],
-            "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-            "dbo.skcmmodulestat": ["statname", "no"],
+        "dbo.skcmckdatas": [
+            "rtlbal",
+            "acntqty",
+            "cktime",
+            "gdgid",
+            "num",
+            "qty",
+            "stat",
+            "store",
+        ],
+        "dbo.skstore": ["gid", "code", "name"],
+        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "dbo.skcmsort": ["code"],
+    },
+    "converts": {
+        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
+        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
+        "dbo.skgoods": {
+            "code": "str",
+            "code2": "str",
+            "gid": "str",
+            "munit": "str",
+            "name": "str",
+            "sort": "str",
         },
-        "converts": {
-            "dbo.skcminvxf": {
-                "cls": "str",
-                "fildate": "str",
-                "fromwrh": "str",
-                "num": "str",
-                "towrh": "str",
-            },
-            "dbo.skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
-            "dbo.skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
-            "dbo.skgoods": {
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str",
-            },
-            "dbo.skcmmodulestat": {"statname": "str"},
-        },
+        "dbo.skcmsort": {"code": "str"},
+    },
     }
     handler(event, None)

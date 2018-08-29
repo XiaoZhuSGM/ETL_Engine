@@ -91,9 +91,9 @@ class DatasourceSqlService(object):
                 db_type = table.datasource.db_type
                 sql_str = self._page_by_limit_mould(table, db_type, extract_date)
 
-            sqls[
-                table.alias_table_name if table.alias_table_name else table.table_name
-            ].extend(sql_str)
+            table_name = table.alias_table_name if table.alias_table_name else table.table_name
+            table_name = table_name.lower()
+            sqls[table_name].extend(sql_str)
         return sqls
 
     def _page_by_limit_mould(self, table, db_type, extract_date):

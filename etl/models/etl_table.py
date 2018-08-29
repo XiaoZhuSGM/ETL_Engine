@@ -71,3 +71,5 @@ class ExtTargetInfo(CRUDMixin, db.Model):
     target_table = Column(VARCHAR(50))
     remark = Column(VARCHAR(1000))
     weight = Column(Integer)
+    sync_column = Column(String(200))
+

@@ -69,7 +69,7 @@ class ExtTableService(object):
                 if col['name'] == ext_pri_key and col['autoincrement'] is True:
                     flag = 1
 
-        columns = {column['name']: repr(column['type']).replace(", collation='Chinese_PRC_CI_AS'", "")
+        columns = {column['name'].lower(): repr(column['type']).replace(", collation='Chinese_PRC_CI_AS'", "")
                    for column in columns_list}
         columns.update({'autoincrement': flag})
         return columns
