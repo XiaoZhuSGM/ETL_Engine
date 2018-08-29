@@ -4,7 +4,7 @@ import functools
 
 from etl.etl import db
 from .datasource import ExtDatasource
-from .etl_table import ExtChainStoreOnline, ExtErpEnterprise, ExtStoreDetail, ExtLogInfo, ExtCleanInfo
+from .etl_table import ExtChainStoreOnline, ExtErpEnterprise, ExtStoreDetail, ExtLogInfo, ExtCleanInfo, ExtTargetInfo
 from .ext_datasource_con import ExtDatasourceCon
 from .ext_table_info import ExtTableInfo
 
