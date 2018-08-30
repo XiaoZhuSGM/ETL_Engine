@@ -143,8 +143,8 @@ class ExtDBWork(object):
 
 if __name__ == '__main__':
 
-    event = dict(source_id="58YYYYYYYYYYYYY", query_date="2018-08-23", task_type="full",
-                 filename="2018-08-28 18:42:48.537923.json",
-                 db_url="mssql+pymssql://Sk:Sk2018@msl@221.193.212.134:6664/MSL_SKStoreDB")
+    event = dict(source_id="53YYYYYYYYYYYYY", query_date="2018-08-26", task_type="full",
+                 filename="2018-08-30 17:39:29.471751.json",
+                 db_url="mssql+pymssql://sa:Bw88482003@118.31.18.81:5666/bwshop_01")
 
     handler(event, None)
