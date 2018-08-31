@@ -836,6 +836,7 @@ class ZhiBaiWeiCleaner(object):
             if row['base_price']:
                 return float(row['base_price'])
             else:
+                print(row['item_no'])
                 return 0
 
         # item['base_price'] = item.apply(lambda row: float(row['base_price']), axis=1)
@@ -950,7 +951,7 @@ class ZhiBaiWeiCleaner(object):
                       & (part2['del_flag'] == '0')
                       & (part2['item_clsno'] == '00')
                       & (part2['branch_no'] != '00')
-                      & (part2['item_flag'] != '0')
+                      & (part2['item_flag'] == '0')
                       ]
 
         part2['cmid'] = self.cmid

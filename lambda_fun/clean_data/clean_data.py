@@ -166,7 +166,9 @@ if __name__ == '__main__':
             "dbo.bi_t_item_info": {
                 'item_no': 'str',
                 'item_clsno': 'str',
-                'base_price': 'str'
+                'base_price': 'str',
+                'barcode': 'str',
+                'item_subno': 'str'
             },
             "dbo.bi_t_item_cls": {
                 'item_clsno': 'str',
