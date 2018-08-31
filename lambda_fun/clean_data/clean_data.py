@@ -132,48 +132,34 @@ if __name__ == '__main__':
         "source_id": "53YYYYYYYYYYYYY",
         "erp_name": "智百威",
         "date": "2018-08-26",
-        "target_table": "goods_loss",
+        "target_table": "goods",
         'origin_table_columns': {
-            "dbo.ic_t_check_master": ['sheet_no',
-                                      'branch_no',
-                                      'approve_flag',
-                                      'del_flag',
-                                      'check_no',
-                                      'oper_date'
-                                      ],
-            "dbo.ic_t_check_detail": ['sheet_no', 'item_no', 'balance_qty'],
-            "dbo.bi_t_branch_info": ['branch_no', 'branch_name'],
-            "dbo.bi_t_item_info": ['item_no', 'item_clsno', 'base_price', 'item_subno', 'barcode', 'unit_no', 'item_name'],
-            "dbo.bi_t_item_cls": ['item_clsno', 'item_flag']
+            "dbo.bi_t_item_info": [
+                'item_clsno',
+                'sup_no',
+                'barcode',
+                'item_no',
+                'price',
+                'sale_price',
+                'unit_no',
+                'display_flag',
+                'create_date',
+                'item_subno',
+                'item_brandname',
+                'item_name'
+            ],
+            "dbo.bi_t_item_cls": ['item_clsno', 'item_flag'],
+            "dbo.bi_t_supcust_info": ['supcust_no', 'supcust_flag', 'sup_name']
         },
 
         'converts': {
-            "dbo.ic_t_check_master": {
-                'sheet_no': 'str',
-                'branch_no': 'str',
-                'approve_flag': 'str',
-                'del_flag': 'str',
-            },
-            "dbo.ic_t_check_detail": {
-                'sheet_no': 'str',
-                'item_no': 'str',
-                'balance_qty': 'str',
-
-            },
-            "dbo.bi_t_branch_info": {
-                'branch_no': 'str'
-            },
             "dbo.bi_t_item_info": {
-                'item_no': 'str',
                 'item_clsno': 'str',
-                'base_price': 'str',
-                'barcode': 'str',
-                'item_subno': 'str'
+                'sup_no': 'str',
+                'display_flag': 'str'
             },
-            "dbo.bi_t_item_cls": {
-                'item_clsno': 'str',
-                'item_flag':'str'
-            }
+            "dbo.bi_t_item_cls": {'item_clsno': 'str', 'item_flag': 'str'},
+            "dbo.bi_t_supcust_info": {'supcust_no': 'str', 'supcust_flag': 'str'}
         }
     }
     handler(event, None)
