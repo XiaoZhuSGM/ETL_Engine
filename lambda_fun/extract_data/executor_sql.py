@@ -12,6 +12,7 @@ import pandas as pd
 import pytz
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
+from _csv import QUOTE_NONNUMERIC
 
 S3_BUCKET = "ext-etl-data"
 
@@ -76,7 +77,7 @@ def handler(event, context):
 def upload_to_s3(source_id, table, _type, query_date, frame):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
     count = len(frame)
-    frame.to_csv(filename.name, index=False, compression="gzip", quoting=2)
+    frame.to_csv(filename.name, index=False, compression="gzip", quoting=QUOTE_NONNUMERIC)
     filename.seek(0)
 
     if _type == Method.sync.name:
