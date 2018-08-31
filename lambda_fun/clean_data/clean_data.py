@@ -125,41 +125,49 @@ def handler(event, context):
         from zhibaiwei import ZhiBaiWeiCleaner
         cleaner = ZhiBaiWeiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
+    elif erp_name == '商海导航':
+        from shanghaidaohang import ShangHaiDaoHangCleaner
+        cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
 
 
 if __name__ == '__main__':
     event = {
-        "source_id": "53YYYYYYYYYYYYY",
-        "erp_name": "智百威",
-        "date": "2018-08-26",
-        "target_table": "goods",
-        'origin_table_columns': {
-            "dbo.bi_t_item_info": [
-                'item_clsno',
-                'sup_no',
-                'barcode',
-                'item_no',
-                'price',
-                'sale_price',
-                'unit_no',
-                'display_flag',
-                'create_date',
-                'item_subno',
-                'item_brandname',
-                'item_name'
-            ],
-            "dbo.bi_t_item_cls": ['item_clsno', 'item_flag'],
-            "dbo.bi_t_supcust_info": ['supcust_no', 'supcust_flag', 'sup_name']
+        "source_id": "48YYYYYYYYYYYYY",
+        "erp_name": "商海导航",
+        "date": "2018-08-10",
+        "target_table": "goods_loss",
+        "origin_table_columns": {
+            "differform": ['differno', 'orgcode', 'accdate'],
+            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
+            "subshop": ['orgcode', 'orgname'],
+            "goods": ['plucode', 'clscode', 'barcode','pluname', 'unit'],
+            'gclass': ['clscode', 'clslevel'],
         },
 
-        'converts': {
-            "dbo.bi_t_item_info": {
-                'item_clsno': 'str',
-                'sup_no': 'str',
-                'display_flag': 'str'
+        "converts": {
+            "differform": {
+                'differno': 'str',
+                'orgcode': 'str',
+
             },
-            "dbo.bi_t_item_cls": {'item_clsno': 'str', 'item_flag': 'str'},
-            "dbo.bi_t_supcust_info": {'supcust_no': 'str', 'supcust_flag': 'str'}
+            "differdetail": {
+                'differno': 'str',
+                'plucode': 'str',
+                'ykcount': 'float'
+            },
+            "subshop": {
+                'orgcode': 'str'
+            },
+            "goods": {
+                'plucode': 'str',
+                'clscode': 'str',
+                'barcode': 'str'
+            },
+            'gclass': {
+                'clscode': 'str',
+                'clslevel': 'int'
+            }
         }
     }
     handler(event, None)
