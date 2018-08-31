@@ -12,7 +12,7 @@ import pandas as pd
 import pytz
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
-from _csv import QUOTE_NONNUMERIC
+from csv import QUOTE_NONNUMERIC
 
 S3_BUCKET = "ext-etl-data"
 
