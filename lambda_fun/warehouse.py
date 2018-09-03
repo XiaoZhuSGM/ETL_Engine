@@ -20,30 +20,32 @@ def handler(event, context):
     data_date = message["data_date"]
     target_table = message["target_table"]
     warehouse_type = message["warehouse_type"]
+    cmid = message['cmid']
     target_tables = json.loads(
         S3_CLIENT.Object(S3_BUCKET, TARGET_TABLE_KEY)
-        .get()["Body"]
-        .read()
-        .decode("utf-8")
+            .get()["Body"]
+            .read()
+            .decode("utf-8")
     )
     sync_column = target_tables[target_table]["sync_column"]
     date_column = target_tables[target_table]["date_column"]
 
     warehouser = Warehouser(
-        redshift_url, target_table, data_key, sync_column, data_date, date_column
+        redshift_url, target_table, data_key, sync_column, data_date, date_column, cmid
     )
     warehouser.run(warehouse_type)
 
 
 class Warehouser:
     def __init__(
-        self,
-        db_url: str,
-        target_table: str,
-        data_key: str,
-        sync_column: list,
-        data_date: str,
-        date_column: str,
+            self,
+            db_url: str,
+            target_table: str,
+            data_key: str,
+            sync_column: list,
+            data_date: str,
+            date_column: str,
+            cmid: str
     ) -> None:
         self.engine = create_engine(db_url)
         self.conn = self.engine.connect()
@@ -52,6 +54,7 @@ class Warehouser:
         self.sync_column = sync_column
         self.data_date = data_date
         self.date_column = date_column
+        self.cmid = cmid
 
     def _copy_to_temporary_table(self):
         r = self.conn.execute(
@@ -74,7 +77,7 @@ class Warehouser:
                 for sc in self.sync_column
             )
             r = self.conn.execute(
-                f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
+                f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where} AND cmid={self.cmid}"
             )
             print(f"删除已存在的数据：{r.rowcount}")
 
@@ -88,10 +91,10 @@ class Warehouser:
             return
 
         next_day = (
-            datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
+                datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
         ).strftime("%Y-%m-%d")
 
-        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}'"
+        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid={self.cmid}"
         r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
         print(f"删除旧数据 {self.data_date}：{r.rowcount}")
 
@@ -125,6 +128,7 @@ if __name__ == "__main__":
         "target_table": "goodsflow",
         "data_date": "2018-08-23",
         "warehouse_type": "copy",
+        'cmid': '72'
     }
     begin = time.time()
     handler(event, None)
