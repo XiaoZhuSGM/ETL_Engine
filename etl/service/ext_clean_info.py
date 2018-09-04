@@ -255,3 +255,13 @@ class ExtCleanInfoService:
             }
             target_table.update(**info)
 
+    def get_ext_clean_info_target(self):
+        source_id = request.args.get("source_id")
+        target = request.args.get("target")
+        if not all([source_id, target]):
+            raise ExtCleanInfoParameterError()
+        target_table = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=target, deleted=False).first()
+        if not target_table:
+            raise ExtCleanInfoNotFound()
+        data = target_table.to_dict()
+        return data
