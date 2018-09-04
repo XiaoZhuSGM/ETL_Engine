@@ -27,8 +27,10 @@ def handler(event, context):
             .read()
             .decode("utf-8")
     )
-    sync_column = target_tables[target_table]["sync_column"]
-    date_column = target_tables[target_table]["date_column"]
+
+    table_key = target_table if not target_table.endswith('Y') else target_table.split('_')[0]
+    sync_column = target_tables[table_key]["sync_column"]
+    date_column = target_tables[table_key]["date_column"]
 
     warehouser = Warehouser(
         redshift_url, target_table, data_key, sync_column, data_date, date_column, cmid
@@ -132,11 +134,11 @@ if __name__ == "__main__":
     }
     event1 = {
 ***REMOVED***
-        "target_table": "goodsflow",
+        "target_table": "cost_72YYYYYYYYYYYYY",
         "warehouse_type": "copy",
         "cmid": "72",
-        "data_date": "2018-09-02",
-        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-02/target_table=goodsflow/dump=2018-09-03 17:06:10.900439+08:00&rowcount=12793.csv.gz"
+        "data_date": "2018-09-03",
+        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=cost/dump=2018-09-04 15:20:08.204963+08:00&rowcount=2259.csv.gz"
     }
 
     begin = time.time()
