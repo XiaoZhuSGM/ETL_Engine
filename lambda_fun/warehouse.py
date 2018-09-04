@@ -77,7 +77,7 @@ class Warehouser:
                 for sc in self.sync_column
             )
             r = self.conn.execute(
-                f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where} AND cmid={self.cmid}"
+                f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
             )
             print(f"删除已存在的数据：{r.rowcount}")
 
@@ -127,9 +127,18 @@ if __name__ == "__main__":
         "data_key": "ext-etl-data/clean_data/source_id=43YYYYYYYYYYYYY/clean_date=2018-08-23/target_table=goodsflow/dump=2018-08-27 17:44:14.026780+08:00&rowcount=135430.csv.gz",
         "target_table": "goodsflow",
         "data_date": "2018-08-23",
-        "warehouse_type": "copy",
+        "warehouse_type": "upsert",
         'cmid': '72'
     }
+    event1 = {
+***REMOVED***
+        "target_table": "goodsflow",
+        "warehouse_type": "copy",
+        "cmid": "72",
+        "data_date": "2018-09-02",
+        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-02/target_table=goodsflow/dump=2018-09-03 17:06:10.900439+08:00&rowcount=12793.csv.gz"
+    }
+
     begin = time.time()
-    handler(event, None)
+    handler(event1, None)
     print(time.time() - begin)

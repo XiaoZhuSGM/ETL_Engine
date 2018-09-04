@@ -114,7 +114,6 @@ def handler(event, context):
         return clean_sixun(source_id, date, target_table, data_frames)
     elif erp_name == "宏业":
         from hongye import HongYeCleaner
-
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "美食林":
@@ -133,10 +132,10 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "48YYYYYYYYYYYYY",
-        "erp_name": "商海导航",
-        "date": "2018-08-10",
-        "target_table": "goods_loss",
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-09-02",
+        "target_table": "category",
         "origin_table_columns": {
             "differform": ['differno', 'orgcode', 'accdate'],
             "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
