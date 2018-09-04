@@ -62,7 +62,7 @@ def clean_sixun(source_id, date, target_table, data_frames):
                                  ]
         },
 
-        'converts': {"t_bd_branch_info": {'branch_no': str, 'property': int, 'trade_type': int, 'dj_yw': int}}
+        'converts': {"t_bd_branch_info": {'branch_no': 'str', 'property': 'int', 'trade_type': 'int', 'dj_yw': 'int'}}
 '''
 
 
@@ -138,7 +138,7 @@ def clean_store(source_id, date, target_table, data_frames):
                               ]
         },
 
-    'converts': {"t_bd_item_cls": {'item_clsno': str, 'item_clsname': str, 'cls_parent': str}}
+    'converts': {"t_bd_item_cls": {'item_clsno': 'str', 'item_clsname': 'str', 'cls_parent': 'str'}}
 '''
 
 
@@ -259,17 +259,15 @@ def clean_category(source_id, date, target_table, data_frames):
             "t_bd_item_cls": ['item_clsno']
 
         },
-
         'converts': {
-            "t_bd_item_cls": {'item_clsno': str},
-            't_bd_item_info': {'item_clsno': str, 'num2': float,
-                               'main_supcust': str,
-                               'status': int,
-                               'item_no': str,
+            "t_bd_item_cls": {'item_clsno': 'str'},
+            't_bd_item_info': {'item_clsno': 'str', 'num2': 'float',
+                               'main_supcust': 'str',
+                               'status': 'int',
+                               'item_no': 'str',
 
                                },
-            't_bd_supcust_info': {'supcust_no': str}
-        }
+            't_bd_supcust_info': {'supcust_no': 'str'}
 
 '''
 
@@ -392,23 +390,23 @@ def clean_goods(source_id, date, target_table, data_frames):
                               'flow_no',
                               'oper_date'],
             't_bd_branch_info': ['branch_no', 'branch_name'],
-            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no', ],
+            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no'],
             't_bd_item_cls': ['item_clsno', 'item_clsname'],
         },
 
         'converts': {
-            't_rm_saleflow': {'branch_no': str,
-                              'item_no': str,
-                              'sale_price': float,
-                              'sale_qnty': float,
-                              'sell_way': str,
-                              'sale_money': float,
-                              'flow_no': str
+            't_rm_saleflow': {'branch_no': 'str',
+                              'item_no': 'str',
+                              'sale_price': 'float',
+                              'sale_qnty': 'float',
+                              'sell_way': 'str',
+                              'sale_money': 'float',
+                              'flow_no': 'str'
                               },
 
-            't_bd_branch_info': {'branch_no': str},
-            't_bd_item_info': {'item_no': str, 'item_clsno': str},
-            't_bd_item_cls': {'item_clsno': str},
+            't_bd_branch_info': {'branch_no': 'str'},
+            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str'},
+            't_bd_item_cls': {'item_clsno': 'str'},
         }
 
 '''
@@ -436,6 +434,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     # 销售
     sale_flow_frame['branch_no_1'] = sale_flow_frame['branch_no'].str.strip().str.slice(0, branch_no_len)
     sale_flow_frame['item_no'] = sale_flow_frame['item_no'].str.strip()
+    sale_flow_frame['unit_no'] = sale_flow_frame['unit_no'].str.strip()
 
     # 门店
     branch_info_frame['branch_no'] = branch_info_frame['branch_no'].str.strip()
@@ -578,16 +577,16 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         },
 
         'converts': {
-            "t_bd_item_cls": {'item_clsno': str},
-            't_bd_item_info': {'item_no': str, 'item_clsno': str},
+            "t_bd_item_cls": {'item_clsno': 'str'},
+            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str'},
             't_da_jxc_daysum': {
-                'branch_no': str,
-                'so_qty': float,
-                'pos_qty': float,
-                'so_amt': float,
-                'pos_amt': float,
-                'fifo_cost_amt': float,
-                'item_no': str
+                'branch_no': 'str',
+                'so_qty': 'float',
+                'pos_qty': 'float',
+                'so_amt': 'float',
+                'pos_amt': 'float',
+                'fifo_cost_amt': 'float',
+                'item_no': 'str'
             }
         }
 '''
