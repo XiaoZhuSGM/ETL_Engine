@@ -201,13 +201,12 @@ class ExtCleanInfoService:
                                                 else ext_table.table_name.split(".")[-1]
             if table_name not in tables:
                 tables.append(table_name)
-
+        print(tables)
         return tables
 
     def get_ext_clean_info_target_table(self, source_id):
         ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
         ext_clean_tables = [model.target_table for model in ext_clean_info_models]
-        print(f"source_id:{source_id}, {ext_clean_tables}")
         ext_target_info_models = ExtTargetInfo.query.filter(ExtTargetInfo.target_table.notin_(ext_clean_tables)).all()
         tables = [model.target_table for model in ext_target_info_models]
         return tables
@@ -256,3 +255,13 @@ class ExtCleanInfoService:
             }
             target_table.update(**info)
 
+    def get_ext_clean_info_target(self):
+        source_id = request.args.get("source_id")
+        target = request.args.get("target")
+        if not all([source_id, target]):
+            raise ExtCleanInfoParameterError()
+        target_table = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=target, deleted=False).first()
+        if not target_table:
+            raise ExtCleanInfoNotFound()
+        data = target_table.to_dict()
+        return data

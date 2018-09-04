@@ -4,31 +4,31 @@
 
 # goodsflow
 origin_table_columns =
-{"sale_j": ['LISTNO', 'sdate', 'stime', 'USEBARCODEID', 'PRICE',
-            'AMOUNT', 'x', 'SALEVALUE', 'discvalue', 'posid', 'goodsid', 'shopid'],
+{"sale_j": ['listno', 'sdate', 'stime', 'usebarcodeid', 'price',
+            'amount', 'x', 'salevalue', 'discvalue', 'posid', 'goodsid', 'shopid'],
 "pay_j": ['paytype', 'cardno', 'listno', 'posid', 'sdate', 'shopid', 'stime'],
-"goods": ['GOODSID', 'NAME', 'UNITNAME', 'deptid'],
-"shop": ['ID', 'NAME'],
-"dbusrsdms.sgroup": ['ID', 'NAME'],
-"dbusrsdms.dept": ['ID', 'NAME'],
+"goods": ['goodsid', 'name', 'unitname', 'deptid'],
+"shop": ['id', 'name'],
+"sgroup": ['id', 'name'],
+"dept": ['id', 'name'],
 }
 
 coverts = {
-            "sale_j": {"LISTNO": str, "USEBARCODEID": str, "posid": str, "goodsid": str, "shopid": str},
-            "pay_j": {"cardno": str, "listno": str, "posid":str, "shopid":str},
-            "goods": {"GOODSID": str, "deptid": str},
-            "shop": {"ID": str},
-            "dbusrsdms.sgroup": {"ID": str}
-            "dept": {"ID": str},
+            "sale_j": {"listno": "str", "usebarcodeid": "str", "posid": "str", "goodsid": "str", "shopid": "str"},
+            "pay_j": {"cardno": "str", "listno": "str", "posid":"str", "shopid":"str"},
+            "goods": {"goodsid": "str", "deptid": "str"},
+            "shop": {"id": "str"},
+            "sgroup": {"id": "str"}
+            "dept": {"id": "str"},
            }
 
 
 # cost
 origin_table_columns = {
-"salecost": ['shopid', 'goodsid', 'sdate', 'qty', 'salevalue', 'discvalue', 'costvalue'],
-"goods": ['goodsid', 'deptid'],
-"sgroup": ['id', 'deptlevelid'],
-"dept": ["id"]
+"salecost": [shopid,goodsid,sdate,qty,salevalue,discvalue,costvalue],
+"goods": [goodsid,deptid],
+"sgroup": [id,deptlevelid],
+"dept": [id]
 }
 
 coverts = {
@@ -42,22 +42,22 @@ coverts = {
 
 # goods
 origin_table_columns = {
-"goods": ['barcodeid', 'goodsid', 'name', 'unitname', 'flag', 'deptid', 'keepdays'],
-"cost": ['cost', 'goodsid', 'shopid', 'flag'],
-"goodsshop": ['price', 'goodsid', 'shopid'],
+"goods": [barcodeid,goodsid,name,unitname,flag,deptid,keepdays],
+"cost": [cost,goodsid,shopid,flag],
+"goodsshop": [price,goodsid,shopid],
 }
 
 coverts = {
-"goods": {"barcodeid": str, "goodsid": str, "deptid": str, "goodsid": str},
-           "cost": {"goodsid": str, "shopid": str},
-           "goodsshop": {"goodsid": str}
+"goods": {"barcodeid": str, "goodsid": str, "deptid": str},
+"cost": {"goodsid": str, "shopid": str},
+"goodsshop": {"goodsid": str}
            }
 
 
 
 #category
 origin_table_columns =
-{"sgroup": ['deptlevelid', 'id', 'name']}
+{"sgroup": [deptlevelid,id,name]}
 
 coverts = {"t_bd_item_cls": {"item_clsno": str, "cls_parent": str}}
 
@@ -65,7 +65,7 @@ coverts = {"t_bd_item_cls": {"item_clsno": str, "cls_parent": str}}
 
 #store
 origin_table_columns =
-{"shop": ['id', 'name', 'address', 'shoptype', 'linktele']}
+{"shop": [id,name,address,shoptype,linktele]}
 
 coverts = {"shop": {"id": str}}
 
@@ -259,8 +259,8 @@ def clean_cost(source_id, date, target_table, data_frames):
         res = row["salevalue"] - row["discvalue"]
         return res
     cost_frames["total_sale"] = cost_frames.apply(generate_total_sale, axis=1)
-    cost_frames.groupby([
-        "shopid", "goodsid", "sdate", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "id"]).\
+    cost_frames = cost_frames.groupby([
+        "shopid", "goodsid", "sdate", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "id"], as_index=False).\
         agg({"qty": np.sum, "costvalue": np.sum, "total_sale": np.sum})
     cost_frames["source_id"] = source_id
     cost_frames["cmid"] = cmid
@@ -281,7 +281,6 @@ def clean_cost(source_id, date, target_table, data_frames):
     ]]
 
     upload_to_s3(cost_frames, source_id, date, target_table)
-
     return True
 
 
