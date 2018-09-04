@@ -134,11 +134,11 @@ if __name__ == "__main__":
     }
     event1 = {
 ***REMOVED***
-        "target_table": "cost_72YYYYYYYYYYYYY",
-        "warehouse_type": "copy",
+        "target_table": "chain_store",
+        "warehouse_type": "upsert",
         "cmid": "72",
         "data_date": "2018-09-03",
-        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=cost/dump=2018-09-04 15:20:08.204963+08:00&rowcount=2259.csv.gz"
+        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=store/dump=2018-09-04 15:19:23.822474+08:00&rowcount=11.csv.gz"
     }
 
     begin = time.time()
