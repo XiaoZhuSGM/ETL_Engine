@@ -9,13 +9,17 @@ import boto3
 from datetime import datetime
 from collections import defaultdict
 import re
+import botocore.session
+from botocore.config import Config
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 S3_BUCKET = 'ext-etl-data'
 SQL_PREFIX_SPLIT = 'sql/source_id={source_id}/{date}/split/'
 
 S3_CLIENT = boto3.resource('s3')
-lambda_client = boto3.client('lambda')
+session = botocore.session.get_session()
+BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
+lambda_client = session.create_client('lambda', config=BOTO3_CONFIG)
 
 
 def generator_extract_date_function(**kwargs):
@@ -345,60 +349,48 @@ def hook_post(endpoint, data, headers=None):
     hook.run(endpoint=endpoint, data=json.dumps(data), headers=headers)
 
 
-def recording_clean_store_log_function(**kwargs):
+def recording_clean_common_log_function(**kwargs):
+    task_id = kwargs['task_id']
     ti = kwargs['ti']
-    clean_store_info = ti.xcom_pull(task_ids='clean_store')
-    print("clean_store\t", clean_store_info)
-    recording_common_log_function(clean_store_info)
-
-
-def recording_clean_goods_log_function(**kwargs):
-    ti = kwargs['ti']
-    clean_goods_info = ti.xcom_pull(task_ids='clean_goods')
-    recording_common_log_function(clean_goods_info)
-
-
-def recording_clean_category_log_function(**kwargs):
-    ti = kwargs['ti']
-    clean_category_info = ti.xcom_pull(task_ids='clean_category')
-    recording_common_log_function(clean_category_info)
-
-
-def recording_clean_goodsflow_log_function(**kwargs):
-    ti = kwargs['ti']
-    clean_goodsflow_info = ti.xcom_pull(task_ids='clean_goodsflow')
-    recording_common_log_function(clean_goodsflow_info)
-
-
-def recording_clean_cost_log_function(**kwargs):
-    ti = kwargs['ti']
-    clean_cost_info = ti.xcom_pull(task_ids='clean_cost')
-    recording_common_log_function(clean_cost_info)
+    clean_info = ti.xcom_pull(task_ids=task_id)
+    recording_common_log_function(clean_info)
 
 
 DATA_KEY_TEMPLATE = "{S3_BUCKET}/{clean_data_file_path}"
 
 
-def load_store_function(**kwargs):
-    ti = kwargs['ti']
-    cmid = kwargs['cmid']
-    source_id = kwargs['source_id']
-    clean_store_info = ti.xcom_pull(task_ids='clean_store')
-    extract_date = clean_store_info['extract_date']
-    clean_data_file_path = clean_store_info['clean_data_file_path']
+def get_load_event(target_table, source_id, cmid, extract_date, clean_data_file_path):
     event = {
 ***REMOVED***
-        "target_table": "chain_store",
-        "warehouse_type": "upsert",
         'cmid': cmid,
         'data_date': extract_date,
         'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
         'source_id': source_id
     }
+    upsert_table_names = ['chain_store', 'chain_goods', 'chain_category']
+    if target_table not in upsert_table_names:
+        event['target_table'] = f'{target_table}_{source_id}'
+        event['warehouse_type'] = 'copy'
+    else:
+        event['target_table'] = target_table
+        event['warehouse_type'] = 'upsert'
 
-    print('beanan\t', event)
+    return event
 
-    response, load_result = common_recording_log_result('etl-warehouse', 'chain_store', extract_date, 3, **event)
+
+def load_common_function(**kwargs):
+    ti = kwargs['ti']
+    cmid = kwargs['cmid']
+    source_id = kwargs['source_id']
+    task_id = kwargs['task_id']
+    target_table = kwargs['target_table']
+    clean_info = ti.xcom_pull(task_ids=task_id)
+    extract_date = clean_info['extract_date']
+    clean_data_file_path = clean_info['clean_data_file_path']
+
+    event = get_load_event(target_table, source_id, cmid, extract_date, clean_data_file_path)
+
+    response, load_result = common_recording_log_result('etl-warehouse', target_table, extract_date, 3, **event)
 
     if 'FunctionError' not in response:
         load_result['result'] = 1
@@ -416,178 +408,11 @@ def load_store_function(**kwargs):
     return load_result
 
 
-def recording_load_store_function(**kwargs):
+def recording_load_common_function(**kwargs):
+    task_id = kwargs['task_id']
     ti = kwargs['ti']
-    load_store_info = ti.xcom_pull(task_ids='load_store')
-    print("load_stor_store\t", load_store_info)
+    load_store_info = ti.xcom_pull(task_ids=task_id)
     recording_common_log_function(load_store_info)
-
-
-def load_goods_function(**kwargs):
-    ti = kwargs['ti']
-    cmid = kwargs['cmid']
-    source_id = kwargs['source_id']
-    clean_goods_info = ti.xcom_pull(task_ids='clean_goods')
-    extract_date = clean_goods_info['extract_date']
-    clean_data_file_path = clean_goods_info['clean_data_file_path']
-    event = {
-***REMOVED***
-        "target_table": "chain_goods",
-        "warehouse_type": "upsert",
-        'cmid': cmid,
-        'data_date': extract_date,
-        'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
-        'source_id': source_id
-
-    }
-    response, load_result = common_recording_log_result('etl-warehouse', 'chain_goods', extract_date, 3, **event)
-
-    if 'FunctionError' not in response:
-        load_result['result'] = 1
-        load_result['remark'] = '入库成功'
-        match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
-        count_str = match.group(1)
-        record_num = int(count_str)
-        load_result['record_num'] = record_num
-    else:
-        load_result['result'] = 0
-        load_result['remark'] = '入库lambda报错'
-        recording_common_log_function(load_result)
-        raise RuntimeError('入库lambda报错')
-
-    return load_result
-
-
-def recording_load_goods_function(**kwargs):
-    ti = kwargs['ti']
-    load_goods_info = ti.xcom_pull(task_ids='load_goods')
-    print("load_stor_goods\t", load_goods_info)
-    recording_common_log_function(load_goods_info)
-
-
-def load_category_function(**kwargs):
-    ti = kwargs['ti']
-    cmid = kwargs['cmid']
-    source_id = kwargs['source_id']
-    clean_category_info = ti.xcom_pull(task_ids='clean_category')
-    extract_date = clean_category_info['extract_date']
-    clean_data_file_path = clean_category_info['clean_data_file_path']
-    event = {
-***REMOVED***
-        "target_table": "chain_category",
-        "warehouse_type": "upsert",
-        'cmid': cmid,
-        'data_date': extract_date,
-        'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
-        'source_id': source_id
-
-    }
-    response, load_result = common_recording_log_result('etl-warehouse', 'chain_category', extract_date, 3, **event)
-
-    if 'FunctionError' not in response:
-        load_result['result'] = 1
-        load_result['remark'] = '入库成功'
-        match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
-        count_str = match.group(1)
-        record_num = int(count_str)
-        load_result['record_num'] = record_num
-    else:
-        load_result['result'] = 0
-        load_result['remark'] = '入库lambda报错'
-        recording_common_log_function(load_result)
-        raise RuntimeError('入库lambda报错')
-
-    return load_result
-
-
-def recording_load_category_function(**kwargs):
-    ti = kwargs['ti']
-    load_category_info = ti.xcom_pull(task_ids='load_category')
-    print("load_stor_category\t", load_category_info)
-    recording_common_log_function(load_category_info)
-
-
-def load_goodsflow_function(**kwargs):
-    ti = kwargs['ti']
-    cmid = kwargs['cmid']
-    source_id = kwargs['source_id']
-    clean_goodsflow_info = ti.xcom_pull(task_ids='clean_goodsflow')
-    extract_date = clean_goodsflow_info['extract_date']
-    clean_data_file_path = clean_goodsflow_info['clean_data_file_path']
-    event = {
-***REMOVED***
-        "target_table": f"goodsflow_{source_id}",
-        "warehouse_type": "copy",
-        'cmid': cmid,
-        'data_date': extract_date,
-        'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
-        'source_id': source_id
-    }
-    response, load_result = common_recording_log_result('etl-warehouse', 'chain_goodsflow', extract_date, 3, **event)
-
-    if 'FunctionError' not in response:
-        load_result['result'] = 1
-        load_result['remark'] = '入库成功'
-        match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
-        count_str = match.group(1)
-        record_num = int(count_str)
-        load_result['record_num'] = record_num
-    else:
-        load_result['result'] = 0
-        load_result['remark'] = '入库lambda报错'
-        recording_common_log_function(load_result)
-        raise RuntimeError('入库lambda报错')
-
-    return load_result
-
-
-def recording_load_goodsflow_function(**kwargs):
-    ti = kwargs['ti']
-    load_goodsflow_info = ti.xcom_pull(task_ids='load_goodsflow')
-    print("load_stor_goodsflow\t", load_goodsflow_info)
-    recording_common_log_function(load_goodsflow_info)
-
-
-def load_cost_function(**kwargs):
-    ti = kwargs['ti']
-    cmid = kwargs['cmid']
-    source_id = kwargs['source_id']
-    clean_cost_info = ti.xcom_pull(task_ids='clean_cost')
-    extract_date = clean_cost_info['extract_date']
-    clean_data_file_path = clean_cost_info['clean_data_file_path']
-    event = {
-***REMOVED***
-        "target_table": f"cost_{source_id}",
-        "warehouse_type": "copy",
-        'cmid': cmid,
-        'data_date': extract_date,
-        'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
-        'source_id': source_id
-
-    }
-    response, load_result = common_recording_log_result('etl-warehouse', 'chain_cost', extract_date, 3, **event)
-
-    if 'FunctionError' not in response:
-        load_result['result'] = 1
-        load_result['remark'] = '入库成功'
-        match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
-        count_str = match.group(1)
-        record_num = int(count_str)
-        load_result['record_num'] = record_num
-    else:
-        load_result['result'] = 0
-        load_result['remark'] = '入库lambda报错'
-        recording_common_log_function(load_result)
-        raise RuntimeError('入库lambda报错')
-
-    return load_result
-
-
-def recording_load_cost_function(**kwargs):
-    ti = kwargs['ti']
-    load_cost_info = ti.xcom_pull(task_ids='load_cost')
-    print("load_stor_cost\t", load_cost_info)
-    recording_common_log_function(load_cost_info)
 
 
 def clean_common_function(**kwargs):
@@ -600,11 +425,11 @@ def clean_common_function(**kwargs):
     query_date = ti.xcom_pull(task_ids='generator_extract_date')
     params = dict(source_id=source_id, target=target)
     result_dict = hook_get(endpoint='etl/admin/api/ext_clean_info/target', data=params)
-    store_event = dict(source_id=source_id,
+    event = dict(source_id=source_id,
                        erp_name=erp_name,
                        date=query_date,
                        target_table=target_table)
-    store_event['origin_table_columns'] = result_dict['data']['target']['origin_table']
-    store_event['converts'] = result_dict['data']['target']['covert_str']
+    event['origin_table_columns'] = result_dict['data']['target']['origin_table']
+    event['converts'] = result_dict['data']['target']['covert_str']
 
-    return common_return_clean_result(target_table, query_date, **store_event)
+    return common_return_clean_result(target_table, query_date, **event)

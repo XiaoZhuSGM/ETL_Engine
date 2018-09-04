@@ -158,31 +158,36 @@ clean_cost = PythonOperator(
 recording_clean_store_log = PythonOperator(
     dag=dag,
     task_id='recording_clean_store_log',
-    python_callable=recording_clean_store_log_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='clean_store')
 )
 
 recording_clean_goods_log = PythonOperator(
     dag=dag,
     task_id='recording_clean_goods_log',
-    python_callable=recording_clean_goods_log_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='clean_goods')
 )
 
 recording_clean_category_log = PythonOperator(
     dag=dag,
     task_id='recording_clean_category_log',
-    python_callable=recording_clean_category_log_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='clean_category')
 )
 
 recording_clean_goodsflow_log = PythonOperator(
     dag=dag,
     task_id='recording_clean_goodsflow_log',
-    python_callable=recording_clean_goodsflow_log_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='clean_goodsflow')
 )
 
 recording_clean_cost_log = PythonOperator(
     dag=dag,
     task_id='recording_clean_cost_log',
-    python_callable=recording_clean_cost_log_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='clean_cost')
 )
 
 recording_extract_data_log >> clean_store >> recording_clean_store_log
@@ -200,14 +205,19 @@ DATA_KEY_TEMPLATE = "{S3_BUCKET}/{clean_data_file_path}"
 load_store = PythonOperator(
     task_id='load_store',
     dag=dag,
-    python_callable=load_store_function,
-    op_kwargs=dict(cmid=cmid, source_id=source_id)
+    python_callable=load_common_function,
+    op_kwargs=dict(cmid=cmid,
+                   source_id=source_id,
+                   task_id='clean_store',
+                   target_table='chain_store'
+                   )
 )
 
 recording_load_store = PythonOperator(
     task_id='recording_load_store',
     dag=dag,
-    python_callable=recording_load_store_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='load_store')
 )
 
 recording_clean_store_log >> load_store >> recording_load_store
@@ -215,14 +225,19 @@ recording_clean_store_log >> load_store >> recording_load_store
 load_goods = PythonOperator(
     task_id='load_goods',
     dag=dag,
-    python_callable=load_goods_function,
-    op_kwargs=dict(cmid=cmid, source_id=source_id)
+    python_callable=load_common_function,
+    op_kwargs=dict(cmid=cmid,
+                   source_id=source_id,
+                   task_id='clean_goods',
+                   target_table='chain_goods'
+                   )
 )
 
 recording_load_goods = PythonOperator(
     task_id='recording_load_goods',
     dag=dag,
-    python_callable=recording_load_goods_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='load_goods')
 )
 
 recording_clean_goods_log >> load_goods >> recording_load_goods
@@ -230,14 +245,19 @@ recording_clean_goods_log >> load_goods >> recording_load_goods
 load_category = PythonOperator(
     task_id='load_category',
     dag=dag,
-    python_callable=load_category_function,
-    op_kwargs=dict(cmid=cmid, source_id=source_id)
+    python_callable=load_common_function,
+    op_kwargs=dict(cmid=cmid,
+                   source_id=source_id,
+                   task_id='clean_category',
+                   target_table='chain_category'
+                   )
 )
 
 recording_load_category = PythonOperator(
     task_id='recording_load_category',
     dag=dag,
-    python_callable=recording_load_category_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='load_category')
 )
 
 recording_clean_category_log >> load_category >> recording_load_category
@@ -247,14 +267,19 @@ recording_clean_category_log >> load_category >> recording_load_category
 load_goodsflow = PythonOperator(
     task_id='load_goodsflow',
     dag=dag,
-    python_callable=load_goodsflow_function,
-    op_kwargs=dict(cmid=cmid, source_id=source_id)
+    python_callable=load_common_function,
+    op_kwargs=dict(cmid=cmid,
+                   source_id=source_id,
+                   task_id='clean_goodsflow',
+                   target_table='goodsflow'
+                   )
 )
 
 recording_load_goodsflow = PythonOperator(
     task_id='recording_load_goodsflow',
     dag=dag,
-    python_callable=recording_load_goodsflow_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='load_goodsflow')
 )
 
 recording_clean_goodsflow_log >> load_goodsflow >> recording_load_goodsflow
@@ -262,14 +287,19 @@ recording_clean_goodsflow_log >> load_goodsflow >> recording_load_goodsflow
 load_cost = PythonOperator(
     task_id='load_cost',
     dag=dag,
-    python_callable=load_cost_function,
-    op_kwargs=dict(cmid=cmid, source_id=source_id)
+    python_callable=load_common_function,
+    op_kwargs=dict(cmid=cmid,
+                   source_id=source_id,
+                   task_id='clean_cost',
+                   target_table='cost'
+                   )
 )
 
 recording_load_cost = PythonOperator(
     task_id='recording_load_cost',
     dag=dag,
-    python_callable=recording_load_cost_function
+    python_callable=recording_clean_common_log_function,
+    op_kwargs=dict(task_id='load_cost')
 )
 
 recording_clean_cost_log >> load_cost >> recording_load_cost
