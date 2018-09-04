@@ -59,10 +59,10 @@
 
 #goodsloss
         'origin_table_columns': {
-            "zetl_invmod": ["billnumber", "occurdate", "qty", "amount", "storeuuid", "productuuid"],
-            "zetl_store": ["uuid", "id", "name"],
-            "zetl_product": ["uuid", "id", "barcode", "name", "munit", "uuid", "categoryid"],
-            "zetl_category": ["uuid"]
+            "zetl_invmod": [billnumber,occurdate,qty,amount,storeuuid,productuuid],
+            zetl_store: [uuid,id,name],
+            zetl_product: [uuid,id,barcode,name,munit,uuid,categoryid],
+            zetl_category: [uuid]
         },
 
         'converts': {
