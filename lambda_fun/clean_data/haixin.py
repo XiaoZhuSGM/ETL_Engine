@@ -80,15 +80,15 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 def clean_haixin(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
-        clean_goodsflow(source_id, date, target_table, data_frames)
+        return clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
-        clean_cost(source_id, date, target_table, data_frames)
+        return clean_cost(source_id, date, target_table, data_frames)
     elif target_table == "store":
-        clean_store(source_id, date, target_table, data_frames)
+        return clean_store(source_id, date, target_table, data_frames)
     elif target_table == "goods":
-        clean_goods(source_id, date, target_table, data_frames)
+        return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
-        clean_category(source_id, date, target_table, data_frames)
+        return clean_category(source_id, date, target_table, data_frames)
     else:
         pass
 

@@ -131,23 +131,23 @@ def handler(event, context):
     elif erp_name == "富基融通":
         from chaoshifa import clean_chaoshifa
 
-        clean_chaoshifa(source_id, date, target_table, data_frames)
+        return clean_chaoshifa(source_id, date, target_table, data_frames)
     elif erp_name == "76中间库":
         from bianzhaijia import clean_bianzhaijia
 
-        clean_bianzhaijia(source_id, date, target_table, data_frames)
+        return clean_bianzhaijia(source_id, date, target_table, data_frames)
     elif erp_name == "海信商定天下":
         from haixin import clean_haixin
 
-        clean_haixin(source_id, date, target_table, data_frames)
+        return clean_haixin(source_id, date, target_table, data_frames)
     elif erp_name == "百年":
         from bainian import clean_bainian
 
-        clean_bainian(source_id, date, target_table, data_frames)
+        return clean_bainian(source_id, date, target_table, data_frames)
     elif erp_name == "九垠":
         from jiuyin import clean_jiuyin
 
-        clean_jiuyin(source_id, date, target_table, data_frames)
+        return clean_jiuyin(source_id, date, target_table, data_frames)
 
 
 if __name__ == '__main__':
