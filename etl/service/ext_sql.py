@@ -133,9 +133,14 @@ class DatasourceSqlService(object):
         return sql_str
 
     def _common_mould(self, table, extract_date):
-        sql_str = "select {tablename}.* from {tablename} ".format(
-            tablename=table.table_name
-        )
+        if table.special_column:
+            sql_str = "select {special_column} from {tablename} ".format(
+                tablename=table.table_name, special_column=table.special_column
+            )
+        else:
+            sql_str = "select {tablename}.* from {tablename} ".format(
+                tablename=table.table_name
+            )
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
             sql_str = sql_str + self._formated_where(table, format_date)
