@@ -11,14 +11,14 @@ from typing import Dict
 from base import Base
 
 
-class ZhiBaiWeiCleaner(object):
+class ZhiBaiWeiCleaner(Base):
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         Base.__init__(self, source_id, date, data)
 
     """
         "origin_table_columns": {
-            "dbo.pos_t_saleflow": ['branch_no',
+            "pos_t_saleflow": ['branch_no',
                                    'item_no',
                                    'flow_no',
                                    'oper_date',
@@ -27,31 +27,31 @@ class ZhiBaiWeiCleaner(object):
                                    'sale_qnty',
                                    'sale_money',
                                    ],
-            "dbo.bi_t_branch_info": ['branch_no', 'branch_name'],
-            "dbo.bi_t_item_info": ['item_no', 'item_clsno', 'barcode', 'item_name', 'unit_no'],
-            "dbo.bi_t_item_cls": ['item_clsno', 'item_clsname', 'item_flag']
+            "bi_t_branch_info": ['branch_no', 'branch_name'],
+            "bi_t_item_info": ['item_no', 'item_clsno', 'barcode', 'item_name', 'unit_no'],
+            "bi_t_item_cls": ['item_clsno', 'item_clsname', 'item_flag']
         },
 
         "converts": {
-            "dbo.pos_t_saleflow": {'branch_no': 'str',
+            "pos_t_saleflow": {'branch_no': 'str',
                                    'item_no': 'str',
                                    'sale_price': 'float',
                                    'sale_qnty': 'float',
                                    'sell_way': 'str',
                                    'sale_money': 'float',
                                    'flow_no': 'str'},
-            "dbo.bi_t_branch_info": {'branch_no': 'str'},
-            "dbo.bi_t_item_info": {'item_no': 'str', 'item_clsno': 'str'},
-            "dbo.bi_t_item_cls": {'item_clsno': 'str', 'item_flag': 'str'}
+            "bi_t_branch_info": {'branch_no': 'str'},
+            "bi_t_item_info": {'item_no': 'str', 'item_clsno': 'str'},
+            "bi_t_item_cls": {'item_clsno': 'str', 'item_flag': 'str'}
         }
     """
 
     def goodsflow(self):
 
-        flow = self.data['dbo.pos_t_saleflow']
-        store = self.data['dbo.bi_t_branch_info']
-        item = self.data['dbo.bi_t_item_info']
-        item_cls = self.data['dbo.bi_t_item_cls']
+        flow = self.data['pos_t_saleflow']
+        store = self.data['bi_t_branch_info']
+        item = self.data['bi_t_item_info']
+        item_cls = self.data['bi_t_item_cls']
 
         flow['branch_no'] = flow.apply(lambda row: (row['branch_no'].strip())[:2], axis=1)
         flow['item_no'] = flow['item_no'].str.strip()
@@ -233,22 +233,22 @@ class ZhiBaiWeiCleaner(object):
 
     """
         'origin_table_columns': {
-            "dbo.ml_dayflow": ['item_no', 'oper_date', 'qty', 'amt', 'cost_amt','branch_no','trans_key'],
-            'dbo.bi_t_item_info': ['item_no', 'item_clsno',],
-            'dbo.bi_t_item_cls': ['item_clsno', 'item_flag']
+            "ml_dayflow": ['item_no', 'oper_date', 'qty', 'amt', 'cost_amt','branch_no','trans_key'],
+            'bi_t_item_info': ['item_no', 'item_clsno',],
+            'bi_t_item_cls': ['item_clsno', 'item_flag']
         },
 
         'converts': {
-            "dbo.ml_dayflow": {'branch_no': 'str', 'item_no':'str', 'trans_key':'str', 'oper_date':'str'},
-            'dbo.bi_t_item_info': {'item_no': 'str', 'item_clsno': 'str'},
-            'dbo.bi_t_item_cls': {'item_clsno':'str', 'item_flag':'str'}
+            "ml_dayflow": {'branch_no': 'str', 'item_no':'str', 'trans_key':'str', 'oper_date':'str'},
+            'bi_t_item_info': {'item_no': 'str', 'item_clsno': 'str'},
+            'bi_t_item_cls': {'item_clsno':'str', 'item_flag':'str'}
         }
     """
 
     def cost(self):
-        cost = self.data['dbo.ml_dayflow']
-        item = self.data['dbo.bi_t_item_info']
-        item_cls = self.data['dbo.bi_t_item_cls']
+        cost = self.data['ml_dayflow']
+        item = self.data['bi_t_item_info']
+        item_cls = self.data['bi_t_item_cls']
 
         cost['branch_no'] = cost.apply(lambda row: row['branch_no'].strip()[:2], axis=1)
         cost['oper_date'] = cost['oper_date'].str.strip()
@@ -361,7 +361,7 @@ class ZhiBaiWeiCleaner(object):
 
     """
     'origin_table_columns': {
-            "dbo.bi_t_branch_info": [
+            "bi_t_branch_info": [
                 'area_no',
                 'branch_no',
                 'branch_name',
@@ -372,21 +372,21 @@ class ZhiBaiWeiCleaner(object):
                 'is_jmd',
                 'custjs_type'
             ],
-            "dbo.bi_t_area_info": ['area_no', 'area_name']
+            "bi_t_area_info": ['area_no', 'area_name']
         },
 
-        'converts': {"dbo.bi_t_branch_info": {'branch_no': 'str',
+        'converts': {"bi_t_branch_info": {'branch_no': 'str',
                                               'area_no': 'str',
                                               'is_jmd': 'str',
                                               'custjs_type': 'str'
                                               },
-                     "dbo.bi_t_area_info": {'area_no': 'str'}
+                     "bi_t_area_info": {'area_no': 'str'}
                      }
     """
 
     def store(self):
-        store = self.data['dbo.bi_t_branch_info']
-        area = self.data['dbo.bi_t_area_info']
+        store = self.data['bi_t_branch_info']
+        area = self.data['bi_t_area_info']
 
         store['area_no'] = store['area_no'].str.strip()
         store['is_jmd'] = store['is_jmd'].str.strip()
@@ -450,7 +450,7 @@ class ZhiBaiWeiCleaner(object):
 
     """
         'origin_table_columns': {
-            "dbo.bi_t_item_info": [
+            "bi_t_item_info": [
                 'item_clsno',
                 'sup_no',
                 'barcode',
@@ -464,26 +464,26 @@ class ZhiBaiWeiCleaner(object):
                 'item_brandname',
                 'item_name'
             ],
-            "dbo.bi_t_item_cls": ['item_clsno', 'item_flag'],
-            "dbo.bi_t_supcust_info":['supcust_no', 'supcust_flag', 'sup_name']
+            "bi_t_item_cls": ['item_clsno', 'item_flag'],
+            "bi_t_supcust_info":['supcust_no', 'supcust_flag', 'sup_name']
         },
 
         'converts': {
-            "dbo.bi_t_item_info": {
+            "bi_t_item_info": {
                 'item_clsno':'str',
                 'sup_no':'str',
                 'display_flag':'str'
             },
-            "dbo.bi_t_item_cls": {'item_clsno':'str', 'item_flag':'str'},
-            "dbo.bi_t_supcust_info":{'supcust_no':'str', 'supcust_flag':'str'}
+            "bi_t_item_cls": {'item_clsno':'str', 'item_flag':'str'},
+            "bi_t_supcust_info":{'supcust_no':'str', 'supcust_flag':'str'}
             }
     """
 
     def goods(self):
-        item = self.data['dbo.bi_t_item_info']
+        item = self.data['bi_t_item_info']
         print(len(item))
-        item_cls = self.data['dbo.bi_t_item_cls']
-        supcust = self.data['dbo.bi_t_supcust_info']
+        item_cls = self.data['bi_t_item_cls']
+        supcust = self.data['bi_t_supcust_info']
 
         item['item_clsno'] = item['item_clsno'].str.strip()
         item['item_clsno_1'] = item.apply(lambda row: row['item_clsno'][:2], axis=1)
@@ -627,19 +627,19 @@ class ZhiBaiWeiCleaner(object):
 
     """
     'origin_table_columns': {
-            "dbo.bi_t_item_cls": ['item_clsno',
+            "bi_t_item_cls": ['item_clsno',
                               'item_clsname',
                               'item_flag',
                               ]
         },
 
-    'converts': {"dbo.bi_t_item_cls": {'item_clsno': 'str', 
+    'converts': {"bi_t_item_cls": {'item_clsno': 'str', 
                                         'item_clsname': 'str', 
                                         'item_flag': 'str'}}
     """
 
     def category(self):
-        item_cls = self.data['dbo.bi_t_item_cls']
+        item_cls = self.data['bi_t_item_cls']
 
         item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
         item_cls['item_clsname'] = item_cls['item_clsname'].str.strip()
@@ -748,41 +748,41 @@ class ZhiBaiWeiCleaner(object):
 
     """
     'origin_table_columns': {
-            "dbo.ic_t_check_master": ['sheet_no',
+            "ic_t_check_master": ['sheet_no',
                                       'branch_no',
                                       'approve_flag',
                                       'del_flag',
                                       'check_no',
                                       'oper_date'
                                       ],
-            "dbo.ic_t_check_detail": ['sheet_no', 'item_no', 'balance_qty'],
-            "dbo.bi_t_branch_info": ['branch_no', 'branch_name'],
-            "dbo.bi_t_item_info": ['item_no', 'item_clsno', 'base_price', 'item_subno', 'barcode', 'unit_no', 'item_name'],
-            "dbo.bi_t_item_cls": ['item_clsno', 'item_flag']
+            "ic_t_check_detail": ['sheet_no', 'item_no', 'balance_qty'],
+            "bi_t_branch_info": ['branch_no', 'branch_name'],
+            "bi_t_item_info": ['item_no', 'item_clsno', 'base_price', 'item_subno', 'barcode', 'unit_no', 'item_name'],
+            "bi_t_item_cls": ['item_clsno', 'item_flag']
         },
 
         'converts': {
-            "dbo.ic_t_check_master": {
+            "ic_t_check_master": {
                 'sheet_no': 'str',
                 'branch_no': 'str',
                 'approve_flag': 'str',
                 'del_flag': 'str',
             },
-            "dbo.ic_t_check_detail": {
+            "ic_t_check_detail": {
                 'sheet_no': 'str',
                 'item_no': 'str',
                 'balance_qty': 'str',
 
             },
-            "dbo.bi_t_branch_info": {
+            "bi_t_branch_info": {
                 'branch_no': 'str'
             },
-            "dbo.bi_t_item_info": {
+            "bi_t_item_info": {
                 'item_no': 'str',
                 'item_clsno': 'str',
                 'base_price': 'str'
             },
-            "dbo.bi_t_item_cls": {
+            "bi_t_item_cls": {
                 'item_clsno': 'str',
                 'item_flag':'str'
             }
@@ -790,15 +790,15 @@ class ZhiBaiWeiCleaner(object):
     """
 
     def goods_loss(self):
-        loss = self.data['dbo.ic_t_check_master']
+        loss = self.data['ic_t_check_master']
 
         if not len(loss):
             return pd.DataFrame()
 
-        detail = self.data['dbo.ic_t_check_detail']
-        store = self.data['dbo.bi_t_branch_info']
-        item = self.data['dbo.bi_t_item_info']
-        item_cls = self.data['dbo.bi_t_item_cls']
+        detail = self.data['ic_t_check_detail']
+        store = self.data['bi_t_branch_info']
+        item = self.data['bi_t_item_info']
+        item_cls = self.data['bi_t_item_cls']
 
         detail['balance_qty'] = detail.apply(lambda row: float(row['balance_qty']), axis=1)
 

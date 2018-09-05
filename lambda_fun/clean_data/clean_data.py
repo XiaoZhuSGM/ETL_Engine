@@ -132,41 +132,36 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-09-02",
-        "target_table": "category",
+        "source_id": "53YYYYYYYYYYYYY",
+        "erp_name": "智百威",
+        "date": "2018-09-03",
+        "target_table": "goodsflow",
         "origin_table_columns": {
-            "differform": ['differno', 'orgcode', 'accdate'],
-            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
-            "subshop": ['orgcode', 'orgname'],
-            "goods": ['plucode', 'clscode', 'barcode','pluname', 'unit'],
-            'gclass': ['clscode', 'clslevel'],
+            "pos_t_saleflow": ['branch_no',
+                                   'item_no',
+                                   'flow_no',
+                                   'oper_date',
+                                   'sell_way',
+                                   'sale_price',
+                                   'sale_qnty',
+                                   'sale_money',
+                                   ],
+            "bi_t_branch_info": ['branch_no', 'branch_name'],
+            "bi_t_item_info": ['item_no', 'item_clsno', 'barcode', 'item_name', 'unit_no'],
+            "bi_t_item_cls": ['item_clsno', 'item_clsname', 'item_flag']
         },
 
         "converts": {
-            "differform": {
-                'differno': 'str',
-                'orgcode': 'str',
-
-            },
-            "differdetail": {
-                'differno': 'str',
-                'plucode': 'str',
-                'ykcount': 'float'
-            },
-            "subshop": {
-                'orgcode': 'str'
-            },
-            "goods": {
-                'plucode': 'str',
-                'clscode': 'str',
-                'barcode': 'str'
-            },
-            'gclass': {
-                'clscode': 'str',
-                'clslevel': 'int'
-            }
+            "pos_t_saleflow": {'branch_no': 'str',
+                                   'item_no': 'str',
+                                   'sale_price': 'float',
+                                   'sale_qnty': 'float',
+                                   'sell_way': 'str',
+                                   'sale_money': 'float',
+                                   'flow_no': 'str'},
+            "bi_t_branch_info": {'branch_no': 'str'},
+            "bi_t_item_info": {'item_no': 'str', 'item_clsno': 'str'},
+            "bi_t_item_cls": {'item_clsno': 'str', 'item_flag': 'str'}
         }
     }
     handler(event, None)

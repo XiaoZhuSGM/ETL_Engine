@@ -17,27 +17,27 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-            "dbo.skstoresellingwater": ['sgid', 'gid', 'flowno', 'rtlprc', 'qty', 'realamt', 'fildate'],
-            "dbo.skstore": ['gid', 'name'],
-            "dbo.skgoods": ['gid', 'code2', 'name', 'munit'],
-            "dbo.skgoodssort": ['gid', 'ascode', 'asname', 'bscode', 'bsname', 'cscode', 'csname']
+            "skstoresellingwater": ['sgid', 'gid', 'flowno', 'rtlprc', 'qty', 'realamt', 'fildate'],
+            "skstore": ['gid', 'name'],
+            "skgoods": ['gid', 'code2', 'name', 'munit'],
+            "skgoodssort": ['gid', 'ascode', 'asname', 'bscode', 'bsname', 'cscode', 'csname']
         },
 
         "converts": {
-            "dbo.skstoresellingwater": {"sgid": "str", "gid": "str",
+            "skstoresellingwater": {"sgid": "str", "gid": "str",
                                         "flowno": "str", "rtlprc": "float", 'qty': 'float', 'realamt': 'float'},
-            "dbo.skstore": {'gid': 'str', 'name': 'str'},
-            'dbo.skgoods': {'gid': 'str', 'code2': 'str', 'name': 'str', 'munit': 'str'},
-            'dbo.skgoodssort': {'gid': 'str', 'ascode': 'str', 'asname': 'str', 'bscode': 'str', 'bsname': 'str',
+            "skstore": {'gid': 'str', 'name': 'str'},
+            'skgoods': {'gid': 'str', 'code2': 'str', 'name': 'str', 'munit': 'str'},
+            'skgoodssort': {'gid': 'str', 'ascode': 'str', 'asname': 'str', 'bscode': 'str', 'bsname': 'str',
                                 'cscode': 'str', 'csname': 'str'}
         }
     """
 
     def goodsflow(self):
-        flow_frame = self.data['dbo.skstoresellingwater']
-        store_frame = self.data['dbo.skstore']
-        goods_frame = self.data['dbo.skgoods']
-        gsort_frame = self.data['dbo.skgoodssort']
+        flow_frame = self.data['skstoresellingwater']
+        store_frame = self.data['skstore']
+        goods_frame = self.data['skgoods']
+        gsort_frame = self.data['skgoodssort']
         flow_frame['flowno'] = flow_frame['flowno'].str.strip()
         result_frame = pd.merge(flow_frame,
                                 store_frame,
@@ -117,7 +117,7 @@ class MeiShiLinCleaner(Base):
 
     """
         "origin_table_columns": {
-                "dbo.skcmsale": ['pdkey', 
+                "skcmsale": ['pdkey', 
                                  'orgkey', 
                                  'fildate', 
                                  'saleqty', 
@@ -127,24 +127,24 @@ class MeiShiLinCleaner(Base):
                                  'salectax',
     
                                  ],
-                "dbo.skgoodssort":['gid', 'ascode', 'bscode', 'cscode'],
+                "skgoodssort":['gid', 'ascode', 'bscode', 'cscode'],
             },
 
         "converts": {
-            "dbo.skcmsale": {'pdkey':'str', 
+            "skcmsale": {'pdkey':'str', 
                              'saleqty':'float',
                              'saleamt':'float',
                              'saletax':'float',
                              'salecamt':'float',
                              'salectax':'float',
                              },
-            "dbo.skgoodssort": {"gid":'str'}
+            "skgoodssort": {"gid":'str'}
         }
         """
 
     def cost(self):
-        cost_frame = self.data['dbo.skcmsale']
-        gsort_frame = self.data['dbo.skgoodssort']
+        cost_frame = self.data['skcmsale']
+        gsort_frame = self.data['skgoodssort']
 
         result_frame = pd.merge(cost_frame, gsort_frame, left_on='pdkey', right_on='gid', how='left')
         result_frame['source_id'] = self.source_id
@@ -187,7 +187,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skstore": [
+        "skstore": [
             "address",
             "area",
             "code",
@@ -198,10 +198,10 @@ class MeiShiLinCleaner(Base):
             "property",
             "stat",
         ],
-        "dbo.skcmarea": ["code", "name"],
+        "skcmarea": ["code", "name"],
     },
     "converts": {
-        "dbo.skstore": {
+        "skstore": {
             "gid": "str",
             "name": "str",
             "address": "str",
@@ -210,13 +210,13 @@ class MeiShiLinCleaner(Base):
             "contactor": "str",
             "phone": "str",
         },
-        "dbo.skcmarea": {"code": "str", "name": "str"},
+        "skcmarea": {"code": "str", "name": "str"},
     },
     """
 
     def store(self):
-        store = self.data["dbo.skstore"]
-        area = self.data["dbo.skcmarea"]
+        store = self.data["skstore"]
+        area = self.data["skcmarea"]
 
         store['area'] = store['area'].str.strip()
         area['code'] = area['code'].str.strip()
@@ -309,7 +309,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skgoods": [
+        "skgoods": [
             "alc",
             "brand",
             "busgate",
@@ -325,11 +325,11 @@ class MeiShiLinCleaner(Base):
             "vdrgid",
             'lifecycle'
         ],
-        "dbo.skcmbrand": ["name", "code", 'gid'],
-        "dbo.skcmvendor": ["name", "code", "gid"],
+        "skcmbrand": ["name", "code", 'gid'],
+        "skcmvendor": ["name", "code", "gid"],
     },
     "converts": {
-        "dbo.skgoods": {
+        "skgoods": {
             "alc": "str",
             "brand": "str",
             "busgate": "str",
@@ -342,16 +342,16 @@ class MeiShiLinCleaner(Base):
             "vdrgid": "str",
             'lifecycle':'str'
         },
-        "dbo.skcmbrand": {"name": "str", "code": "str", 'gid':'str'},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skcmbrand": {"name": "str", "code": "str", 'gid':'str'},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
     },
     """
 
     def goods(self):
-        goods = self.data["dbo.skgoods"]
-        # goodsbusgate = self.data["dbo.goodsbusgate"]
-        brand = self.data["dbo.skcmbrand"]
-        vendor = self.data["dbo.skcmvendor"]
+        goods = self.data["skgoods"]
+        # goodsbusgate = self.data["goodsbusgate"]
+        brand = self.data["skcmbrand"]
+        vendor = self.data["skcmvendor"]
 
         columns = [
             "cmid",
@@ -425,13 +425,13 @@ class MeiShiLinCleaner(Base):
         return part
 
     """
-        "origin_table_columns": {"dbo.skcmsort": ["code", "name"]},
-        "converts": {"dbo.skcmsort": {"code": "str", "name": "str"}},
+        "origin_table_columns": {"skcmsort": ["code", "name"]},
+        "converts": {"skcmsort": {"code": "str", "name": "str"}},
     """
 
     def category(self):
 
-        sort = self.data["dbo.skcmsort"]
+        sort = self.data["skcmsort"]
         sort['code'] = sort['code'].str.strip()
         sort['name'] = sort['name'].str.strip()
 
@@ -543,7 +543,7 @@ class MeiShiLinCleaner(Base):
     """
     
     "origin_table_columns": {
-        "dbo.skcmotrequireorder": [
+        "skcmotrequireorder": [
             "billnumber",
             "billtype",
             "buyercode",
@@ -551,7 +551,7 @@ class MeiShiLinCleaner(Base):
             "state",
             "uuid",
         ],
-        "dbo.skcmotrequireorderline": [
+        "skcmotrequireorderline": [
             "munit",
             "checkedqty",
             "price",
@@ -559,23 +559,23 @@ class MeiShiLinCleaner(Base):
             "bill",
             "product",
         ],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "name", "psr", "sort", "vdrgid"],
-        "dbo.skcmsort": ["code"],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skcmemployee": ["name", "gid"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "name", "psr", "sort", "vdrgid"],
+        "skcmsort": ["code"],
+        "skcmvendor": ["gid", "code", "name"],
+        "skcmemployee": ["name", "gid"],
     },
     "converts": {
-        "dbo.skcmotrequireorder": {
+        "skcmotrequireorder": {
             "billnumber": "str",
             "billtype": "str",
             "buyercode": "str",
             "checktime": "str",
             "uuid": "str",
         },
-        "dbo.skcmotrequireorderline": {"munit": "str", "bill": "str", "product": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmotrequireorderline": {"munit": "str", "bill": "str", "product": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -584,21 +584,21 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "vdrgid": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skcmemployee": {"name": "str", "gid": "str"},
+        "skcmsort": {"code": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skcmemployee": {"name": "str", "gid": "str"},
     },
     
     """
 
     def requireorder(self):
-        otrequireorder = self.data["dbo.skcmotrequireorder"]
-        otrequireorderline = self.data["dbo.skcmotrequireorderline"]
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-        vendor = self.data["dbo.skcmvendor"]
-        employee = self.data["dbo.skcmemployee"]
+        otrequireorder = self.data["skcmotrequireorder"]
+        otrequireorderline = self.data["skcmotrequireorderline"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        vendor = self.data["skcmvendor"]
+        employee = self.data["skcmemployee"]
 
         employee['name'] = employee['name'].str.strip()
 
@@ -741,24 +741,24 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-            "dbo.skcmstkout": ["billto", "cls", "num", "ocrdate", "stat"],
-            "dbo.skcmstkoutdtl": ["alcsrc", "cls", "gdgid", "munit", "num", "qty", "wrh"],
-            "dbo.skstore": ["gid", "name", "code"],
-            "dbo.skcmwarehouse": ["gid", "name", "code"],
-            "dbo.skgoods": ["code", "code2", "gid", "name", "rtlprc", "sort"],
-            "dbo.skcmsort": ["code"],
-            "dbo.skcmstkoutbck": ["billto", "cls", "num", "ocrdate", "stat"],
-            "dbo.skcmstkoutbckdtl": ["bckcls", "cls", "gdgid", "munit", "num", "qty", "wrh"],
+            "skcmstkout": ["billto", "cls", "num", "ocrdate", "stat"],
+            "skcmstkoutdtl": ["alcsrc", "cls", "gdgid", "munit", "num", "qty", "wrh"],
+            "skstore": ["gid", "name", "code"],
+            "skcmwarehouse": ["gid", "name", "code"],
+            "skgoods": ["code", "code2", "gid", "name", "rtlprc", "sort"],
+            "skcmsort": ["code"],
+            "skcmstkoutbck": ["billto", "cls", "num", "ocrdate", "stat"],
+            "skcmstkoutbckdtl": ["bckcls", "cls", "gdgid", "munit", "num", "qty", "wrh"],
         },
         "converts": {
-            "dbo.skcmstkout": {
+            "skcmstkout": {
                 "billto": "str",
                 "cls": "str",
                 "num": "str",
                 "ocrdate": "str",
                 "stat": "str",
             },
-            "dbo.skcmstkoutdtl": {
+            "skcmstkoutdtl": {
                 "cls": "str",
                 "gdgid": "str",
                 "munit": "str",
@@ -766,9 +766,9 @@ class MeiShiLinCleaner(Base):
                 "wrh": "str",
                 # 'qty':'float'
             },
-            "dbo.skstore": {"gid": "str", "name": "str", "code": "str"},
-            "dbo.skcmwarehouse": {"gid": "str", "name": "str", "code": "str"},
-            "dbo.skgoods": {
+            "skstore": {"gid": "str", "name": "str", "code": "str"},
+            "skcmwarehouse": {"gid": "str", "name": "str", "code": "str"},
+            "skgoods": {
                 "code": "str",
                 "code2": "str",
                 "gid": "str",
@@ -776,15 +776,15 @@ class MeiShiLinCleaner(Base):
                 "sort": "str",
                 # 'rtlprc':'float'
             },
-            "dbo.skcmsort": {"code": "str"},
-            "dbo.skcmstkoutbck": {
+            "skcmsort": {"code": "str"},
+            "skcmstkoutbck": {
                 "billto": "str",
                 "cls": "str",
                 "num": "str",
                 "ocrdate": "str",
                 "stat": "str",
             },
-            "dbo.skcmstkoutbckdtl": {
+            "skcmstkoutbckdtl": {
                 "bckcls": "str",
                 "cls": "str",
                 "gdgid": "str",
@@ -796,14 +796,14 @@ class MeiShiLinCleaner(Base):
     """
 
     def delivery(self):
-        stkout = self.data["dbo.skcmstkout"]
-        stkoutdtl = self.data["dbo.skcmstkoutdtl"]
-        store = self.data["dbo.skstore"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-        stkoutbck = self.data["dbo.skcmstkoutbck"]
-        stkoutbckdtl = self.data["dbo.skcmstkoutbckdtl"]
+        stkout = self.data["skcmstkout"]
+        stkoutdtl = self.data["skcmstkoutdtl"]
+        store = self.data["skstore"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        stkoutbck = self.data["skcmstkoutbck"]
+        stkoutbckdtl = self.data["skcmstkoutbckdtl"]
 
         stkoutdtl['munit'] = stkoutdtl['munit'].str.strip()
         stkoutbckdtl['munit'] = stkoutbckdtl['munit'].str.strip()
@@ -1066,8 +1066,8 @@ class MeiShiLinCleaner(Base):
 
     """
         "origin_table_columns": {
-        "dbo.skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
-        "dbo.skcmstkindtl": [
+        "skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
+        "skcmstkindtl": [
             "qty",
             "price",
             "qpc",
@@ -1077,13 +1077,13 @@ class MeiShiLinCleaner(Base):
             "gdgid",
             "wrh",
         ],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skcmmodulestat": ["statname", "no"],
-        "dbo.skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmbrand": ["code", "name"],
-        "dbo.skcmwarehouse": ["code", "name", "gid"],
-        "dbo.skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
-        "dbo.skcmstkinbckdtl": [
+        "skcmvendor": ["gid", "code", "name"],
+        "skcmmodulestat": ["statname", "no"],
+        "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
+        "skcmbrand": ["code", "name"],
+        "skcmwarehouse": ["code", "name", "gid"],
+        "skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
+        "skcmstkinbckdtl": [
             "qty",
             "price",
             "qpc",
@@ -1095,16 +1095,16 @@ class MeiShiLinCleaner(Base):
         ],
     },
     "converts": {
-        "dbo.skcmstkin": {
+        "skcmstkin": {
             "num": "str",
             "fildate": "str",
             "cls": "str",
             "vendor": "str",
         },
-        "dbo.skcmstkindtl": {"num": "str", "cls": "str", "gdgid": "str", "wrh": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.modulestat": {"statname": "str"},
-        "dbo.skgoods": {
+        "skcmstkindtl": {"num": "str", "cls": "str", "gdgid": "str", "wrh": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "modulestat": {"statname": "str"},
+        "skgoods": {
             "code": "str",
             "brand": "str",
             "code2": "str",
@@ -1113,15 +1113,15 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "name": "str",
         },
-        "dbo.skcmbrand": {"code": "str", "name": "str"},
-        "dbo.skcmwarehouse": {"code": "str", "name": "str", "gid": "str"},
-        "dbo.skcmstkinbck": {
+        "skcmbrand": {"code": "str", "name": "str"},
+        "skcmwarehouse": {"code": "str", "name": "str", "gid": "str"},
+        "skcmstkinbck": {
             "num": "str",
             "fildate": "str",
             "cls": "str",
             "vendor": "str",
         },
-        "dbo.skcmstkinbckdtl": {
+        "skcmstkinbckdtl": {
             "num": "str",
             "cls": "str",
             "gdgid": "str",
@@ -1132,15 +1132,15 @@ class MeiShiLinCleaner(Base):
     """
 
     def purchase_warehouse(self):
-        stkin = self.data["dbo.skcmstkin"]
-        stkindtl = self.data["dbo.skcmstkindtl"]
-        vendorh = self.data["dbo.skcmvendor"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-        goods = self.data["dbo.skgoods"]
-        brand = self.data["dbo.skcmbrand"]
-        warehouseh = self.data["dbo.skcmwarehouse"]
-        stkinbck = self.data["dbo.skcmstkinbck"]
-        stkinbckdtl = self.data["dbo.skcmstkinbckdtl"]
+        stkin = self.data["skcmstkin"]
+        stkindtl = self.data["skcmstkindtl"]
+        vendorh = self.data["skcmvendor"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
+        warehouseh = self.data["skcmwarehouse"]
+        stkinbck = self.data["skcmstkinbck"]
+        stkinbckdtl = self.data["skcmstkinbckdtl"]
 
         brand['name'] = brand['name'].str.strip()
 
@@ -1361,27 +1361,27 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmdiralc": ["cls", "fildate", "num", "receiver", "stat", "vendor"],
-        "dbo.skcmdiralcdtl": ["cls", "gdgid", "num", "price", "qpc", "qty", "total"],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skcmmodulestat": ["statname", "no"],
-        "dbo.skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmbrand": ["code", "name"],
+        "skcmdiralc": ["cls", "fildate", "num", "receiver", "stat", "vendor"],
+        "skcmdiralcdtl": ["cls", "gdgid", "num", "price", "qpc", "qty", "total"],
+        "skcmvendor": ["gid", "code", "name"],
+        "skstore": ["gid", "code", "name"],
+        "skcmmodulestat": ["statname", "no"],
+        "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
+        "skcmbrand": ["code", "name"],
     },
     "converts": {
-        "dbo.skcmdiralc": {
+        "skcmdiralc": {
             "cls": "str",
             "num": "str",
             "fildate": "str",
             "receiver": "str",
             "vendor": "str",
         },
-        "dbo.skcmdiralcdtl": {"cls": "str", "num": "str", "gdgid": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skcmmodulestat": {"statname": "str"},
-        "dbo.skgoods": {
+        "skcmdiralcdtl": {"cls": "str", "num": "str", "gdgid": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skcmmodulestat": {"statname": "str"},
+        "skgoods": {
             "code": "str",
             "brand": "str",
             "code2": "str",
@@ -1390,18 +1390,18 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "name": "str",
         },
-        "dbo.skcmbrand": {"code": "str", "name": "str"},
+        "skcmbrand": {"code": "str", "name": "str"},
     },
     """
 
     def purchase_store(self):
-        diralc = self.data["dbo.skcmdiralc"]
-        diralcdtl = self.data["dbo.skcmdiralcdtl"]
-        vendor = self.data["dbo.skcmvendor"]
-        store = self.data["dbo.skstore"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-        goods = self.data["dbo.skgoods"]
-        brand = self.data["dbo.skcmbrand"]
+        diralc = self.data["skcmdiralc"]
+        diralcdtl = self.data["skcmdiralcdtl"]
+        vendor = self.data["skcmvendor"]
+        store = self.data["skstore"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
 
         diralc['num'] = diralc['num'].str.strip()
         diralc['cls'] = diralc['cls'].str.strip()
@@ -1537,23 +1537,23 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcminvxf": ["cls", "fildate", "fromstore", "num", "stat", "tostore"],
-        "dbo.skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmmodulestat": ["statname", "no"],
+        "skcminvxf": ["cls", "fildate", "fromstore", "num", "stat", "tostore"],
+        "skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmmodulestat": ["statname", "no"],
     },
     "converts": {
-        "dbo.skcminvxf": {
+        "skcminvxf": {
             "cls": "str",
             "fildate": "str",
             "fromstore": "str",
             "num": "str",
             "tostore": "str",
         },
-        "dbo.skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1561,16 +1561,16 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmmodulestat": {"statname": "str"},
+        "skcmmodulestat": {"statname": "str"},
     },
     """
 
     def move_store(self):
-        invxf = self.data["dbo.skcminvxf"]
-        invxfdtl = self.data["dbo.skcminvxfdtl"]
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        modulestat = self.data["dbo.skcmmodulestat"]
+        invxf = self.data["skcminvxf"]
+        invxfdtl = self.data["skcminvxfdtl"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
 
         modulestat['statname'] = modulestat['statname'].str.strip()
 
@@ -1685,23 +1685,23 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
-        "dbo.skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
-        "dbo.skcmwarehouse": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmmodulestat": ["statname", "no"],
+        "skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
+        "skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
+        "skcmwarehouse": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmmodulestat": ["statname", "no"],
     },
     "converts": {
-        "dbo.skcminvxf": {
+        "skcminvxf": {
             "cls": "str",
             "fildate": "str",
             "fromwrh": "str",
             "num": "str",
             "towrh": "str",
         },
-        "dbo.skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
-        "dbo.skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
+        "skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1709,16 +1709,16 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmmodulestat": {"statname": "str"},
+        "skcmmodulestat": {"statname": "str"},
     },
     """
 
     def move_warehouse(self):
-        invxf = self.data["dbo.skcminvxf"]
-        invxfdtl = self.data["dbo.skcminvxfdtl"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        modulestat = self.data["dbo.skcmmodulestat"]
+        invxf = self.data["skcminvxf"]
+        invxfdtl = self.data["skcminvxfdtl"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
 
         modulestat['statname'] = modulestat['statname'].str.strip()
 
@@ -1831,7 +1831,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmckdatas": [
+        "skcmckdatas": [
             "rtlbal",
             "acntqty",
             "cktime",
@@ -1841,14 +1841,14 @@ class MeiShiLinCleaner(Base):
             "stat",
             "store",
         ],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmsort": ["code"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmsort": ["code"],
     },
     "converts": {
-        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1856,19 +1856,19 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
+        "skcmsort": {"code": "str"},
     },
     """
 
     def goods_loss(self):
-        ckdatas = self.data["dbo.skcmckdatas"]
+        ckdatas = self.data["skcmckdatas"]
 
         if not len(ckdatas):
             return pd.DataFrame()
 
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
 
         ckdatas['store'] = ckdatas['store'].str.strip()
         ckdatas['gdgid'] = ckdatas['gdgid'].str.strip()
@@ -1975,7 +1975,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmckdatas": [
+        "skcmckdatas": [
             "rtlbal",
             "acntqty",
             "cktime",
@@ -1985,14 +1985,14 @@ class MeiShiLinCleaner(Base):
             "stat",
             "wrh",
         ],
-        "dbo.skcmwarehouse": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmsort": ["code"],
+        "skcmwarehouse": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmsort": ["code"],
     },
     "converts": {
-        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "wrh": "str"},
-        "dbo.skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "wrh": "str"},
+        "skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -2000,15 +2000,15 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
+        "skcmsort": {"code": "str"},
     },
     """
     
     def check_warehouse(self):
-        ckdatas = self.data["dbo.skcmckdatas"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
+        ckdatas = self.data["skcmckdatas"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
 
         goods['sort'] = goods['sort'].str.strip()
 
