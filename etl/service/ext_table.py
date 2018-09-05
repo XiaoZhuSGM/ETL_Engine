@@ -125,7 +125,7 @@ class ExtTableService(object):
         erp_vendor = data.get('erp_vendor')
 
         schema_new = None
-        if schema and erp_vendor == "百年创纪云":
+        if schema and (erp_vendor == "百年创纪云" or erp_vendor == "百年新世纪"):
             schema_new = f"[{schema}]"
 
         tables = self._get_tables(schema)
