@@ -22,6 +22,7 @@ class ExtTableInfo(db.Model, CRUDMixin):
     ext_column = Column(JSONB)
     remark = Column(String(50))
     strategy = Column(Integer)
+    special_column = Column(String(500), comment="特殊列")
 
     datasource = relationship(
         "ExtDatasource",
