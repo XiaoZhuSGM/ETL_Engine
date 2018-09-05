@@ -201,7 +201,6 @@ class ExtCleanInfoService:
                                                 else ext_table.table_name.split(".")[-1]
             if table_name not in tables:
                 tables.append(table_name)
-        print(tables)
         return tables
 
     def get_ext_clean_info_target_table(self, source_id):
