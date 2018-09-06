@@ -132,7 +132,7 @@ def handler(event, context):
         from chaoshifa import clean_chaoshifa
 
         return clean_chaoshifa(source_id, date, target_table, data_frames)
-    elif erp_name == "76中间库":
+    elif erp_name == "便宅家中间库":
         from bianzhaijia import clean_bianzhaijia
 
         return clean_bianzhaijia(source_id, date, target_table, data_frames)
