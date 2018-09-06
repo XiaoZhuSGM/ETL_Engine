@@ -96,7 +96,7 @@ def clean_bianzhaijia(source_id, date, target_table, data_frames):
         return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
         return clean_category(source_id, date, target_table, data_frames)
-    elif target_table == "goodsloss":
+    elif target_table == "goods_loss":
         return clean_goodsloss(source_id, date, target_table, data_frames)
     else:
         pass
@@ -167,8 +167,8 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
         'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
     ]]
-    upload_to_s3(goodsflow_frames, source_id, date, target_table)
-    return True
+
+    return upload_to_s3(goodsflow_frames, source_id, date, target_table)
 
 
 def clean_cost(source_id, date, target_table, data_frames):
@@ -207,8 +207,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         "foreign_category_lv5", "cmid"
     ]]
 
-    upload_to_s3(cost_frames, source_id, date, target_table)
-    return True
+    return upload_to_s3(cost_frames, source_id, date, target_table)
 
 
 def clean_goods(source_id, date, target_table, data_frames):
@@ -285,8 +284,7 @@ def clean_goods(source_id, date, target_table, data_frames):
         "brand_name",
     ]]
 
-    upload_to_s3(goods_frames, source_id, date, target_table)
-    return True
+    return upload_to_s3(goods_frames, source_id, date, target_table)
 
 
 def clean_category(source_id, date, target_table, data_frames):
@@ -379,8 +377,7 @@ def clean_category(source_id, date, target_table, data_frames):
 
     category = pd.concat([category1, category2, category3])
 
-    upload_to_s3(category, source_id, date, target_table)
-    return True
+    return upload_to_s3(category, source_id, date, target_table)
 
 
 def clean_store(source_id, date, target_table, data_frames):
@@ -422,8 +419,7 @@ def clean_store(source_id, date, target_table, data_frames):
          'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
          'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
 
-    upload_to_s3(store_frames, source_id, date, target_table)
-    return True
+    return upload_to_s3(store_frames, source_id, date, target_table)
 
 
 def clean_goodsloss(source_id, date, target_table, data_frames):
@@ -484,8 +480,7 @@ def clean_goodsloss(source_id, date, target_table, data_frames):
         "foreign_category_lv5",
     ]]
 
-    upload_to_s3(goodsloss, source_id, date, target_table)
-    return True
+    return upload_to_s3(goodsloss, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):
@@ -501,7 +496,7 @@ def upload_to_s3(frame, source_id, date, target_table):
         rowcount=count,
     )
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    pass
+    return key
 
 
 def now_timestamp():
