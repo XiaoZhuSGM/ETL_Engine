@@ -3,6 +3,9 @@
 # @Author  : 范佳楠
 
 from airflow.hooks.http_hook import HttpHook
+from airflow.models import DAG
+from airflow.operators.python_operator import PythonOperator
+import base64
 import json
 import time
 import boto3
@@ -18,7 +21,7 @@ SQL_PREFIX_SPLIT = 'sql/source_id={source_id}/{date}/split/'
 
 S3_CLIENT = boto3.resource('s3')
 session = botocore.session.get_session()
-BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
+BOTO3_CONFIG = Config(connect_timeout=320, read_timeout=320)
 lambda_client = session.create_client('lambda', config=BOTO3_CONFIG)
 
 
@@ -108,6 +111,7 @@ def invoke_lambda(FunctionName, **params):
     response = lambda_client.invoke(FunctionName=FunctionName,
                                     InvocationType='RequestResponse',
                                     Payload=json.dumps(params),
+                                    LogType='Tail'
                                     )
     return response
 
@@ -131,6 +135,12 @@ def extract_data_by_filename(**kwargs):
         end_time:yyyy-MM-dd,
         cost_time:1111,
         query_date:yyyy-MM-dd,
+        sqls:{
+            table_name: [],
+        },
+        extract_data:{
+            table_name: [],
+        }
         mapping: [
             filename:filename,
             extract_data:{
@@ -139,7 +149,9 @@ def extract_data_by_filename(**kwargs):
     }
     """
     extract_dict = dict()
-    extract_dict['mapping'] = list()
+    extract_dict['sqls'] = defaultdict(dict)
+    extract_dict['extract_data'] = defaultdict(list)
+
     start_time = time.time()
     for sql_filename in sql_filename_list:
         params['filename'] = sql_filename
@@ -148,15 +160,15 @@ def extract_data_by_filename(**kwargs):
             payload_body = response['Payload']
             payload_str = payload_body.read()
             payload = json.loads(payload_str)
-            current_mapping = dict()
-            current_mapping['filename'] = sql_filename
-            current_mapping['extract_data'] = payload['extract_data']
-            extract_dict['mapping'].append(current_mapping)
+            extract_dict['extract_data'].update(**payload['extract_data'])
+            current_sqls = read_sqls_by_filename(source_id, date, sql_filename)
+            extract_dict['sqls'].update(**current_sqls)
         else:
+            print(base64.b64decode(response['LogResult']))
             raise RuntimeError('lambda运行过程中出现问题')
 
         if len(sql_filename_list) != 1:
-            time.sleep(600)
+            time.sleep(300)
 
     end_time = time.time()
     cost_time = int(end_time - start_time)
@@ -169,36 +181,50 @@ def extract_data_by_filename(**kwargs):
     return extract_dict
 
 
-def compare_sqls_and_extract_datas(source_id,
-                                   date,
-                                   filename,
-                                   start_time,
-                                   end_time,
-                                   cost_time,
-                                   extract_data_dict):
-    # 首先将filename中的数据读取进来
-    cmid = source_id.split("Y")[0]
+def read_sqls_by_filename(source_id, date, filename):
     sql_file_key = SQL_PREFIX.format(source_id=source_id, date=date) + filename
     extract_sqls_str = S3_CLIENT.Object(S3_BUCKET, sql_file_key).get()['Body'].read().decode('utf-8')
     sqls_dict = json.loads(extract_sqls_str)
     sql_table_info = sqls_dict['sqls']
 
+    return sql_table_info
+
+
+def check_common_extract_data_result_function(**kwargs):
+    source_id = kwargs['source_id']
+    cmid = source_id.split("Y")[0]
+    target = kwargs['target']
+    ti = kwargs['ti']
+    extract_dict = ti.xcom_pull(task_ids='extract_data')
+    sqls = extract_dict['sqls']
+    extract_data = defaultdict(**extract_dict['extract_data'])
+
+    query_date = extract_dict['query_date']
+    start_time = extract_dict['start_time']
+    end_time = extract_dict['end_time']
+    cost_time = extract_dict['cost_time']
+
+    params = dict(source_id=source_id, target=target)
+
+    """
+    这里要根据source_id和target来找到合成目标表需要的原始表
+    """
+    result_dict = hook_get(endpoint='etl/admin/api/ext_clean_info/target', data=params)
+    origin_tables = result_dict['data']['target']['origin_table'].keys()
+
     log_info_list = list()
 
-    for table_name, table_sqls in sql_table_info.items():
-        table_sql_len = len(table_sqls)
-        table_extract_paths = extract_data_dict[table_name]
-        table_extract_len = len(table_extract_paths)
+    for table_name in origin_tables:
+        table_sqls = sqls[table_name]
+        table_datas = extract_data[table_name]
 
-        if table_sql_len == table_extract_len:
-            # 说明当前表是抓数成功的
-            # 首先去计算我们总共抓取了几条数据
-            record_num = collect_extract_data_nums(table_extract_paths)
+        if len(table_sqls) == len(table_datas):
+            record_num = collect_extract_data_nums(table_datas)
             extract_result_log = dict(
                 source_id=source_id,
                 cmid=cmid,
                 table_name=table_name,
-                extract_date=date,
+                extract_date=query_date,
                 result=1,
                 task_type=1,
                 start_time=start_time,
@@ -207,53 +233,24 @@ def compare_sqls_and_extract_datas(source_id,
                 record_num=record_num,
                 remark='抓数成功'
             )
+            log_info_list.append(extract_result_log)
         else:
-            # 当前表没有抓数成功，我们将信息记录下来
             extract_result_log = dict(
                 source_id=source_id,
                 cmid=cmid,
                 table_name=table_name,
-                extract_date=date,
-                result=2,
+                extract_date=query_date,
+                result=0,
                 task_type=1,
                 start_time=start_time,
                 end_time=end_time,
                 cost_time=cost_time,
                 remark='抓数失败,准备进行重抓'
             )
-
-        log_info_list.append(extract_result_log)
+            recording_common_log_function(extract_result_log)
+            raise RuntimeError(table_name, '\t没有抓数成功')
 
     return log_info_list
-
-
-def check_extract_data_result_function(**kwargs):
-    ti = kwargs['ti']
-    extract_dict = ti.xcom_pull(task_ids='extract_data')
-    query_date = extract_dict['query_date']
-    mapping_list = extract_dict['mapping']
-    start_time = extract_dict['start_time']
-    end_time = extract_dict['end_time']
-    cost_time = extract_dict['cost_time']
-    source_id = kwargs['source_id']
-
-    total_log_list = list()
-
-    for mapping in mapping_list:
-        sql_filename = mapping['filename']
-        extract_data_dict = mapping['extract_data']
-        extract_data_dict = defaultdict(list, **extract_data_dict)
-        current_log_list = compare_sqls_and_extract_datas(source_id,
-                                                          query_date,
-                                                          sql_filename,
-                                                          start_time,
-                                                          end_time,
-                                                          cost_time,
-                                                          extract_data_dict
-                                                          )
-        total_log_list.extend(current_log_list)
-
-    return total_log_list
 
 
 def collect_extract_data_nums(table_extract_paths):
@@ -271,8 +268,9 @@ def recording_extract_data_log_function(**kwargs):
         已经将各个表的抓取信息记录下来了,这步我们需要将这些日志信息入库,
         并且将失败的表记录下来,然后进行下一步的抓取
     """
+    task_id = kwargs['task_id']
     ti = kwargs['ti']
-    log_info_list = ti.xcom_pull(task_ids='check_extract_data_result')
+    log_info_list = ti.xcom_pull(task_ids=task_id)
     for log_info in log_info_list:
         # 日志入库
         recording_common_log_function(log_info)
@@ -331,6 +329,7 @@ def common_return_clean_result(table_name, query_date, **event):
         clean_common_result_dict['result'] = 0
         clean_common_result_dict['remark'] = '清洗失败，lambda执行过程发生错误'
         recording_common_log_function(clean_common_result_dict)
+        print(base64.b64decode(response['LogResult']))
         raise RuntimeError('清洗失败, lambda执行中出现错误')
 
     return clean_common_result_dict
@@ -383,14 +382,14 @@ def load_common_function(**kwargs):
     cmid = kwargs['cmid']
     source_id = kwargs['source_id']
     task_id = kwargs['task_id']
-    target_table = kwargs['target_table']
+    target = kwargs['target']
     clean_info = ti.xcom_pull(task_ids=task_id)
     extract_date = clean_info['extract_date']
     clean_data_file_path = clean_info['clean_data_file_path']
 
-    event = get_load_event(target_table, source_id, cmid, extract_date, clean_data_file_path)
+    event = get_load_event(target, source_id, cmid, extract_date, clean_data_file_path)
 
-    response, load_result = common_recording_log_result('etl-warehouse', target_table, extract_date, 3, **event)
+    response, load_result = common_recording_log_result('etl-warehouse', target, extract_date, 3, **event)
 
     if 'FunctionError' not in response:
         load_result['result'] = 1
@@ -403,6 +402,7 @@ def load_common_function(**kwargs):
         load_result['result'] = 0
         load_result['remark'] = '入库lambda报错'
         recording_common_log_function(load_result)
+        print(base64.b64decode(response['LogResult']))
         raise RuntimeError('入库lambda报错')
 
     return load_result
@@ -426,10 +426,104 @@ def clean_common_function(**kwargs):
     params = dict(source_id=source_id, target=target)
     result_dict = hook_get(endpoint='etl/admin/api/ext_clean_info/target', data=params)
     event = dict(source_id=source_id,
-                       erp_name=erp_name,
-                       date=query_date,
-                       target_table=target_table)
+                 erp_name=erp_name,
+                 date=query_date,
+                 target_table=target_table)
     event['origin_table_columns'] = result_dict['data']['target']['origin_table']
     event['converts'] = result_dict['data']['target']['covert_str']
+    print('target\t', target)
+    print('result\t', result_dict)
+    print(event)
 
     return common_return_clean_result(target_table, query_date, **event)
+
+
+def generate_common_task(source_id, cmid, erp_name, dag, target_list):
+    generate_extract_date = PythonOperator(
+        task_id='generator_extract_date',
+        python_callable=generator_extract_date_function,
+        dag=dag,
+        op_kwargs=dict(source_id=source_id)
+    )
+
+    generate_sql = PythonOperator(
+        task_id='generator_sql',
+        python_callable=generator_sql_function,
+        dag=dag,
+        op_kwargs=dict(source_id=source_id)
+    )
+
+    extract_data = PythonOperator(
+        task_id='extract_data',
+        python_callable=extract_data_by_filename,
+        dag=dag,
+        op_kwargs=dict(source_id=source_id)
+    )
+
+    generate_extract_date >> generate_sql >> extract_data
+
+    for target in target_list:
+        target_table = target.split('chain_')[-1]
+        # check extract
+        check_task_id = f'check_{target_table}_extract_data_result'
+        check_target_task = PythonOperator(
+            dag=dag,
+            task_id=check_task_id,
+            python_callable=check_common_extract_data_result_function,
+            op_kwargs=dict(source_id=source_id, target=target)
+        )
+        # recording extract log
+        extract_log_task_id = f'recording_{target_table}_extract_data_log'
+        recording_extract_log_task = PythonOperator(
+            dag=dag,
+            task_id=extract_log_task_id,
+            python_callable=recording_extract_data_log_function,
+            op_kwargs=dict(task_id=check_task_id)
+        )
+        extract_data >> check_target_task >> recording_extract_log_task
+
+        # clean
+        clean_task_id = f'clean_{target_table}'
+        clean_task = PythonOperator(
+            task_id=clean_task_id,
+            dag=dag,
+            python_callable=clean_common_function,
+            op_kwargs=dict(source_id=source_id,
+                           erp_name=erp_name,
+                           target=target,
+                           target_table=target_table)
+        )
+
+        # recording clean
+        recording_clean_log_task = PythonOperator(
+            dag=dag,
+            task_id=f'recording_clean_{target_table}_log',
+            python_callable=recording_clean_common_log_function,
+            op_kwargs=dict(task_id=clean_task_id)
+        )
+
+        recording_extract_log_task >> clean_task >> recording_clean_log_task
+
+        # load
+        load_task_id = f'load_{target_table}'
+        load_task = PythonOperator(
+            task_id=load_task_id,
+            dag=dag,
+            python_callable=load_common_function,
+            op_kwargs=dict(cmid=cmid,
+                           source_id=source_id,
+                           task_id=clean_task_id,
+                           target=target
+                           )
+        )
+
+        # recording load log
+        load_log_task_id = f'recording_load_{target_table}'
+        recording_load_log_task = PythonOperator(
+            task_id=load_log_task_id,
+            dag=dag,
+            python_callable=recording_clean_common_log_function,
+            op_kwargs=dict(task_id=load_task_id)
+        )
+
+        recording_clean_log_task >> load_task >> recording_load_log_task

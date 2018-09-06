@@ -151,41 +151,38 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
+    # rtlbal,acntqty,cktime,gdgid,num,qty,stat,store
     event = {
         "source_id": "72YYYYYYYYYYYYY",
         "erp_name": "思迅",
-        "date": "2018-09-02",
-        "target_table": "category",
-        "origin_table_columns": {
-            "differform": ['differno', 'orgcode', 'accdate'],
-            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
-            "subshop": ['orgcode', 'orgname'],
-            "goods": ['plucode', 'clscode', 'barcode','pluname', 'unit'],
-            'gclass': ['clscode', 'clslevel'],
+        "date": "2018-09-05",
+        "target_table": "cost",
+        'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno', ],
+            't_da_jxc_daysum': [
+                'branch_no',
+                'oper_date',
+                'so_qty',
+                'pos_qty',
+                'so_amt',
+                'pos_amt',
+                'fifo_cost_amt',
+                'item_no'
+            ],
+            't_bd_item_info': ['item_no', 'item_clsno']
         },
 
-        "converts": {
-            "differform": {
-                'differno': 'str',
-                'orgcode': 'str',
-
-            },
-            "differdetail": {
-                'differno': 'str',
-                'plucode': 'str',
-                'ykcount': 'float'
-            },
-            "subshop": {
-                'orgcode': 'str'
-            },
-            "goods": {
-                'plucode': 'str',
-                'clscode': 'str',
-                'barcode': 'str'
-            },
-            'gclass': {
-                'clscode': 'str',
-                'clslevel': 'int'
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': 'str'},
+            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str'},
+            't_da_jxc_daysum': {
+                'branch_no': 'str',
+                'so_qty': 'float',
+                'pos_qty': 'float',
+                'so_amt': 'float',
+                'pos_amt': 'float',
+                'fifo_cost_amt': 'float',
+                'item_no': 'str'
             }
         }
     }

@@ -109,3 +109,7 @@ manage_local.py
 .mypy_cache/
 
 *.http
+
+lambda_fun/fabfile/bundle*
+lambda_fun/fabfile/*.zip
+
