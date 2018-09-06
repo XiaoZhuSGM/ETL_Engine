@@ -43,6 +43,7 @@ class ExtTableInfoService:
             "alias_table_name": eti.alias_table_name,
             "created_at": eti.created_at,
             "updated_at": eti.updated_at,
+            "special_column": eti.special_column
         }
 
     def get_ext_table_infos(self, args):
