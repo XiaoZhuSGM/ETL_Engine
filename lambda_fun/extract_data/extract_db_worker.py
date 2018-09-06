@@ -143,6 +143,8 @@ class ExtDBWork(object):
 
 if __name__ == '__main__':
 
+    strat_time = time.time()
+
     event = dict(source_id="43YYYYYYYYYYYYY", query_date="2018-09-04", task_type="full",
                  filename="2018-09-05 11:26:50.709112.json",
                  db_url="oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp")
@@ -151,4 +153,10 @@ if __name__ == '__main__':
                  filename="2018-09-06 00:43:02.473436.json",
                  db_url="mssql+pymssql://sa:hyqykj@172.31.0.18:40072/hbposv8")
 
-    handler(event_1, None)
+    event_2 = dict(source_id="67YYYYYYYYYYYYY", query_date="2018-09-05", task_type="full",
+                 filename="2018-09-06 18:18:49.988464.json",
+                 db_url="oracle+cx_oracle://HDCM:HDCM@jiayihn.cn:9521/?service_name=jypos")
+
+    handler(event_2, None)
+    end_time = time.time() - strat_time
+    print(end_time)

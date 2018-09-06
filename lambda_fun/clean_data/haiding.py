@@ -828,6 +828,9 @@ class HaiDingCleaner:
         elif self.source_id == '82YYYYYYYYYYYYY':
             part1['cls'] = part1[part1['cls'] != '批发']
 
+        part1["fildate"] = part1.apply(lambda row: row["fildate"].split()[0], axis=1)
+
+
         part1 = part1.rename(
             columns={
                 "orgkey": "foreign_store_id",
@@ -911,6 +914,9 @@ class HaiDingCleaner:
             (part2["ocrdate"] >= now)
             & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
             ]
+
+        part2["fildate"] = part2.apply(lambda row: row["fildate"].split()[0], axis=1)
+
         part2 = part2.rename(
             columns={
                 "snd": "foreign_store_id",
@@ -2230,9 +2236,9 @@ class HaiDingCleaner:
                 "name.goods": "item_name",
                 "munit": "item_unit",
                 "total": "subtotal",
-                "code.sort1": "foreign_category_lv1",
-                "code.sort2": "foreign_category_lv2",
-                "code.sort3": "foreign_category_lv3",
+                "sort1": "foreign_category_lv1",
+                "sort2": "foreign_category_lv2",
+                "sort3": "foreign_category_lv3",
             }
         )
 
