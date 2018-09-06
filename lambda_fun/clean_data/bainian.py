@@ -171,8 +171,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
         "foreign_category_lv5", "cmid"
     ]]
-    upload_to_s3(cost, source_id, date, target_table)
-    return True
+    return upload_to_s3(cost, source_id, date, target_table)
 
 
 def clean_goods(source_id, date, target_table, data_frames):
@@ -262,8 +261,7 @@ def clean_goods(source_id, date, target_table, data_frames):
         "brand_name",
     ]]
 
-    upload_to_s3(goods, source_id, date, target_table)
-    return True
+    return upload_to_s3(goods, source_id, date, target_table)
 
 
 def clean_category(source_id, date, target_table, data_frames):
@@ -438,8 +436,7 @@ def clean_category(source_id, date, target_table, data_frames):
     ]]
 
     category = pd.concat([category1, category2, category3, category4, category5])
-    upload_to_s3(category, source_id, date, target_table)
-    return True
+    return upload_to_s3(category, source_id, date, target_table)
 
 
 def clean_store(source_id, date, target_table, data_frames):
@@ -483,8 +480,7 @@ def clean_store(source_id, date, target_table, data_frames):
          'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
          'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
 
-    upload_to_s3(store, source_id, date, target_table)
-    return True
+    return upload_to_s3(store, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):
@@ -500,7 +496,7 @@ def upload_to_s3(frame, source_id, date, target_table):
         rowcount=count,
     )
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    pass
+    return key
 
 
 def now_timestamp():
