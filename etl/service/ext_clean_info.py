@@ -73,8 +73,8 @@ class ExtCleanInfoService:
         if not datasource:
             raise ExtDatasourceNotExist(source_id)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).\
-                                        paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
+            paginate(page, per_page=per_page, error_out=False)
 
         items = pagination.items
         total = pagination.total
@@ -82,7 +82,8 @@ class ExtCleanInfoService:
         if total != 0:
             return total, [item.to_dict() for item in items]
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).paginate(page, per_page=per_page,
+                                                                                error_out=False)
 
         total = pagination.total
 
@@ -98,7 +99,7 @@ class ExtCleanInfoService:
             ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, deleted=False)
 
         pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
-                                        paginate(page, per_page=per_page, error_out=False)
+            paginate(page, per_page=per_page, error_out=False)
         items = pagination.items
         total = pagination.total
         return total, [item.to_dict() for item in items]
@@ -190,7 +191,7 @@ class ExtCleanInfoService:
 
         ext_clean_info.update(origin_table=origin_table, covert_str=covert_str)
 
-    def  get_ext_clean_info_table(self, source_id):
+    def get_ext_clean_info_table(self, source_id):
         tables = []
 
         ext_table_infos = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
@@ -198,7 +199,7 @@ class ExtCleanInfoService:
             raise ExtTableInfoNotFound(source_id)
         for ext_table in ext_table_infos:
             table_name = ext_table.alias_table_name if ext_table.alias_table_name \
-                                                else ext_table.table_name.split(".")[-1]
+                else ext_table.table_name.split(".")[-1]
             if table_name not in tables:
                 tables.append(table_name)
         return tables

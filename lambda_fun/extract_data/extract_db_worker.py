@@ -147,4 +147,8 @@ if __name__ == '__main__':
                  filename="2018-09-05 11:26:50.709112.json",
                  db_url="oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp")
 
-    handler(event, None)
+    event_1 = dict(source_id="72YYYYYYYYYYYYY", query_date="2018-09-05", task_type="full",
+                 filename="2018-09-06 00:43:02.473436.json",
+                 db_url="mssql+pymssql://sa:hyqykj@172.31.0.18:40072/hbposv8")
+
+    handler(event_1, None)

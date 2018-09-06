@@ -405,7 +405,7 @@ def clean_goods(source_id, date, target_table, data_frames):
                               },
 
             't_bd_branch_info': {'branch_no': 'str'},
-            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str'},
+            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str'， 'unit_no':'str'},
             't_bd_item_cls': {'item_clsno': 'str'},
         }
 
@@ -434,7 +434,8 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     # 销售
     sale_flow_frame['branch_no_1'] = sale_flow_frame['branch_no'].str.strip().str.slice(0, branch_no_len)
     sale_flow_frame['item_no'] = sale_flow_frame['item_no'].str.strip()
-    sale_flow_frame['unit_no'] = sale_flow_frame['unit_no'].str.strip()
+
+    goods_frame['unit_no'] = goods_frame['unit_no'].str.strip()
 
     # 门店
     branch_info_frame['branch_no'] = branch_info_frame['branch_no'].str.strip()
