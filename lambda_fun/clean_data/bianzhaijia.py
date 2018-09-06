@@ -133,7 +133,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     goodsflow_frames["source_id"] = source_id
     goodsflow_frames["cmid"] = cmid
     goodsflow_frames["consumer_id"] = ""
-    goodsflow_frames["last_updated"] = datetime.now()
+    goodsflow_frames["last_updated"] = datetime.now(_TZINFO)
     goodsflow_frames["foreign_category_lv4"] = ""
     goodsflow_frames["foreign_category_lv4_name"] = ""
     goodsflow_frames["foreign_category_lv5"] = ""
@@ -254,8 +254,8 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods_frames["cmid"] = cmid
     goods_frames["foreign_category_lv4"] = ""
     goods_frames["foreign_category_lv5"] = ""
-    goods_frames["storage_time"] = datetime.now()
-    goods_frames["last_updated"] = datetime.now()
+    goods_frames["storage_time"] = datetime.now(_TZINFO)
+    goods_frames["last_updated"] = datetime.now(_TZINFO)
 
     goods_frames = goods_frames.rename(columns={
         "item.barcode": "barcode",
@@ -316,7 +316,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv4_name"] = ""
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = ""
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1.rename(columns={
         "lv1.uuid": "foreign_category_lv1",
         "lv1.name": "foreign_category_lv1_name"
@@ -338,7 +338,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv4_name"] = ""
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = ""
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
     category2 = category2.rename(columns={
         "lv1.uuid": "foreign_category_lv1",
         "lv1.name": "foreign_category_lv1_name",
@@ -361,7 +361,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category3["foreign_category_lv4_name"] = ""
     category3["foreign_category_lv5"] = ""
     category3["foreign_category_lv5_name"] = ""
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
     category3 = category3.rename(columns={
         "lv1.uuid": "foreign_category_lv1",
         "lv1.name": "foreign_category_lv1_name",
@@ -400,7 +400,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["device_id"] = ""
     store_frames["lat"] = None
     store_frames["lng"] = None
-    store_frames["last_updated"] = datetime.now()
+    store_frames["last_updated"] = datetime.now(_TZINFO)
 
     store_frames = store_frames.rename(columns={
         "uuid": "foreign_store_id",

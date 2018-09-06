@@ -168,7 +168,7 @@ def clean_goods(source_id, date, target_table, frames):
     goods_frame['foreign_category_lv2'] = goods_frame.fitem_clsno.apply(lambda x: str(x)[:4])
     goods_frame['foreign_category_lv4'] = ''
     goods_frame['foreign_category_lv5'] = ''
-    goods_frame["last_updated"] = datetime.now()
+    goods_frame["last_updated"] = datetime.now(_TZINFO)
     goods_frame["isvalid"] = 1
     goods_frame["cmid"] = cmid
 
@@ -212,8 +212,8 @@ def clean_sales_target(source_id, date, target_table, frames):
     """
     cmid = source_id.split("Y")[0]
     target_frame = frames["t_sv_sale_manage"].merge(frames["t_br_master"], how="left", on="fbrh_no")
-    target_frame["target_date"] = datetime.now().strftime("%Y-%m-01")
-    target_frame["last_updated"] = datetime.now()
+    target_frame["target_date"] = datetime.now(_TZINFO).strftime("%Y-%m-01")
+    target_frame["last_updated"] = datetime.now(_TZINFO)
     target_frame["category_level"] = 1
     target_frame['foreign_category_lv1'] = ''
     target_frame['foreign_category_lv2'] = ''
@@ -257,7 +257,7 @@ def clean_category(source_id, date, target_table, frames):
     category1['foreign_category_lv4_name'] = ''
     category1['foreign_category_lv5'] = ''
     category1['foreign_category_lv5_name'] = ''
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1.rename(
         columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name"})
     category1 = category1[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
@@ -276,7 +276,7 @@ def clean_category(source_id, date, target_table, frames):
     category2['foreign_category_lv4_name'] = ''
     category2['foreign_category_lv5'] = ''
     category2['foreign_category_lv5_name'] = ''
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
 
     category2 = category2.rename(
         columns={"fitem_clsnolv1": "foreign_category_lv1", "fitem_clsnamelv1": "foreign_category_lv1_name",
@@ -298,7 +298,7 @@ def clean_category(source_id, date, target_table, frames):
     category3['foreign_category_lv4_name'] = ''
     category3['foreign_category_lv5'] = ''
     category3['foreign_category_lv5_name'] = ''
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
 
     category3 = category3.rename(
         columns={"fitem_clsno": "foreign_category_lv1", "fitem_clsname": "foreign_category_lv1_name",
@@ -337,7 +337,7 @@ def clean_store(source_id, date, target_table, frames):
     store_frame["business_area"] = None
     store_frame["property_id"] = None
     store_frame["source_id"] = source_id
-    store_frame["last_updated"] = datetime.now()
+    store_frame["last_updated"] = datetime.now(_TZINFO)
     store_frame["show_code"] = store_frame["fbrh_no"]
 
     store_frame["store_status"] = store_frame.fstatus.apply(lambda x: '闭店' if x == 9 else '正常')
@@ -407,7 +407,7 @@ def frame1(cmid, source_id, frames):
     temp1.insert(0, 'source_id', source_id)
     temp1["consumer_id"] = ''
     temp1["saletime"] = temp1.pop("ftrade_date") + " " + temp1.pop("fcr_time")
-    temp1["last_updated"] = datetime.now()
+    temp1["last_updated"] = datetime.now(_TZINFO)
     temp1["foreign_category_lv4"] = ""
     temp1["foreign_category_lv4_name"] = None
     temp1["foreign_category_lv5"] = ""
@@ -470,7 +470,7 @@ def frame2(cmid, source_id, frames):
     temp2.insert(0, 'source_id', source_id)
     temp2["consumer_id"] = ''
     temp2["saletime"] = temp2.pop("ftrade_date") + " " + temp2.pop("fcr_time")
-    temp2["last_updated"] = datetime.now()
+    temp2["last_updated"] = datetime.now(_TZINFO)
     temp2["foreign_category_lv4"] = ""
     temp2["foreign_category_lv4_name"] = None
     temp2["foreign_category_lv5"] = ""
@@ -513,7 +513,7 @@ def frame3(cmid, source_id, frames):
     temp3.insert(0, 'source_id', source_id)
     temp3["consumer_id"] = ''
     temp3["saletime"] = temp3.pop("ftrade_date") + " " + temp3.pop("fcr_time")
-    temp3["last_updated"] = datetime.now()
+    temp3["last_updated"] = datetime.now(_TZINFO)
     temp3["foreign_category_lv1"] = ""
     temp3["foreign_category_lv1_name"] = ""
     temp3["foreign_category_lv2"] = ""

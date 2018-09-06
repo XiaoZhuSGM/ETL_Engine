@@ -396,7 +396,7 @@ class HongYeCleaner:
         part1["cmid"] = self.cmid
         part1["source_id"] = self.source_id
         part1["consumer_id"] = ""
-        part1["last_updated"] = datetime.now()
+        part1["last_updated"] = datetime.now(_TZINFO)
         part1["saleprice"] = part1.apply(
             lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
             axis=1,
@@ -465,7 +465,7 @@ class HongYeCleaner:
         part2["cmid"] = self.cmid
         part2["source_id"] = self.source_id
         part2["consumer_id"] = ""
-        part2["last_updated"] = datetime.now()
+        part2["last_updated"] = datetime.now(_TZINFO)
         part2["saleprice"] = part2.apply(
             lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
             axis=1,
@@ -709,8 +709,8 @@ class HongYeCleaner:
             axis=1,
         )
         part1["foreign_category_lv5"] = ""
-        part1["storage_time"] = datetime.now()
-        part1["last_updated"] = datetime.now()
+        part1["storage_time"] = datetime.now(_TZINFO)
+        part1["last_updated"] = datetime.now(_TZINFO)
         part1["isvalid"] = "1"
         part1["show_code"] = part1["gdsincode"]
 
@@ -774,8 +774,8 @@ class HongYeCleaner:
         )
         part2["foreign_category_lv4"] = ""
         part2["foreign_category_lv5"] = ""
-        part2["storage_time"] = datetime.now()
-        part2["last_updated"] = datetime.now()
+        part2["storage_time"] = datetime.now(_TZINFO)
+        part2["last_updated"] = datetime.now(_TZINFO)
         part2["isvalid"] = "1"
         part2["show_code"] = part2["gdsincode"]
         part2 = part2.rename(
@@ -826,7 +826,7 @@ class HongYeCleaner:
         part1["foreign_category_lv4_name"] = None
         part1["foreign_category_lv5"] = ""
         part1["foreign_category_lv5_name"] = None
-        part1["last_updated"] = datetime.now()
+        part1["last_updated"] = datetime.now(_TZINFO)
         part1 = part1.rename(
             columns={
                 "classgrade": "level",
@@ -854,7 +854,7 @@ class HongYeCleaner:
         part2["foreign_category_lv4_name"] = None
         part2["foreign_category_lv5"] = ""
         part2["foreign_category_lv5_name"] = None
-        part2["last_updated"] = datetime.now()
+        part2["last_updated"] = datetime.now(_TZINFO)
         part2 = part2.rename(
             columns={
                 "classgrade": "level",
@@ -890,7 +890,7 @@ class HongYeCleaner:
         part3["foreign_category_lv4_name"] = None
         part3["foreign_category_lv5"] = ""
         part3["foreign_category_lv5_name"] = None
-        part3["last_updated"] = datetime.now()
+        part3["last_updated"] = datetime.now(_TZINFO)
         part3 = part3.rename(
             columns={
                 "classgrade": "level",
@@ -938,7 +938,7 @@ class HongYeCleaner:
         )
         part4["foreign_category_lv5"] = ""
         part4["foreign_category_lv5_name"] = None
-        part4["last_updated"] = datetime.now()
+        part4["last_updated"] = datetime.now(_TZINFO)
         part4 = part4.rename(
             columns={
                 "classgrade": "level",
@@ -1032,7 +1032,7 @@ class HongYeCleaner:
         )
 
         part["foreign_category_lv5"] = ""
-        part["last_updated"] = datetime.now()
+        part["last_updated"] = datetime.now(_TZINFO)
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
         part["store_show_code"] = part["deptcode"]

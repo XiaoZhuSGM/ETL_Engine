@@ -124,7 +124,7 @@ class ZhiBaiWeiCleaner(Base):
         part1['source_id'] = self.source_id
         part1['cmid'] = self.cmid
         part1['consumer_id'] = ''
-        part1['last_updated'] = datetime.now()
+        part1['last_updated'] = datetime.now(_TZINFO)
         part1['foreign_category_lv4'] = ''
         part1['foreign_category_lv4_name'] = None
         part1['foreign_category_lv5'] = ''
@@ -209,7 +209,7 @@ class ZhiBaiWeiCleaner(Base):
         part2['source_id'] = self.source_id
         part2['cmid'] = self.cmid
         part2['consumer_id'] = ''
-        part2['last_updated'] = datetime.now()
+        part2['last_updated'] = datetime.now(_TZINFO)
 
         part2['foreign_category_lv2'] = ''
         part2['foreign_category_lv2_name'] = None
@@ -408,7 +408,7 @@ class ZhiBaiWeiCleaner(Base):
         result['address_code'] = None
         result['device_id'] = None
         result['business_area'] = None
-        result['last_updated'] = datetime.now()
+        result['last_updated'] = datetime.now(_TZINFO)
         result['show_code'] = result['branch_no']
 
         result['property'] = result.apply(lambda row: '加盟店' if row['is_jmd'] == '1' else '直营店', axis=1)
@@ -540,7 +540,7 @@ class ZhiBaiWeiCleaner(Base):
         part1['cmid'] = self.cmid
         part1['foreign_category_lv4'] = ''
         part1['foreign_category_lv5'] = ''
-        part1['last_updated'] = datetime.now()
+        part1['last_updated'] = datetime.now(_TZINFO)
         part1['isvalid'] = 1
         part1['warranty'] = ''
         part1['allot_method'] = ''
@@ -615,7 +615,7 @@ class ZhiBaiWeiCleaner(Base):
         part2['foreign_category_lv3'] = ''
         part2['foreign_category_lv4'] = ''
         part2['foreign_category_lv5'] = ''
-        part2['last_updated'] = datetime.now()
+        part2['last_updated'] = datetime.now(_TZINFO)
         part2['isvalid'] = 1
         part2['warranty'] = ''
         part2['allot_method'] = ''
@@ -659,7 +659,7 @@ class ZhiBaiWeiCleaner(Base):
         part1['foreign_category_lv4_name'] = None
         part1['foreign_category_lv5'] = ''
         part1['foreign_category_lv5_name'] = None
-        part1['last_updated'] = datetime.now()
+        part1['last_updated'] = datetime.now(_TZINFO)
 
         part1 = part1.rename(columns={
             'item_clsno': 'foreign_category_lv1',
@@ -688,7 +688,7 @@ class ZhiBaiWeiCleaner(Base):
         part2['foreign_category_lv4_name'] = None
         part2['foreign_category_lv5'] = ''
         part2['foreign_category_lv5_name'] = None
-        part2['last_updated'] = datetime.now()
+        part2['last_updated'] = datetime.now(_TZINFO)
         part2['cmid'] = self.cmid
         part2['level'] = 2
 
@@ -720,7 +720,7 @@ class ZhiBaiWeiCleaner(Base):
         part3['foreign_category_lv4_name'] = None
         part3['foreign_category_lv5'] = ''
         part3['foreign_category_lv5_name'] = None
-        part3['last_updated'] = datetime.now()
+        part3['last_updated'] = datetime.now(_TZINFO)
         part3['cmid'] = self.cmid
         part3['level'] = 3
 

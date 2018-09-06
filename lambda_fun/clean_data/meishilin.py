@@ -55,7 +55,7 @@ class MeiShiLinCleaner(Base):
 
         result_frame['source_id'] = self.source_id
         result_frame['cmid'] = self.cmid
-        result_frame['last_updated'] = datetime.now()
+        result_frame['last_updated'] = datetime.now(_TZINFO)
         result_frame['foreign_category_lv4'] = ''
         result_frame['foreign_category_lv4_name'] = None
         result_frame['foreign_category_lv5'] = ''
@@ -260,7 +260,7 @@ class MeiShiLinCleaner(Base):
         part["lat"] = None
         part["lng"] = None
         part["create_date"] = None
-        part["last_updated"] = datetime.now()
+        part["last_updated"] = datetime.now(_TZINFO)
         part["store_status"] = part.apply(
             lambda row: "闭店" if row["stat"] == 1 else "正常", axis=1
         )
@@ -400,8 +400,8 @@ class MeiShiLinCleaner(Base):
         part["foreign_category_lv4"] = ""
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
-        part["storage_time"] = datetime.now()
-        part["last_updated"] = datetime.now()
+        part["storage_time"] = datetime.now(_TZINFO)
+        part["last_updated"] = datetime.now(_TZINFO)
         part["isvalid"] = 1
         part['lastin_price'] = None
 
@@ -465,7 +465,7 @@ class MeiShiLinCleaner(Base):
         part1["foreign_category_lv4_name"] = None
         part1["foreign_category_lv5"] = ""
         part1["foreign_category_lv5_name"] = None
-        part1["last_updated"] = datetime.now()
+        part1["last_updated"] = datetime.now(_TZINFO)
 
         part1 = part1.rename(
             columns={
@@ -491,7 +491,7 @@ class MeiShiLinCleaner(Base):
         part2["foreign_category_lv4_name"] = None
         part2["foreign_category_lv5"] = ""
         part2["foreign_category_lv5_name"] = None
-        part2["last_updated"] = datetime.now()
+        part2["last_updated"] = datetime.now(_TZINFO)
 
         part2 = part2.rename(
             columns={
@@ -524,7 +524,7 @@ class MeiShiLinCleaner(Base):
         part3["foreign_category_lv4_name"] = None
         part3["foreign_category_lv5"] = ""
         part3["foreign_category_lv5_name"] = None
-        part3["last_updated"] = datetime.now()
+        part3["last_updated"] = datetime.now(_TZINFO)
 
         part3 = part3.rename(
             columns={

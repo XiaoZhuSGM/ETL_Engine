@@ -178,7 +178,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     goodsflow["cmid"] = cmid
     goodsflow["consumer_id"] = None
     goodsflow["saletime"] = goodsflow.apply(lambda row: row["xsrq"].strip() + " " + row["xssj"].strip(), axis=1)
-    goodsflow["last_updated"] = datetime.now()
+    goodsflow["last_updated"] = datetime.now(_TZINFO)
     goodsflow["foreign_category_lv4"] = ""
     goodsflow["foreign_category_lv4_name"] = None
     goodsflow["foreign_category_lv5"] = ""
@@ -283,7 +283,7 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods["foreign_category_lv4"] = ""
     goods["foreign_category_lv5"] = ""
     goods["storage_time"] = ""
-    goods["last_updated"] = datetime.now()
+    goods["last_updated"] = datetime.now(_TZINFO)
     goods["show_code"] = goods.spbm
 
     goods = goods.rename(columns={
@@ -343,7 +343,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv4_name"] = None
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = None
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1.rename(columns={
         "superbm": "foreign_category_lv1",
         "supermc": "foreign_category_lv1_name"
@@ -364,7 +364,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv4_name"] = None
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = None
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
     category2 = category2.rename(columns={
         "superbm": "foreign_category_lv1",
         "supermc": "foreign_category_lv1_name",
@@ -385,7 +385,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category3["foreign_category_lv4_name"] = None
     category3["foreign_category_lv5"] = ""
     category3["foreign_category_lv5_name"] = None
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
     category3 = category3.rename(columns={
         "superbm": "foreign_category_lv1",
         "supermc": "foreign_category_lv1_name",
@@ -432,7 +432,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store["lng"] = None
     store["business_area"] = None
     store["source_id"] = source_id
-    store["last_updated"] = datetime.now()
+    store["last_updated"] = datetime.now(_TZINFO)
     store["show_code"] = store.fdbh
     store["property"] = store.fdmode
     store = store.rename(columns={

@@ -130,7 +130,7 @@ class ShangHaiDaoHangCleaner(Base):
         result['source_id'] = self.source_id
         result['cmid'] = self.cmid
         result['consumer_id'] = ''
-        result['last_updated'] = datetime.now()
+        result['last_updated'] = datetime.now(_TZINFO)
         result['pos_id'] = ''
 
         result = result.rename(columns={
@@ -366,7 +366,7 @@ class ShangHaiDaoHangCleaner(Base):
         result['lat'] = None
         result['lng'] = None
         result['business_area'] = None
-        result['last_updated'] = datetime.now()
+        result['last_updated'] = datetime.now(_TZINFO)
         result['show_code'] = result['orgcode']
 
         result = result.rename(columns={
@@ -533,8 +533,8 @@ class ShangHaiDaoHangCleaner(Base):
         result['foreign_category_lv5'] = result.apply(lambda row: row['clscode_lv5'] if row['clscode_lv5'] else '',
                                                       axis=1)
 
-        result['storage_time'] = datetime.now()
-        result['last_updated'] = datetime.now()
+        result['storage_time'] = datetime.now(_TZINFO)
+        result['last_updated'] = datetime.now(_TZINFO)
         result['isvalid'] = '1'
         result['show_code'] = result['plucode']
         result['cmid'] = self.cmid
@@ -623,7 +623,7 @@ class ShangHaiDaoHangCleaner(Base):
         part1['foreign_category_lv4_name'] = None
         part1['foreign_category_lv5'] = ''
         part1['foreign_category_lv5_name'] = None
-        part1['last_updated'] = datetime.now()
+        part1['last_updated'] = datetime.now(_TZINFO)
 
         part2 = gclass.merge(
             gclass,
@@ -649,7 +649,7 @@ class ShangHaiDaoHangCleaner(Base):
         part2['foreign_category_lv4_name'] = None
         part2['foreign_category_lv5'] = ''
         part2['foreign_category_lv5_name'] = None
-        part2['last_updated'] = datetime.now()
+        part2['last_updated'] = datetime.now(_TZINFO)
 
         part3 = gclass.merge(
             gclass,
@@ -682,7 +682,7 @@ class ShangHaiDaoHangCleaner(Base):
         part3['foreign_category_lv4_name'] = None
         part3['foreign_category_lv5'] = ''
         part3['foreign_category_lv5_name'] = None
-        part3['last_updated'] = datetime.now()
+        part3['last_updated'] = datetime.now(_TZINFO)
 
         part4 = gclass.merge(
             gclass,
@@ -721,7 +721,7 @@ class ShangHaiDaoHangCleaner(Base):
 
         part4['foreign_category_lv5'] = ''
         part4['foreign_category_lv5_name'] = None
-        part4['last_updated'] = datetime.now()
+        part4['last_updated'] = datetime.now(_TZINFO)
 
         part5 = gclass.merge(
             gclass,
@@ -766,7 +766,7 @@ class ShangHaiDaoHangCleaner(Base):
             'clsname': 'foreign_category_lv5_name',
         })
 
-        part5['last_updated'] = datetime.now()
+        part5['last_updated'] = datetime.now(_TZINFO)
 
         filter_columns = [
             "cmid",

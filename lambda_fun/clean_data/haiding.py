@@ -39,7 +39,7 @@ event = {
     "date": "2018-08-10",
     "target_table": "cost",
     "origin_table_columns": {
-        "hd_report.rpt_storesaldrpt": [
+        "rpt_storesaldrpt": [
             "cls",
             "fildate",
             "orgkey",
@@ -66,7 +66,7 @@ event = {
         ],
     },
     "converts": {
-        "hd_report.rpt_storesaldrpt": {
+        "rpt_storesaldrpt": {
             "cls": "str",
             "fildate": "str",
             "orgkey": "str",
@@ -577,7 +577,6 @@ event = {
 
 """
 
-
 import pandas as pd
 import boto3
 from datetime import datetime
@@ -585,7 +584,6 @@ import tempfile
 import time
 import pytz
 from typing import Dict
-
 
 S3_BUCKET = "ext-etl-data"
 S3 = boto3.resource("s3")
@@ -669,42 +667,42 @@ class HaiDingCleaner:
             buy2s.merge(
                 buy1s, how="left", on=["flowno", "posno"], suffixes=("", ".buy1s")
             )
-            .merge(
+                .merge(
                 workstation,
                 how="left",
                 left_on=["posno"],
                 right_on=["no"],
                 suffixes=("", ".workstation"),
             )
-            .merge(
+                .merge(
                 store,
                 how="left",
                 left_on=["storegid"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -721,7 +719,7 @@ class HaiDingCleaner:
         part["foreign_category_lv4_name"] = None
         part["foreign_category_lv5"] = ""
         part["foreign_category_lv5_name"] = None
-        part["last_updated"] = str(datetime.now())
+        part["last_updated"] = str(datetime.now(_TZINFO))
         part = part[part["gid.store"].notnull() & part["gid"].notnull()]
         part = part.rename(
             columns={
@@ -748,13 +746,15 @@ class HaiDingCleaner:
         return part[columns]
 
     def cost(self):
-        rpt_storesaldrpt = self.data["hd_report.rpt_storesaldrpt"]
+        rpt_storesaldrpt = self.data["rpt_storesaldrpt"]
         goods = self.data["goods"]
         sort = self.data["sort"]
         sdrpts = self.data["sdrpts"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
+
+        rpt_storesaldrpt['cls'] = rpt_storesaldrpt['cls'].str.strip()
 
         columns = [
             "source_id",
@@ -781,21 +781,21 @@ class HaiDingCleaner:
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -822,6 +822,12 @@ class HaiDingCleaner:
         )
         part1["foreign_category_lv4"] = ""
         part1["foreign_category_lv5"] = ""
+
+        if self.source_id in ('79YYYYYYYYYYYYY', '80YYYYYYYYYYYYY'):
+            part1['cls'] = part1[part1['cls'] == '零售']
+        elif self.source_id == '82YYYYYYYYYYYYY':
+            part1['cls'] = part1[part1['cls'] != '批发']
+
         part1 = part1.rename(
             columns={
                 "orgkey": "foreign_store_id",
@@ -840,21 +846,21 @@ class HaiDingCleaner:
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -900,11 +906,11 @@ class HaiDingCleaner:
         )
         part2["foreign_category_lv4"] = ""
         part2["foreign_category_lv5"] = ""
-        now = datetime.now().strftime("%Y-%m-%d")
+        now = datetime.now(_TZINFO).strftime("%Y-%m-%d")
         part2 = part2[
             (part2["ocrdate"] >= now)
             & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
-        ]
+            ]
         part2 = part2.rename(
             columns={
                 "snd": "foreign_store_id",
@@ -964,49 +970,49 @@ class HaiDingCleaner:
                 right_on=["bill"],
                 suffixes=("", ".otrequireorderline"),
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["buyercode"],
                 right_on=["code"],
                 suffixes=("", ".sotre"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["product"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
                 right_on=["code"],
                 suffixes=("", ".sort3"),
             )
-            .merge(
+                .merge(
                 vendor,
                 how="left",
                 left_on=["vdrgid"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-            .merge(
+                .merge(
                 employee,
                 how="left",
                 left_on=["psr"],
@@ -1059,11 +1065,11 @@ class HaiDingCleaner:
         stkout: pd.DataFrame = stkout[
             (stkout["cls"] == "统配出")
             & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
-        ]
+            ]
         stkoutbck: pd.DataFrame = stkoutbck[
             (stkoutbck["cls"] == "统配出退")
             & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-        ]
+            ]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
@@ -1119,42 +1125,42 @@ class HaiDingCleaner:
             stkout.merge(
                 stkoutdtl, how="inner", on=["num", "cls"], suffixes=("", ".stkoutdtl")
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -1204,42 +1210,42 @@ class HaiDingCleaner:
                 on=["num", "cls"],
                 suffixes=("", ".stkoutbckdtl"),
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -1328,35 +1334,35 @@ class HaiDingCleaner:
             stkin.merge(
                 stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
             )
-            .merge(
+                .merge(
                 vendorh,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendorh"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
                 right_on=["code"],
                 suffixes=("", ".brand"),
             )
-            .merge(
+                .merge(
                 warehouseh,
                 how="left",
                 left_on=["wrh"],
@@ -1405,35 +1411,35 @@ class HaiDingCleaner:
                 on=["num", "cls"],
                 suffixes=("", ".stkinbckdtl"),
             )
-            .merge(
+                .merge(
                 vendorh,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendorh"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
                 right_on=["code"],
                 suffixes=("", ".brand"),
             )
-            .merge(
+                .merge(
                 warehouseh,
                 how="left",
                 left_on=["wrh"],
@@ -1520,35 +1526,35 @@ class HaiDingCleaner:
             diralc.merge(
                 diralcdtl, how="left", on=["num", "cls"], suffixes=("", ".diralcdtl")
             )
-            .merge(
+                .merge(
                 vendor,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-            .merge(
+                .merge(
                 store,
                 how="left",
                 left_on=["receiver"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
@@ -1704,28 +1710,28 @@ class HaiDingCleaner:
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["fromstore"],
                 right_on=["gid"],
                 suffixes=("", ".from_store"),
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["tostore"],
                 right_on=["gid"],
                 suffixes=("", ".to_store"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1806,28 +1812,28 @@ class HaiDingCleaner:
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-            .merge(
+                .merge(
                 warehouse,
                 how="inner",
                 left_on=["fromwrh"],
                 right_on=["gid"],
                 suffixes=("", ".from_warehouse"),
             )
-            .merge(
+                .merge(
                 warehouse,
                 how="inner",
                 left_on=["towrh"],
                 right_on=["gid"],
                 suffixes=("", ".to_warehouse"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1909,8 +1915,8 @@ class HaiDingCleaner:
         part["device_id"] = ""
         part["lat"] = None
         part["lng"] = None
-        part["create_date"] = datetime.now()
-        part["last_updated"] = datetime.now()
+        part["create_date"] = datetime.now(_TZINFO)
+        part["last_updated"] = datetime.now(_TZINFO)
         part["store_status"] = part.apply(
             lambda row: "闭店" if row["stat"] == 1 else "正常", axis=1
         )
@@ -1996,14 +2002,14 @@ class HaiDingCleaner:
                 right_on=["gid"],
                 suffixes=("", ".goodsbusgate"),
             )
-            .merge(
+                .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
                 right_on=["code"],
                 suffixes=("", ".brand"),
             )
-            .merge(
+                .merge(
                 vendor,
                 how="left",
                 left_on=["vdrgid"],
@@ -2017,8 +2023,8 @@ class HaiDingCleaner:
         part["foreign_category_lv4"] = ""
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
-        part["storage_time"] = datetime.now()
-        part["last_updated"] = datetime.now()
+        part["storage_time"] = datetime.now(_TZINFO)
+        part["last_updated"] = datetime.now(_TZINFO)
         part["isvalid"] = 1
 
         part = part.rename(
@@ -2073,7 +2079,7 @@ class HaiDingCleaner:
         part1["foreign_category_lv4_name"] = None
         part1["foreign_category_lv5"] = ""
         part1["foreign_category_lv5_name"] = None
-        part1["last_updated"] = datetime.now()
+        part1["last_updated"] = datetime.now(_TZINFO)
 
         part1 = part1.rename(
             columns={
@@ -2099,7 +2105,7 @@ class HaiDingCleaner:
         part2["foreign_category_lv4_name"] = None
         part2["foreign_category_lv5"] = ""
         part2["foreign_category_lv5_name"] = None
-        part2["last_updated"] = datetime.now()
+        part2["last_updated"] = datetime.now(_TZINFO)
 
         part2 = part2.rename(
             columns={
@@ -2132,7 +2138,7 @@ class HaiDingCleaner:
         part3["foreign_category_lv4_name"] = None
         part3["foreign_category_lv5"] = ""
         part3["foreign_category_lv5_name"] = None
-        part3["last_updated"] = datetime.now()
+        part3["last_updated"] = datetime.now(_TZINFO)
 
         part3 = part3.rename(
             columns={
@@ -2149,7 +2155,96 @@ class HaiDingCleaner:
         return pd.concat([part1, part2, part3])
 
     def goods_loss(self):
+        if self.source_id == '82YYYYYYYYYYYYY':
+            return self.goods_loss_82()
+        else:
+            return self.goods_loss_43_67_79_80()
+
+    def goods_loss_82(self):
         ckdatas = self.data["ckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame()
+
+        store = self.data["store"]
+        goods = self.data["goods"]
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
+
+        columns = [
+            "cmid",
+            "source_id",
+            "lossnum",
+            "lossdate",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_showcode",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
+
+        part = (
+            ckdatas.merge(
+                store,
+                how="left",
+                left_on=["store"],
+                right_on=["gid"],
+                suffixes=("", ".store"),
+            )
+                .merge(
+                goods,
+                how="left",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            )
+        )
+
+        part["quantity"] = part['qty']
+        part["source_id"] = self.source_id
+        part["cmid"] = self.cmid
+        part["foreign_category_lv4"] = ""
+        part["foreign_category_lv5"] = ""
+        part["lossdate"] = part.apply(lambda row: row["fildate"].split()[0], axis=1)
+
+        part = part.rename(
+            columns={
+                "num": "lossnum",
+                "gid": "foreign_store_id",
+                "code": "store_show_code",
+                "name": "store_name",
+                "gid.goods": "foreign_item_id",
+                "code.goods": "item_showcode",
+                "code2": "barcode",
+                "name.goods": "item_name",
+                "munit": "item_unit",
+                "total": "subtotal",
+                "code.sort1": "foreign_category_lv1",
+                "code.sort2": "foreign_category_lv2",
+                "code.sort3": "foreign_category_lv3",
+            }
+        )
+
+        part = part[columns]
+        return part
+
+    def goods_loss_43_67_79_80(self):
+        ckdatas = self.data["ckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame()
+
         store = self.data["store"]
         goods = self.data["goods"]
         sort = self.data["sort"]
@@ -2187,28 +2282,28 @@ class HaiDingCleaner:
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -2284,28 +2379,28 @@ class HaiDingCleaner:
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
