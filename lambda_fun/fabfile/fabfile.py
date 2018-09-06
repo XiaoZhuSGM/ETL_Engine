@@ -9,6 +9,7 @@ LAMBDA_NAME = os.getcwd().rsplit('/', 1)[1]
 
 def bundle():
     local('''
+        rm -rf *.zip && \
         rm -rf bundle && \
         rm -f bundle.zip && \
         mkdir bundle && \
@@ -24,6 +25,7 @@ def bundle():
 def deploy_lambda(path="clean_data"):
     volumn = f"../{path}/*"
     local(f'''
+        rm -rf ./lambda_code && mkdir ./lambda_code && \
         cp -r {volumn} ./lambda_code && \
         docker run --name lambda_deploy -v $PWD/lambda_code:/var/task -it tools:env  dinstall.sh && \
         fab bundle

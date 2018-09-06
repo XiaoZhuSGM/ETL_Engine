@@ -250,8 +250,8 @@ def clean_goods(source_id, date, target_table, data_frames):
     })
 
     goods["cmid"] = cmid
-    goods["storage_time"] = datetime.now()
-    goods["last_updated"] = datetime.now()
+    goods["storage_time"] = datetime.now(_TZINFO)
+    goods["last_updated"] = datetime.now(_TZINFO)
     goods["isvalid"] = "1"
     goods["show_code"] = goods["foreign_item_id"]
     goods = goods[[
@@ -298,7 +298,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv4_name"] = None
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = None
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -324,7 +324,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv4_name"] = None
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = None
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
     category2 = category2[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -352,7 +352,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category3["foreign_category_lv4_name"] = None
     category3["foreign_category_lv5"] = ""
     category3["foreign_category_lv5_name"] = None
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
     category3 = category3[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -388,7 +388,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category4["level"] = 4
     category4["foreign_category_lv5"] = ""
     category4["foreign_category_lv5_name"] = None
-    category4["last_updated"] = datetime.now()
+    category4["last_updated"] = datetime.now(_TZINFO)
     category4 = category4[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -429,7 +429,7 @@ def clean_category(source_id, date, target_table, data_frames):
     })
     category5["cmid"] = cmid
     category5["level"] = 5
-    category5["last_updated"] = datetime.now()
+    category5["last_updated"] = datetime.now(_TZINFO)
     category5 = category5[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -476,7 +476,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store["business_area"] = None
     store["property"] = store.property_id.apply(lambda x: "自营" if x == 0 else "加盟")
     store["source_id"] = source_id
-    store["last_updated"] = datetime.now()
+    store["last_updated"] = datetime.now(_TZINFO)
 
     store = store[
         ['cmid', 'foreign_store_id', 'store_name', 'store_address', 'address_code', 'device_id', 'store_status',

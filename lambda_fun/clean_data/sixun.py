@@ -101,7 +101,7 @@ def clean_store(source_id, date, target_table, data_frames):
                                                           })
 
     branch_info_frame['show_code'] = branch_info_frame['foreign_store_id']
-    branch_info_frame['last_updated'] = datetime.now()
+    branch_info_frame['last_updated'] = datetime.now(_TZINFO)
 
     branch_info_frame = branch_info_frame[[
         'cmid',
@@ -156,7 +156,7 @@ def clean_category(source_id, date, target_table, data_frames):
                                                         'item_clsname': 'foreign_category_lv1_name'})
     item_cls_frame_1['cmid'] = cmid
     item_cls_frame_1['level'] = 1
-    item_cls_frame_1['last_updated'] = datetime.now()
+    item_cls_frame_1['last_updated'] = datetime.now(_TZINFO)
     item_cls_frame_1['foreign_category_lv2'] = ''
     item_cls_frame_1['foreign_category_lv2_name'] = None
     item_cls_frame_1['foreign_category_lv3'] = ''
@@ -165,7 +165,7 @@ def clean_category(source_id, date, target_table, data_frames):
     item_cls_frame_1['foreign_category_lv4_name'] = None
     item_cls_frame_1['foreign_category_lv5'] = ''
     item_cls_frame_1['foreign_category_lv5_name'] = None
-    item_cls_frame_1['last_updated'] = datetime.now()
+    item_cls_frame_1['last_updated'] = datetime.now(_TZINFO)
 
     # 处理item_cls_frame2
     item_cls_frame_2['cls_parent'] = item_cls_frame_2['cls_parent'].str.strip()
@@ -188,7 +188,7 @@ def clean_category(source_id, date, target_table, data_frames):
     item_cls_frame_2['foreign_category_lv5'] = ''
     item_cls_frame_2['foreign_category_lv5_name'] = None
     item_cls_frame_2['cmid'] = cmid
-    item_cls_frame_2['last_updated'] = datetime.now()
+    item_cls_frame_2['last_updated'] = datetime.now(_TZINFO)
 
     # 处理item_cls_frame3
 
@@ -217,7 +217,7 @@ def clean_category(source_id, date, target_table, data_frames):
     item_cls_frame_3['foreign_category_lv5_name'] = None
     item_cls_frame_3['level'] = 3
     item_cls_frame_3['cmid'] = cmid
-    item_cls_frame_3['last_updated'] = datetime.now()
+    item_cls_frame_3['last_updated'] = datetime.now(_TZINFO)
 
     category_frame = pd.concat([item_cls_frame_1, item_cls_frame_2, item_cls_frame_3])
     category_frame = category_frame[[
@@ -341,7 +341,7 @@ def clean_goods(source_id, date, target_table, data_frames):
 
     goods_frame_1['item_status'] = goods_frame_1['item_status'].map(status_convert)
     goods_frame_1['cmid'] = cmid
-    goods_frame_1['last_updated'] = datetime.now()
+    goods_frame_1['last_updated'] = datetime.now(_TZINFO)
     goods_frame_1['isvalid'] = '1'
     goods_frame_1['foreign_category_lv4'] = ''
     goods_frame_1['foreign_category_lv5'] = ''
@@ -521,7 +521,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     result_frame['source_id'] = source_id
     result_frame['cmid'] = cmid
     result_frame['consumer_id'] = None
-    result_frame['last_updated'] = datetime.now()
+    result_frame['last_updated'] = datetime.now(_TZINFO)
     result_frame['barcode'] = result_frame['foreign_item_id']
     result_frame['foreign_category_lv4'] = ''
     result_frame['foreign_category_lv4_name'] = None

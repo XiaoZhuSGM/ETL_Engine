@@ -149,7 +149,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
 
     goodsflow_frames["source_id"] = source_id
     goodsflow_frames["cmid"] = cmid
-    goodsflow_frames["last_updated"] = datetime.now()
+    goodsflow_frames["last_updated"] = datetime.now(_TZINFO)
 
     def quatity(row):
 
@@ -334,8 +334,8 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods_frames['foreign_category_lv2'] = goods_frames.deptid.apply(lambda x: str(x)[:3])
     goods_frames['foreign_category_lv3'] = goods_frames.deptid.apply(lambda x: str(x)[:5])
     goods_frames['foreign_category_lv4'] = goods_frames.deptid.apply(lambda x: str(x)[:7])
-    goods_frames["storage_time"] = datetime.now()
-    goods_frames["last_updated"] = datetime.now()
+    goods_frames["storage_time"] = datetime.now(_TZINFO)
+    goods_frames["last_updated"] = datetime.now(_TZINFO)
     goods_frames["isvalid"] = "1"
     goods_frames["allot_method"] = ""
     goods_frames["supplier_name"] = ""
@@ -418,7 +418,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = ""
     category1["cmid"] = cmid
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -441,7 +441,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = ""
     category2["cmid"] = cmid
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
     category2 = category2[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -464,7 +464,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category3["foreign_category_lv5"] = ""
     category3["foreign_category_lv5_name"] = ""
     category3["cmid"] = cmid
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
     category3 = category3[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -488,7 +488,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category4["foreign_category_lv5"] = ""
     category4["foreign_category_lv5_name"] = ""
     category4["cmid"] = cmid
-    category4["last_updated"] = datetime.now()
+    category4["last_updated"] = datetime.now(_TZINFO)
     category4 = category4[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -513,7 +513,7 @@ def clean_category(source_id, date, target_table, data_frames):
         "name": "foreign_category_lv5_name",
     })
     category5["cmid"] = cmid
-    category5["last_updated"] = datetime.now()
+    category5["last_updated"] = datetime.now(_TZINFO)
     category5["level"] = "5"
     category5 = category5[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
@@ -552,7 +552,7 @@ def clean_store(source_id, date, target_table, data_frames):
             res = "其它"
         return res
     store_frames["store_status"] = store_frames.shoptype.apply(generate_stor_status)
-    store_frames["create_date"] = datetime.now()
+    store_frames["create_date"] = datetime.now(_TZINFO)
     store_frames["lat"] = None
     store_frames["lng"] = None
     store_frames["contacts"] = None
@@ -562,7 +562,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["property_id"] = None
     store_frames["property"] = "直营店"
     store_frames["source_id"] = source_id
-    store_frames["last_updated"] = datetime.now()
+    store_frames["last_updated"] = datetime.now(_TZINFO)
     store_frames["show_code"] = store_frames["id"]
     store_frames = store_frames.rename(columns={
         "id": "foreign_store_id",
