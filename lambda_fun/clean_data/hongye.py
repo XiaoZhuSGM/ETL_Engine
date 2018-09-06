@@ -93,6 +93,7 @@ event = {
         "inf_brand": ["brand", "brandcode"],
         "inf_tradeunit": ["unitname", "unitcode"],
         "sys_sendmode": ["sendmode_name", "sendmode"],
+        "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
     },
     "converts": {
         "inf_goods": {
@@ -108,6 +109,11 @@ event = {
         "inf_brand": {"brand": "str", "brandcode": "str"},
         "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
         "sys_sendmode": {"sendmode_name": "str"},
+        "inf_goodsclass": {
+            "classcode": "str",
+            "classname": "str",
+            "fatherclass": "str",
+        },
     },
 }
 # category:
@@ -185,6 +191,39 @@ event = {
             "classname": "str",
             "fatherclass": "str",
         },
+    },
+}
+# store:
+event = {
+    "source_id": "34YYYYYYYYYYYYY",
+    "erp_name": "宏业",
+    "date": "2018-08-21",
+    "target_table": "store",
+    "origin_table_columns": {
+        "inf_shop_message": [
+            "deptcode",
+            "shotname",
+            "address",
+            "validflag",
+            "startdate",
+            "deptcode",
+            "phonecode",
+            "manager",
+            "dis_code",
+        ],
+        "inf_whole_district": ["dis_code", "dis_name"],
+    },
+    "converts": {
+        "inf_shop_message": {
+            "deptcode": "str",
+            "shotname": "str",
+            "address": "str",
+            "startdate": "str",
+            "phonecode": "str",
+            "manager": "str",
+            "dis_code": "str",
+        },
+        "inf_whole_district": {"dis_code": "str", "dis_name": "str"},
     },
 }
 """
@@ -302,7 +341,7 @@ class HongYeCleaner:
         ).merge(
             inf_goodsclass,
             how="left",
-            left_on=["fatherclass"],
+            left_on=["fatherclass.lv2"],
             right_on=["classcode"],
             suffixes=("", ".lv1"),
         )
@@ -331,10 +370,13 @@ class HongYeCleaner:
     def goodsflow(self):
         bil_goodsflow = self.data["bil_goodsflow"]
         inf_shop_message = self.data["inf_shop_message"]
+        inf_goods = self.data["inf_goods"]
         inf_shop_message["deptcode"] = inf_shop_message.apply(
             lambda row: row["deptcode"].strip(), axis=1
         )
-        inf_goods = self.data["inf_goods"]
+        bil_goodsflow["shopcode"] = bil_goodsflow.apply(
+            lambda row: row["shopcode"].strip(), axis=1
+        )
         columns = [
             "source_id",
             "cmid",
@@ -653,12 +695,12 @@ class HongYeCleaner:
             "foreign_category_lv2",
             "foreign_category_lv3",
             "foreign_category_lv4",
-            "foreign_category_lv5",
             "storage_time",
             "last_updated",
             "isvalid",
             "warranty",
             "show_code",
+            "foreign_category_lv5",
             "allot_method",
             "supplier_name",
             "supplier_code",
@@ -810,11 +852,11 @@ class HongYeCleaner:
             "foreign_category_lv2_name",
             "foreign_category_lv3",
             "foreign_category_lv3_name",
+            "last_updated",
             "foreign_category_lv4",
             "foreign_category_lv4_name",
             "foreign_category_lv5",
             "foreign_category_lv5_name",
-            "last_updated",
         ]
         part1 = inf_goodsclass[inf_goodsclass["classgrade"] == 1].copy()
         part1["cmid"] = self.cmid
@@ -925,7 +967,7 @@ class HongYeCleaner:
                 suffixes=("", ".lv1"),
             )
         )
-        part4 = part4[part4["classgrade"] == 3]
+        part4 = part4[part4["classgrade"] == 4]
         part4["cmid"] = self.cmid
         part4["foreign_category_lv2"] = part4.apply(
             lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
@@ -954,15 +996,6 @@ class HongYeCleaner:
         return pd.concat([part1, part2, part3, part4])
 
     def sales_target(self):
-        mbo_classsale = self.data["mbo_classsale"]
-        inf_shop_message = self.data["inf_shop_message"]
-        inf_goodsclass = self.data["inf_goodsclass"]
-        mbo_classsale["shopcode_trimed"] = mbo_classsale.apply(
-            lambda row: row["shopcode"].strip(), axis=1
-        )
-        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
-            lambda row: row["deptcode"].strip(), axis=1
-        )
         columns = [
             "source_id",
             "cmid",
@@ -980,6 +1013,17 @@ class HongYeCleaner:
             "foreign_category_lv5",
             "last_updated",
         ]
+        mbo_classsale = self.data["mbo_classsale"]
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_goodsclass = self.data["inf_goodsclass"]
+        if not len(mbo_classsale):
+            return pd.DataFrame(columns=columns)
+        mbo_classsale["shopcode_trimed"] = mbo_classsale.apply(
+            lambda row: row["shopcode"].strip(), axis=1
+        )
+        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
+            lambda row: row["deptcode"].strip(), axis=1
+        )
 
         part = mbo_classsale.merge(
             inf_shop_message,
@@ -1052,16 +1096,6 @@ class HongYeCleaner:
         return part
 
     def goods_loss(self):
-        bil_damagedtl = self.data["bil_damagedtl"]
-        inf_shop_message = self.data["inf_shop_message"]
-        inf_goods = self.data["inf_goods"]
-        bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
-            lambda row: row["deptcode"][:4], axis=1
-        )
-        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
-            lambda row: row["deptcode"].strip(), axis=1
-        )
-
         columns = [
             "cmid",
             "source_id",
@@ -1083,6 +1117,18 @@ class HongYeCleaner:
             "foreign_category_lv4",
             "foreign_category_lv5",
         ]
+
+        bil_damagedtl = self.data["bil_damagedtl"]
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_goods = self.data["inf_goods"]
+        if not len(bil_damagedtl):
+            return pd.DataFrame(columns=columns)
+        bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
+            lambda row: row["deptcode"][:4], axis=1
+        )
+        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
+            lambda row: row["deptcode"].strip(), axis=1
+        )
 
         subquery1 = self._goodsclass_subquery_1()
         part1 = (
@@ -1155,33 +1201,96 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
-        part2 = part2[~part2["deptcode"].str.contains(r"^998.*$")]
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
-        part2["quantity"] = part2.apply(lambda row: row["amount"] * -1, axis=1)
-        part2["subtotal"] = part2.apply(lambda row: row["salemoney"] * -1, axis=1)
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2 = part2[~part2["deptcode"].str.contains(r"^998.*$")]
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["quantity"] = part2.apply(lambda row: row["amount"] * -1, axis=1)
+            part2["subtotal"] = part2.apply(lambda row: row["salemoney"] * -1, axis=1)
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["store_show_code"] = part2["deptcode.inf_shop_message"]
+            part2["item_showcode"] = part2["gdsincode"]
+            part2 = part2.rename(
+                columns={
+                    "billno": "lossnum",
+                    "recorddate": "lossdate",
+                    "deptcode.inf_shop_message": "foreign_store_id",
+                    "shotname": "store_name",
+                    "gdsincode": "foreign_item_id",
+                    "stripecode": "barcode",
+                    "gdsname": "item_name",
+                    "baseunit": "item_unit",
+                }
+            )
+            part2 = part2[columns]
+        return pd.concat([part1, part2])
+
+    def store(self):
+        inf_shop_message = self.data["inf_shop_message"]
+        inf_whole_district = self.data["inf_whole_district"]
+
+        columns = [
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "store_address",
+            "address_code",
+            "device_id",
+            "store_status",
+            "create_date",
+            "lat",
+            "lng",
+            "show_code",
+            "phone_number",
+            "contacts",
+            "area_code",
+            "area_name",
+            "business_area",
+            "property_id",
+            "property",
+            "source_id",
+            "last_updated",
+        ]
+        part = inf_shop_message.merge(
+            inf_whole_district,
+            how="left",
+            on=["dis_code"],
+            suffixes=("", ".inf_whole_district"),
         )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2["store_show_code"] = part2["deptcode.inf_shop_message"]
-        part2["item_showcode"] = part2["gdsincode"]
-        part2 = part2.rename(
+        part["cmid"] = self.cmid
+        part["source_id"] = self.source_id
+        part["address_code"] = None
+        part["device_id"] = None
+        part["lat"] = None
+        part["lng"] = None
+        part["business_area"] = None
+        part["property_id"] = None
+        part["property"] = ""
+        part["last_updated"] = datetime.now()
+        part["show_code"] = part["deptcode"]
+        part = part.rename(
             columns={
-                "billno": "lossnum",
-                "recorddate": "lossdate",
-                "deptcode.inf_shop_message": "foreign_store_id",
+                "deptcode": "foreign_store_id",
                 "shotname": "store_name",
-                "gdsincode": "foreign_item_id",
-                "stripecode": "barcode",
-                "gdsname": "item_name",
-                "baseunit": "item_unit",
+                "address": "store_address",
+                "validflag": "store_status",
+                "startdate": "create_date",
+                "phonecode": "phone_number",
+                "manager": "contacts",
+                "dis_code": "area_code",
+                "dis_name": "area_name",
             }
         )
-        part2 = part2[columns]
+        part = part[columns]
+        return part
