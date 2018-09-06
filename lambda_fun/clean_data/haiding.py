@@ -2162,6 +2162,10 @@ class HaiDingCleaner:
 
     def goods_loss_82(self):
         ckdatas = self.data["ckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame()
+
         store = self.data["store"]
         goods = self.data["goods"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
@@ -2237,6 +2241,10 @@ class HaiDingCleaner:
 
     def goods_loss_43_67_79_80(self):
         ckdatas = self.data["ckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame()
+
         store = self.data["store"]
         goods = self.data["goods"]
         sort = self.data["sort"]
