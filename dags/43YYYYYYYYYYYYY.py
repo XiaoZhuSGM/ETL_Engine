@@ -23,13 +23,11 @@ SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 S3_BUCKET = 'ext-etl-data'
 
 # 调用web接口来生成source_id的指定cron表达式
-response = requests.get('http://localhost:5000/etl/admin/api/crontab/full/' + source_id)
-result = json.loads(response.text)
-interval = result['data']
+interval = generate_crontab(source_id)
 args = {
-    'owner': 'BeanNan',
+    'owner': 'ETL',
     'depends_on_past': False,
-    'email': ['fanjianan@chaomengdata.com'],
+    'email': ['lvxiang@chaomengdata.com', 'fanjianan@chaomengdata.com', 'guojiaqi@chaomengdata.com', 'yumujun@chaomengdata.com'],
     'email_on_failure': True,
     'email_on_retry': False,
     'start_date': airflow.utils.dates.days_ago(1),
