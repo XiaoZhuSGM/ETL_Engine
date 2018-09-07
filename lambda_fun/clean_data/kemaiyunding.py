@@ -376,13 +376,11 @@ def now_timestamp():
 
 def frame1(cmid, source_id, frames):
     columns = [
-        [
-            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
-        ]
+        "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+        "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+        "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+        "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+        "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
     temp1 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no")
 
@@ -439,13 +437,11 @@ def frame1(cmid, source_id, frames):
 
 def frame2(cmid, source_id, frames):
     columns = [
-        [
-            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
-        ]
+        "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+        "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+        "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+        "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+        "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
     temp2 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
         .merge(frames["t_br_master"], how="left", on="fbrh_no") \
@@ -510,13 +506,11 @@ def frame2(cmid, source_id, frames):
 
 def frame3(cmid, source_id, frames):
     columns = [
-        [
-            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
-        ]
+        "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+        "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+        "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+        "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+        "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
 
     temp3 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
