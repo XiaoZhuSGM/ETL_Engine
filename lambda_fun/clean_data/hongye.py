@@ -237,15 +237,15 @@ import pytz
 from typing import Dict
 import numpy as np
 
-
 S3_BUCKET = "ext-etl-data"
 S3 = boto3.resource("s3")
 _TZINFO = pytz.timezone("Asia/Shanghai")
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
 
+
 class HongYeCleaner:
-    store_id_len_map = {"34": 4, "61": 3, "65": 3}
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, '85':3}
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
@@ -281,6 +281,9 @@ class HongYeCleaner:
 
     def _goodsclass_subquery_1(self):
         inf_goodsclass = self.data["inf_goodsclass"]
+        inf_goodsclass['fatherclass'] = inf_goodsclass['fatherclass'].str.strip()
+        inf_goodsclass['classcode'] = inf_goodsclass['classcode'].str.strip()
+
         subquery = (
             inf_goodsclass.merge(
                 inf_goodsclass,
@@ -289,14 +292,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-            .merge(
+                .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv3"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-            .merge(
+                .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv2"],
@@ -414,14 +417,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-            .merge(
+                .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-            .merge(
+                .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -486,14 +489,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-            .merge(
+                .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-            .merge(
+                .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -501,6 +504,7 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
+
         if not len(part2):
             part2 = pd.DataFrame(columns=columns)
         else:
@@ -686,9 +690,17 @@ class HongYeCleaner:
         inf_brand = self.data["inf_brand"]
         inf_tradeunit = self.data["inf_tradeunit"]
         sys_sendmode = self.data["sys_sendmode"]
+
         inf_goods["lastsupplier_trimed"] = inf_goods.apply(
             lambda row: row["lastsupplier"].strip(), axis=1
         )
+
+        inf_brand['brandcode'] = inf_brand['brandcode'].str.strip()
+        inf_goods['brandcode'] = inf_goods['brandcode'].str.strip()
+        inf_goods['sendmode'] = inf_goods['sendmode'].str.strip()
+        inf_goods['classcode'] = inf_goods['classcode'].str.strip()
+        sys_sendmode['sendmode'] = sys_sendmode['sendmode'].str.strip()
+
         inf_tradeunit["unitcode_trimed"] = inf_tradeunit.apply(
             lambda row: row["unitcode"].strip(), axis=1
         )
@@ -726,21 +738,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-            .merge(
+                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+                .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier_trimed"],
                 right_on=["unitcode_trimed"],
                 suffixes=("", ".inf_tradeunit"),
             )
-            .merge(
+                .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-            .merge(
+                .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -797,21 +809,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-            .merge(
+                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+                .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier_trimed"],
                 right_on=["unitcode_trimed"],
                 suffixes=("", ".inf_tradeunit"),
             )
-            .merge(
+                .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-            .merge(
+                .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -969,14 +981,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-            .merge(
+                .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-            .merge(
+                .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass"],
@@ -1141,7 +1153,7 @@ class HongYeCleaner:
         if not len(bil_damagedtl):
             return pd.DataFrame(columns=columns)
         bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
-            lambda row: row["deptcode"][:4], axis=1
+            lambda row: row["deptcode"][:self.store_id_len], axis=1
         )
         inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
             lambda row: row["deptcode"].strip(), axis=1
@@ -1156,8 +1168,8 @@ class HongYeCleaner:
                 right_on=["deptcode_trimed"],
                 suffixes=("", ".inf_shop_message"),
             )
-            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-            .merge(
+                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+                .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -1209,8 +1221,8 @@ class HongYeCleaner:
                 right_on=["deptcode_trimed"],
                 suffixes=("", ".inf_shop_message"),
             )
-            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-            .merge(
+                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+                .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],

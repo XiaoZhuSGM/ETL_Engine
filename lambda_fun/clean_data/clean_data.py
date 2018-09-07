@@ -151,73 +151,54 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-    # rtlbal,acntqty,cktime,gdgid,num,qty,stat,store
     event = {
-        "source_id": "62YYYYYYYYYYYYY",
-        "erp_name": "九垠",
-        "date": "2018-08-16",
-        "target_table": "goodsflow",
-        'origin_table_columns': {
-            "app_fdinfo": [
-                "fdbh",
-                "fdmc"
+        "source_id": "61YYYYYYYYYYYYY",
+        "erp_name": "宏业",
+        "date": "2018-09-06",
+        "target_table": "goods",
+        "origin_table_columns": {
+            "inf_goods": [
+                "baseunit",
+                "brandcode",
+                "classcode",
+                "gdsincode",
+                "gdsname",
+                "lastinprice",
+                "lastsupplier",
+                "qcdays",
+                "salecircle",
+                "saleprice",
+                "sendmode",
+                "stripecode",
             ],
-            "bm_spdlxx": [
-                "dlbmid",
-                "dlmc"
-            ],
-            "bm_spzlxx": [
-                "zlbmid",
-                "zlmc"
-            ],
-            "bm_supertype": [
-                "superbm",
-                "supermc"
-            ],
-            "uv_saledetail": [
-                "fdbh",
-                "spbm",
-                "xsdbh",
-                "xsrq",
-                "xssj",
-                "zxnsjg",
-                "spsl",
-                "zxssze"
-            ],
-            "uv_spbaseinfo": [
-                "spbm",
-                "superbm",
-                "dlbmid",
-                "zlbmid",
-                "spsmm",
-                "spmc",
-                "dw"
-            ]
+            "inf_goods_salecircle": ["circlename", "circlevalue"],
+            "inf_brand": ["brand", "brandcode"],
+            "inf_tradeunit": ["unitname", "unitcode"],
+            "sys_sendmode": ["sendmode_name", "sendmode"],
+            "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
         },
-
-        'converts': {
-            "app_fdinfo": {
-                "fdbh": "str"
+        "converts": {
+            "inf_goods": {
+                "baseunit": "str",
+                "brandcode": "str",
+                "classcode": "str",
+                "gdsincode": "str",
+                "gdsname": "str",
+                "lastsupplier": "str",
+                "stripecode": "str",
+                "sendmode":"str"
             },
-            "bm_spdlxx": {
-                "dlbmid": "str"
+            "inf_goods_salecircle": {"circlename": "str"},
+            "inf_brand": {"brand": "str", "brandcode": "str"},
+            "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
+            "sys_sendmode": {"sendmode_name": "str", "sendmode":"str"},
+            "inf_goodsclass": {
+                "classcode": "str",
+                "classname": "str",
+                "fatherclass": "str",
+                'classgrade': 'int'
             },
-            "bm_spzlxx": {
-                "zlbmid": "str"
-            },
-            "bm_supertype": {
-                "superbm": "str"
-            },
-            "uv_saledetail": {
-                "fdbh": "str",
-                "spbm": "str"
-            },
-            "uv_spbaseinfo": {
-                "dlbmid": "str",
-                "spbm": "str",
-                "superbm": "str",
-                "zlbmid": "str"
-            }
-        }
+        },
     }
-    print(handler(event, None))
+
+    handler(event, None)
