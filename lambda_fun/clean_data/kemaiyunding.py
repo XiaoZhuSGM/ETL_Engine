@@ -20,8 +20,8 @@ origin_table_columns = {"t_rpt_sl_detail": ['fitem_id', 'fbrh_no', 'ftrade_date'
                         }
 
 
-coverts = {"t_rpt_sl_detail": {"fbrh_no": str},
-           "t_bi_master": {"fitem_clsno": str}}
+coverts = {"t_rpt_sl_detail": {"fbrh_no": str, "fitem_id": "str"},
+           "t_bi_master": {"fitem_clsno": str, "fitem_id": "str"}}
 
 
 # goods

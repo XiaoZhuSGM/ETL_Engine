@@ -465,8 +465,10 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     # 门店
     branch_info_frame['branch_no'] = branch_info_frame['branch_no'].str.strip()
 
+
     result_frame = pd.merge(sale_flow_frame, branch_info_frame, left_on='branch_no_1', right_on='branch_no', how='left',
                             suffixes=('_s1', '_store'))
+
 
     # item_clsno
     result_frame = pd.merge(result_frame, goods_frame, left_on='item_no', right_on='item_no', how='left',
@@ -499,7 +501,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     result_frame = result_frame[(result_frame['item_no'].notna()) & (result_frame['branch_no_store'].notna())]
 
     def saleprice_convert(row):
-
+        print(row['sell_way'])
         if row['sell_way'] == 'C':
             return 0
         else:
@@ -520,6 +522,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             return 0
         else:
             pass
+
 
     result_frame['saleprice'] = result_frame.apply(saleprice_convert, axis=1)
     result_frame['quantity'] = result_frame.apply(quantity_convert, axis=1)

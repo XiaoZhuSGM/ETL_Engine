@@ -432,8 +432,6 @@ def clean_common_function(**kwargs):
                  date=query_date,
                  target_table=target_table)
 
-
-
     event['origin_table_columns'] = {key.lower(): value for (key, value) in
                                      result_dict['data']['target']['origin_table'].items()}
 
