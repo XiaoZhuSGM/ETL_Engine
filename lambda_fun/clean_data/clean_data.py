@@ -60,6 +60,7 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
+            print(key)
             if table in converts:
                 frame = pd.read_csv(
                     key, compression="gzip", usecols=columns, converters=converts[table]

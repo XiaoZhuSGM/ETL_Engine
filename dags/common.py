@@ -24,6 +24,8 @@ session = botocore.session.get_session()
 BOTO3_CONFIG = Config(connect_timeout=320, read_timeout=320)
 lambda_client = session.create_client('lambda', config=BOTO3_CONFIG)
 
+sns_client = boto3.client("sns")
+
 
 def generator_extract_date_function(**kwargs):
     source_id = kwargs['source_id']
@@ -347,7 +349,7 @@ def hook_get(endpoint, data=None):
 
 def hook_post(endpoint, data, headers=None):
     hook = HttpHook(method='POST', http_conn_id='host_id')
-    hook.run(endpoint=endpoint, data=json.dumps(data), headers=headers)
+    return hook.run(endpoint=endpoint, data=json.dumps(data), headers=headers)
 
 
 def recording_clean_common_log_function(**kwargs):
@@ -394,20 +396,60 @@ def load_common_function(**kwargs):
     response, load_result = common_recording_log_result('etl-warehouse', target, extract_date, 3, **event)
 
     if 'FunctionError' not in response:
-        load_result['result'] = 1
-        load_result['remark'] = '入库成功'
-        match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
-        count_str = match.group(1)
-        record_num = int(count_str)
-        load_result['record_num'] = record_num
+        load_result = create_success_log(load_result, clean_data_file_path)
     else:
-        load_result['result'] = 0
-        load_result['remark'] = '入库lambda报错'
-        recording_common_log_function(load_result)
-        print(base64.b64decode(response['LogResult']))
-        raise RuntimeError('入库lambda报错')
+        # 调用接口
+        start_time = time.time()
+        flag = invoke_load_interface(event)
+        end_time = time.time()
+        cost_time = int(end_time - start_time)
+        load_result = dict(source_id=source_id,
+                              cmid=cmid,
+                              table_name=target,
+                              extract_date=extract_date,
+                              task_type=3,
+                              start_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time)),
+                              end_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time)),
+                              cost_time=cost_time)
+
+        if flag:
+            # 入库成功
+            load_result = create_success_log(load_result, clean_data_file_path)
+        else:
+            # 入库失败
+            load_result['result'] = 0
+            load_result['remark'] = '入库lambda报错'
+            recording_common_log_function(load_result)
+            print(base64.b64decode(response['LogResult']))
+            raise RuntimeError('入库lambda报错')
 
     return load_result
+
+
+def create_success_log(load_result, clean_data_file_path):
+    load_result['result'] = 1
+    load_result['remark'] = '入库成功'
+    match = re.match('.*rowcount=(\d*).*', clean_data_file_path)
+    count_str = match.group(1)
+    record_num = int(count_str)
+    load_result['record_num'] = record_num
+
+    return load_result
+
+
+def invoke_load_interface(event):
+    headers = {'Content-Type': 'application/json'}
+    response = hook_post('etl/admin/api/ext/tasks/warehouse', data=event, headers=headers).json()
+    task_id = response['data']['task_id']
+
+    while 1:
+        response = hook_get('etl/admin/api/ext/tasks/warehouse/status', data=dict(task_id=task_id))
+        status = response['data']['status']
+        if status == 'success':
+            return True
+        elif status == 'failed':
+            return False
+        time.sleep(0.5)
 
 
 def recording_load_common_function(**kwargs):
@@ -443,6 +485,43 @@ def clean_common_function(**kwargs):
     return common_return_clean_result(target_table, query_date, **event)
 
 
+from datetime import timedelta
+from airflow.models import Variable
+
+TOKEN_DONE = Variable.get("TOKEN_DONE")
+TOPIC_DONE_ARN = Variable.get("TOPIC_DONE_ARN")
+
+
+def get_date_delta_by_num_to_ymd(delta=0):
+    """
+    delta可以取负数（向过去）或者正数（向未来）
+    :param delta:
+    :return:
+    """
+    some_date = datetime.now() + timedelta(days=delta)
+    return some_date.strftime("%Y-%m-%d")
+
+
+def send_load_success_sns(resp):
+    """
+    发送消息主动刷新缓存
+    :param resp:
+    :return:
+    """
+    resp["TOKEN"] = TOKEN_DONE
+    resp["MUST"] = True
+    sns_client.publish(Message=json.dumps({"default": json.dumps(resp)}), TargetArn=TOPIC_DONE_ARN,
+                       MessageStructure='json')
+
+
+def end(**kwargs):
+    source_id = kwargs['source_id']
+
+    message = dict(source_id=source_id, date=get_date_delta_by_num_to_ymd(-1))
+    send_load_success_sns(message)
+    print('入库完全成功')
+
+
 def generate_common_task(source_id, cmid, erp_name, dag, target_list):
     generate_extract_date = PythonOperator(
         task_id='generator_extract_date',
@@ -466,6 +545,22 @@ def generate_common_task(source_id, cmid, erp_name, dag, target_list):
     )
 
     generate_extract_date >> generate_sql >> extract_data
+
+    end_task = PythonOperator(
+        task_id='end',
+        dag=dag,
+        python_callable=end,
+        op_kwargs=dict(source_id=source_id)
+    )
+
+    end_choose_list = ['chain_store',
+                       'chain_goods',
+                       'chain_category',
+                       'goodsflow',
+                       'cost',
+                       'chain_goods_loss',
+                       "chain_sales_target",
+                       ]
 
     for target in target_list:
         target_table = target.split('chain_')[-1]
@@ -532,3 +627,6 @@ def generate_common_task(source_id, cmid, erp_name, dag, target_list):
         )
 
         recording_clean_log_task >> load_task >> recording_load_log_task
+
+        if target in end_choose_list:
+            recording_load_log_task >> end_task
