@@ -20,36 +20,47 @@ def handler(event, context):
     data_date = message["data_date"]
     target_table = message["target_table"]
     warehouse_type = message["warehouse_type"]
-    source_id = message['source_id']
-    cmid = message['cmid']
+    source_id = message["source_id"]
+    cmid = message["cmid"]
     target_tables = json.loads(
         S3_CLIENT.Object(S3_BUCKET, TARGET_TABLE_KEY)
-            .get()["Body"]
-            .read()
-            .decode("utf-8")
+        .get()["Body"]
+        .read()
+        .decode("utf-8")
     )
 
-    table_key = target_table if not target_table.endswith(source_id) else target_table.split(f'_{source_id}')[0]
+    table_key = (
+        target_table
+        if not target_table.endswith(source_id)
+        else target_table.split(f"_{source_id}")[0]
+    )
     sync_column = target_tables[table_key]["sync_column"]
     date_column = target_tables[table_key]["date_column"]
 
     warehouser = Warehouser(
-        redshift_url, target_table, data_key, sync_column, data_date, date_column, cmid, source_id
+        redshift_url,
+        target_table,
+        data_key,
+        sync_column,
+        data_date,
+        date_column,
+        cmid,
+        source_id,
     )
     warehouser.run(warehouse_type)
 
 
 class Warehouser:
     def __init__(
-            self,
-            db_url: str,
-            target_table: str,
-            data_key: str,
-            sync_column: list,
-            data_date: str,
-            date_column: str,
-            cmid: str,
-            source_id:str
+        self,
+        db_url: str,
+        target_table: str,
+        data_key: str,
+        sync_column: list,
+        data_date: str,
+        date_column: str,
+        cmid: str,
+        source_id: str,
     ) -> None:
         self.engine = create_engine(db_url)
         self.conn = self.engine.connect()
@@ -96,7 +107,7 @@ class Warehouser:
             return
 
         next_day = (
-                datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
+            datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
         ).strftime("%Y-%m-%d")
 
         where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid={self.cmid}"
@@ -133,8 +144,8 @@ if __name__ == "__main__":
         "target_table": "goodsflow_72YYYYYYYYYYYYY",
         "data_date": "2018-09-05",
         "warehouse_type": "copy",
-        'cmid': '72',
-        'source_id':'72YYYYYYYYYYYYY'
+        "cmid": "72",
+        "source_id": "72YYYYYYYYYYYYY",
     }
     event1 = {
 ***REMOVED***
@@ -142,7 +153,7 @@ if __name__ == "__main__":
         "warehouse_type": "upsert",
         "cmid": "72",
         "data_date": "2018-09-03",
-        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=store/dump=2018-09-04 15:19:23.822474+08:00&rowcount=11.csv.gz"
+        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=store/dump=2018-09-04 15:19:23.822474+08:00&rowcount=11.csv.gz",
     }
 
     "clean_data/source_id=43YYYYYYYYYYYYY/clean_date=2018-09-05/target_table=goodsflow/dump=2018-09-06 15:10:25.132712+08:00&rowcount=145796.csv.gz"
@@ -153,8 +164,8 @@ if __name__ == "__main__":
         "target_table": "goodsflow_72YYYYYYYYYYYYY",
         "data_date": "2018-09-05",
         "warehouse_type": "copy",
-        'cmid': '72',
-        'source_id': '72YYYYYYYYYYYYY'
+        "cmid": "72",
+        "source_id": "72YYYYYYYYYYYYY",
     }
 
     begin = time.time()

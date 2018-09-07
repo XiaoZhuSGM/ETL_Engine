@@ -49,6 +49,9 @@ class DevelopmentConfig(Config):
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
     CELERY_RESULT_BACKEND = ""
     CELERY_BROKER_URL = ""
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
 
 
 class LocalConfig(Config):
