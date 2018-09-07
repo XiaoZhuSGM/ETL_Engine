@@ -825,9 +825,9 @@ class HaiDingCleaner:
         part1["foreign_category_lv5"] = ""
 
         if self.source_id in ("79YYYYYYYYYYYYY", "80YYYYYYYYYYYYY"):
-            part1["cls"] = part1[part1["cls"] == "零售"]
+            part1 = part1[part1["cls"] == "零售"]
         elif self.source_id == "82YYYYYYYYYYYYY":
-            part1["cls"] = part1[part1["cls"] != "批发"]
+            part1 = part1[part1["cls"] != "批发"]
 
         part1["fildate"] = part1.apply(lambda row: row["fildate"].split()[0], axis=1)
 

@@ -21,12 +21,20 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 category_dict = {
     '69YYYYYYYYYYYYY': (1, 2, 3),
-    '72YYYYYYYYYYYYY': (2, 4, 6)
+    '72YYYYYYYYYYYYY': (2, 4, 6),
+    '54YYYYYYYYYYYYY': (2, 4, 6),
+    '56YYYYYYYYYYYYY': (2, 4, 6),
+    '57YYYYYYYYYYYYY': (2, 4, 6),
+    '74YYYYYYYYYYYYY': (2, 4, 6),
 }
 
 branch_dict = {
     '69YYYYYYYYYYYYY': 2,
-    '72YYYYYYYYYYYYY': 2
+    '72YYYYYYYYYYYYY': 2,
+    '54YYYYYYYYYYYYY': 2,
+    '56YYYYYYYYYYYYY': 3,
+    '57YYYYYYYYYYYYY': 3,
+    '74YYYYYYYYYYYYY': 3,
 }
 
 
@@ -655,10 +663,14 @@ def clean_cost(source_id, date, target_table, data_frames):
     result_frame['item_clsno_c3'] = result_frame['item_clsno_c3'].map(lambda x: x if x else '')
     result_frame['item_clsno_lv3'] = result_frame['item_clsno_lv3'].map(lambda x: x if x else '')
 
+    if source_id == '54YYYYYYYYYYYYY':
+        result_frame['total_cost'] = result_frame.apply(lambda row: row['so_cost'] + row['pos_cost'],axis=1)
+    else:
+        result_frame['total_cost'] = result_frame['fifo_cost_amt']
+
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
         'item_no': 'foreign_item_id',
-        'fifo_cost_amt': 'total_cost',
         'item_clsno_lv1': 'foreign_category_lv1',
         'item_clsno_c3': 'foreign_category_lv2',
         'item_clsno_lv3': 'foreign_category_lv3',
