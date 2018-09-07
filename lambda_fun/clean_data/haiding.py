@@ -755,6 +755,7 @@ class HaiDingCleaner:
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         rpt_storesaldrpt["cls"] = rpt_storesaldrpt["cls"].str.strip()
+        sdrpts['cls'] = sdrpts['cls'].str.strip()
 
         columns = [
             "source_id",
@@ -1851,6 +1852,7 @@ class HaiDingCleaner:
         if not len(invxf):
             return pd.DataFrame(columns=columns)
 
+
         part = (
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
@@ -1884,7 +1886,7 @@ class HaiDingCleaner:
                 suffixes=("", ".modulestat"),
             )
         )
-        part = part[part["cls"].isin(("仓库调拨",))]
+
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -1892,6 +1894,8 @@ class HaiDingCleaner:
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
+        part = part[part["cls"].isin(("仓库调拨",))]
+
         part = part.rename(
             columns={
                 "num": "move_num",

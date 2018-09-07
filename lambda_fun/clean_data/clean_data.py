@@ -151,4 +151,54 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-   pass
+    event = {
+        "source_id": "61YYYYYYYYYYYYY",
+        "erp_name": "宏业",
+        "date": "2018-09-06",
+        "target_table": "goods",
+        "origin_table_columns": {
+            "inf_goods": [
+                "baseunit",
+                "brandcode",
+                "classcode",
+                "gdsincode",
+                "gdsname",
+                "lastinprice",
+                "lastsupplier",
+                "qcdays",
+                "salecircle",
+                "saleprice",
+                "sendmode",
+                "stripecode",
+            ],
+            "inf_goods_salecircle": ["circlename", "circlevalue"],
+            "inf_brand": ["brand", "brandcode"],
+            "inf_tradeunit": ["unitname", "unitcode"],
+            "sys_sendmode": ["sendmode_name", "sendmode"],
+            "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+        },
+        "converts": {
+            "inf_goods": {
+                "baseunit": "str",
+                "brandcode": "str",
+                "classcode": "str",
+                "gdsincode": "str",
+                "gdsname": "str",
+                "lastsupplier": "str",
+                "stripecode": "str",
+                "sendmode":"str"
+            },
+            "inf_goods_salecircle": {"circlename": "str"},
+            "inf_brand": {"brand": "str", "brandcode": "str"},
+            "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
+            "sys_sendmode": {"sendmode_name": "str", "sendmode":"str"},
+            "inf_goodsclass": {
+                "classcode": "str",
+                "classname": "str",
+                "fatherclass": "str",
+                'classgrade': 'int'
+            },
+        },
+    }
+
+    handler(event, None)
