@@ -60,6 +60,7 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
+            print(key)
             if table in converts:
                 frame = pd.read_csv(
                     key, compression="gzip", usecols=columns, converters=converts[table]
@@ -152,53 +153,75 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "61YYYYYYYYYYYYY",
-        "erp_name": "宏业",
+        "source_id": "70YYYYYYYYYYYYY",
+        "erp_name": "科脉云鼎",
         "date": "2018-09-06",
-        "target_table": "goods",
-        "origin_table_columns": {
-            "inf_goods": [
-                "baseunit",
-                "brandcode",
-                "classcode",
-                "gdsincode",
-                "gdsname",
-                "lastinprice",
-                "lastsupplier",
-                "qcdays",
-                "salecircle",
-                "saleprice",
-                "sendmode",
-                "stripecode",
+        "target_table": "goodsflow",
+        'origin_table_columns': {
+            "t_bc_master": [
+                "fitem_clsno",
+                "fitem_clsname",
+                "fprt_no"
             ],
-            "inf_goods_salecircle": ["circlename", "circlevalue"],
-            "inf_brand": ["brand", "brandcode"],
-            "inf_tradeunit": ["unitname", "unitcode"],
-            "sys_sendmode": ["sendmode_name", "sendmode"],
-            "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+            "t_bi_barcode": [
+                "funit_qty",
+                "fitem_id",
+                "fitem_subno"
+            ],
+            "t_bi_master": [
+                "fitem_id",
+                "fitem_subno",
+                "fitem_name",
+                "funit_no",
+                "fitem_clsno"
+            ],
+            "t_br_master": [
+                "fbrh_name",
+                "fbrh_no"
+            ],
+            "t_sl_detail": [
+                "fprice",
+                "fpack_qty",
+                "famt",
+                "fflow_no",
+                "fitem_subno",
+                "fitem_id"
+            ],
+            "t_sl_master": [
+                "fbrh_no",
+                "fflow_no",
+                "ftrade_date",
+                "fcr_time",
+                "fsell_way"
+            ]
         },
-        "converts": {
-            "inf_goods": {
-                "baseunit": "str",
-                "brandcode": "str",
-                "classcode": "str",
-                "gdsincode": "str",
-                "gdsname": "str",
-                "lastsupplier": "str",
-                "stripecode": "str",
-                "sendmode":"str"
+
+        'converts': {
+            "t_bc_master": {
+                "fitem_clsno": "str",
+                "fprt_no": "str"
             },
-            "inf_goods_salecircle": {"circlename": "str"},
-            "inf_brand": {"brand": "str", "brandcode": "str"},
-            "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
-            "sys_sendmode": {"sendmode_name": "str", "sendmode":"str"},
-            "inf_goodsclass": {
-                "classcode": "str",
-                "classname": "str",
-                "fatherclass": "str",
-                'classgrade': 'int'
+            "t_bi_barcode": {
+                "fitem_id": "str",
+                "fitem_subno": "str"
             },
-        },
+            "t_bi_master": {
+                "fitem_clsno": "str",
+                "fitem_id": "str",
+                "fitem_subno": "str"
+            },
+            "t_br_master": {
+                "fbrh_no": "str"
+            },
+            "t_sl_detail": {
+                "fitem_id": "str",
+                "fitem_subno": "str"
+            },
+            "t_sl_master": {
+                "fbrh_no": "str",
+                "fflow_no": "str"
+            }
+        }
     }
 
     handler(event, None)

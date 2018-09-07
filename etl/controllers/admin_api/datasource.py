@@ -15,7 +15,7 @@ DATASOURCE_API_UPDATE = '/datasource/<int:datasource_id>'
 DATASOURCE_API_TEST = '/datasource/test'
 DATASOURCE_API_GET_BY_ERP = '/datasource/erp/<string:erp_vendor>'
 
-DATASOURCE_API_GENERATOR_CRON = '/crontab/<string:source_id>'
+DATASOURCE_API_GENERATOR_CRON = '/crontab/full/<string:source_id>'
 DATASOURCE_API_GENERATOR_EXTRACT_EVENT = '/extract/event/<string:source_id>'
 
 datasource_service = DatasourceService()
@@ -33,7 +33,7 @@ def generator_extract_event(source_id):
 
 @etl_admin_api.route(DATASOURCE_API_GENERATOR_CRON, methods=['GET'])
 def generator_crontab(source_id):
-    cron_expression = datasource_service.generator_crontab_expression(source_id)
+    cron_expression = datasource_service.generator_full_crontab_expression(source_id)
     if cron_expression:
         return jsonify_with_data(APIError.OK, data=cron_expression)
     else:

@@ -10,6 +10,7 @@ from collections import defaultdict
 import time
 import re
 from common import *
+import airflow
 
 lambda_client = boto3.client('lambda')
 S3_CLIENT = boto3.resource('s3')
@@ -20,22 +21,22 @@ SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 S3_BUCKET = 'ext-etl-data'
 
 # 调用web接口来生成source_id的指定cron表达式
-# response = requests.get('http://172.31.16.17:5000/etl/admin/api/crontab/' + source_id)
-# result = json.loads(response.text)
-# interval = result['data']
+response = requests.get('http://localhost:5000/etl/admin/api/crontab/full/' + source_id)
+result = json.loads(response.text)
+interval = result['data']
 args = {
     'owner': 'BeanNan',
     'depends_on_past': False,
     'email': ['fanjianan@chaomengdata.com'],
     'email_on_failure': True,
     'email_on_retry': False,
-    'start_date': datetime(2018, 9, 8),
-    'retries': 10,
+    'start_date': airflow.utils.dates.days_ago(1),
+    'retries': 20,
     'retry_delay': timedelta(minutes=1),
     'provide_context': True
 }
 
-dag = DAG(dag_id='ext_34', schedule_interval='0 22 * * *', default_args=args)
+dag = DAG(dag_id='ext_34', schedule_interval=interval, default_args=args)
 
 """
  先创建3个task

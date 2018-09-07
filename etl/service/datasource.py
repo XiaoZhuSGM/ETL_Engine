@@ -86,7 +86,7 @@ class DatasourceService(object):
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)
 
-    def generator_crontab_expression(self, source_id):
+    def generator_full_crontab_expression(self, source_id):
         """
         根据source_id生成cron表达式
         :param source_id: source_id
@@ -104,7 +104,7 @@ class DatasourceService(object):
         cron_list = [x if x else '0' for x in cron_list]
         hour = cron_list[0]
         minute = cron_list[1]
-        cron_expression = f'{minute} {hour}-23/{frequency} * * *'
+        cron_expression = f'{minute} {hour} * * *'
         return cron_expression
 
     def check_datasource_config_empty(self, datasource_config):

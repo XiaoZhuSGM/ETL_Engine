@@ -49,8 +49,10 @@ def clean_sixun(source_id, date, target_table, data_frames):
         return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
         return clean_category(source_id, date, target_table, data_frames)
-    else:
-        pass
+    elif target_table == 'sales_target':
+        return sales_target(source_id, date, target_table, data_frames)
+    elif target_table == 'goods_loss':
+        return clean_goods_loss(source_id, date, target_table, data_frames)
 
 
 # 门店表
@@ -77,7 +79,8 @@ def clean_sixun(source_id, date, target_table, data_frames):
 def clean_store(source_id, date, target_table, data_frames):
     cmid = source_id.split("Y")[0]
     branch_info_frame = data_frames['t_bd_branch_info']
-    branch_info_frame['dj_yw'] = branch_info_frame['dj_yw'].map(lambda value: '已冻结' if value == 1 else '未冻结')
+    branch_info_frame['dj_yw'] = branch_info_frame['dj_yw'].str.strip()
+    branch_info_frame['dj_yw'] = branch_info_frame['dj_yw'].map(lambda value: '已冻结' if value == '1' else '未冻结')
     branch_info_frame = (branch_info_frame[(branch_info_frame['property'] == 0)])
 
     def trade_type_convert(value):
@@ -97,14 +100,20 @@ def clean_store(source_id, date, target_table, data_frames):
     branch_info_frame['lng'] = None
     branch_info_frame['area_code'] = None
     branch_info_frame['area_name'] = None
+
+    if source_id == '54YYYYYYYYYYYYY':
+        branch_info_frame['business_area'] = None
+        branch_info_frame['contacts'] = branch_info_frame['branch_man']
+    else:
+        branch_info_frame['business_area'] = branch_info_frame['other1']
+        branch_info_frame['contacts'] = branch_info_frame['branch_fax']
+
     branch_info_frame = branch_info_frame.rename(columns={'branch_no': 'foreign_store_id',
                                                           'branch_name': 'store_name',
                                                           'address': 'store_address',
                                                           'dj_yw': 'store_status',
                                                           'init_date': 'create_date',
                                                           'branch_tel': 'phone_number',
-                                                          'branch_fax': 'contacts',
-                                                          'other1': 'business_area',
                                                           'trade_type': 'property_id'
                                                           })
 
@@ -269,7 +278,7 @@ def clean_category(source_id, date, target_table, data_frames):
         },
         'converts': {
             "t_bd_item_cls": {'item_clsno': 'str'},
-            't_bd_item_info': {'item_clsno': 'str', 'num2': 'float',
+            't_bd_item_info': {'item_clsno': 'str', 'num2': 'str',
                                'main_supcust': 'str',
                                'status': 'int',
                                'item_no': 'str',
@@ -286,6 +295,14 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods_frame = data_frames['t_bd_item_info']
     item_cls_frame = data_frames['t_bd_item_cls']
     supcust_info_frame = data_frames['t_bd_supcust_info']
+
+    def num2_convert(row):
+        try:
+            return float(row['num2'])
+        except Exception:
+            return 0
+
+    goods_frame['num2'] = goods_frame.apply(num2_convert, axis=1)
 
     supcust_info_frame['supcust_no'] = supcust_info_frame['supcust_no'].str.strip()
     item_cls_frame['item_clsno'] = item_cls_frame['item_clsno'].str.strip()
@@ -448,8 +465,10 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     # 门店
     branch_info_frame['branch_no'] = branch_info_frame['branch_no'].str.strip()
 
+
     result_frame = pd.merge(sale_flow_frame, branch_info_frame, left_on='branch_no_1', right_on='branch_no', how='left',
                             suffixes=('_s1', '_store'))
+
 
     # item_clsno
     result_frame = pd.merge(result_frame, goods_frame, left_on='item_no', right_on='item_no', how='left',
@@ -482,7 +501,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     result_frame = result_frame[(result_frame['item_no'].notna()) & (result_frame['branch_no_store'].notna())]
 
     def saleprice_convert(row):
-
+        print(row['sell_way'])
         if row['sell_way'] == 'C':
             return 0
         else:
@@ -503,6 +522,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             return 0
         else:
             pass
+
 
     result_frame['saleprice'] = result_frame.apply(saleprice_convert, axis=1)
     result_frame['quantity'] = result_frame.apply(quantity_convert, axis=1)
@@ -664,7 +684,7 @@ def clean_cost(source_id, date, target_table, data_frames):
     result_frame['item_clsno_lv3'] = result_frame['item_clsno_lv3'].map(lambda x: x if x else '')
 
     if source_id == '54YYYYYYYYYYYYY':
-        result_frame['total_cost'] = result_frame.apply(lambda row: row['so_cost'] + row['pos_cost'],axis=1)
+        result_frame['total_cost'] = result_frame.apply(lambda row: row['so_cost'] + row['pos_cost'], axis=1)
     else:
         result_frame['total_cost'] = result_frame['fifo_cost_amt']
 
@@ -727,6 +747,259 @@ def upload_to_s3(frame, source_id, date, target_table):
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
 
     return key
+
+
+"""
+    'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno', ],
+            't_im_check_master': [
+                check_no,branch_no,sheet_no,oper_date,approve_flag
+            ],
+            't_im_check_sum': ['item_no', 'sheet_no', 'branch_no', 'balance_qty', 'sale_price'],
+            't_bd_branch_info':['branch_no','branch_name'],
+            't_bd_item_info':['item_no', 'item_subno', 'item_name', 'unit_no', 'item_clsno'],
+            
+        },
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno':'str'}
+            't_im_check_master': {
+                    "check_no":"str",
+                    'branch_no':"str",
+                    'sheet_no':'str',
+                    'oper_date':'str',
+                    'approve_flag':'str'
+            },
+            't_im_check_sum': {
+                'item_no':'str',
+                'sheet_no':'str',
+                'branch_no':'str',
+                'balance_qty':'str',
+                'sale_price':'float'
+            },
+            't_bd_branch_info':{
+                'branch_no':'str'
+            },
+            't_bd_item_info':{
+                'item_no':'str',
+                'item_subno':'str',
+                'item_name':'str',
+                'unit_no':'str',
+                'item_clsno':'str'
+            },
+        }
+"""
+
+
+def clean_goods_loss(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    header = data_frames['t_im_check_master']
+
+    if not len(header):
+        return upload_to_s3(pd.DataFrame(), source_id, date, target_table)
+
+    detail = data_frames['t_im_check_sum']
+
+    def qty_convert(row):
+        # print(row['balance_qty'])
+        try:
+            value = float(row['balance_qty'])
+            # print(value)
+            return value
+        except Exception:
+            return 0
+
+    detail['balance_qty'] = detail.apply(qty_convert, axis=1)
+
+    store = data_frames['t_bd_branch_info']
+    goods = data_frames['t_bd_item_info']
+    item_cls = data_frames['t_bd_item_cls']
+
+    header['check_no'] = header['check_no'].str.strip()
+    header['branch_no'] = header['branch_no'].str.strip()
+    detail['sheet_no'] = detail['sheet_no'].str.strip()
+    detail['branch_no'] = detail['branch_no'].str.strip()
+    detail['item_no'] = detail['item_no'].str.strip()
+    store['branch_no'] = store['branch_no'].str.strip()
+    goods['item_no'] = goods['item_no'].str.strip()
+    goods['item_clsno'] = goods['item_clsno'].str.strip()
+
+    len_1, len_2, len_3 = category_dict[source_id]
+
+    goods['item_clsno_1'] = goods.apply(lambda row: row['item_clsno'][:len_1], axis=1)
+    goods['item_clsno_2'] = goods.apply(lambda row: row['item_clsno'][:len_2], axis=1)
+
+    header['branch_no_1'] = header.apply(lambda row: row['branch_no'][:branch_dict[source_id]], axis=1)
+
+    item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
+
+    result = header.merge(
+        detail,
+        how='left',
+        left_on=['check_no', 'branch_no'],
+        right_on=['sheet_no', 'branch_no'],
+        suffixes=('.header', '.detail')
+    ).merge(
+        store,
+        how='left',
+        left_on='branch_no_1',
+        right_on='branch_no',
+        suffixes=('', '.store'),
+    ).merge(
+        goods,
+        how='left',
+        on='item_no',
+    ).merge(
+        item_cls,
+        how='left',
+        left_on='item_clsno_1',
+        right_on='item_clsno',
+        suffixes=('', '_lv1'),
+    ).merge(
+        item_cls,
+        how='left',
+        left_on='item_clsno_2',
+        right_on='item_clsno',
+        suffixes=('', '_lv2'),
+    ).merge(
+        item_cls,
+        how='left',
+        left_on='item_clsno',
+        right_on='item_clsno',
+        suffixes=('', '_lv3'),
+    )
+
+    result = result[result['balance_qty'] < 0]
+    result = result[result['approve_flag'] == '1']
+    result = result[result['branch_no_1'] != '00']
+
+    result['cmid'] = cmid
+    result['source_id'] = source_id
+    result['item_showcode'] = result['branch_no.store']
+
+    result['subtotal'] = result.apply(lambda row: row['balance_qty'] * row['sale_price'], axis=1)
+    result['foreign_category_lv4'] = ''
+    result['foreign_category_lv5'] = ''
+    result['barcode'] = result['item_no']
+    result = result.rename(columns={
+        'sheet_no.header': 'lossnum',
+        'oper_date': 'lossdate',
+        'branch_no.store': 'foreign_store_id',
+        'branch_name': 'store_name',
+        'item_no': 'foreign_item_id',
+        'item_subno': 'store_show_code',
+        'item_name': 'item_name',
+        'unit_no': 'item_unit',
+        'balance_qty': 'quantity',
+        'item_clsno_lv1': 'foreign_category_lv1',
+        'item_clsno_lv2': 'foreign_category_lv2',
+        'item_clsno': 'foreign_category_lv3',
+    })
+
+    result['lossdate'] = result.apply(lambda row: row['lossdate'].split()[0], axis=1)
+
+    result = result[[
+        "cmid",
+        "source_id",
+        "lossnum",
+        "lossdate",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "foreign_item_id",
+        "item_showcode",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "quantity",
+        "subtotal",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+    ]]
+
+    return upload_to_s3(result, source_id, date, target_table)
+
+
+"""
+'origin_table_columns': {
+            "t_da_sell_aim": ['branch_no', 'current_date', 'month_aim'],
+            't_bd_branch_info': [
+                'branch_no',
+                'branch_name',
+                
+            ],
+            
+            
+        },
+
+        'converts': {
+            "t_da_sell_aim": {
+                'branch_no':'str',
+                'current_date':'str'
+            }
+            
+            't_bd_branch_info':{
+                'branch_no':'str'
+            },
+        }
+"""
+
+
+def sales_target(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    target = data_frames['t_da_sell_aim']
+    store = data_frames['t_bd_branch_info']
+
+    target['branch_no'] = target['branch_no'].str.strip()
+    store['branch_no'] = store['branch_no'].str.strip()
+
+    result = target.merge(
+        store,
+        how='left',
+        on='branch_no',
+    )
+
+    result['source_id'] = source_id
+    result['cmid'] = cmid
+    result['target_date'] = datetime.now(_TZINFO).strftime('%Y-%m-%d')
+    result['foreign_store_id'] = result['branch_no']
+    result['store_show_code'] = result['branch_no']
+    result['store_name'] = result['branch_name']
+    result['target_sales'] = result['month_aim']
+
+    result['target_gross_profit'] = 0
+    result['category_level'] = 1
+
+    result['last_updated'] = datetime.now(_TZINFO).strftime('%Y-%m-01')
+
+    result['foreign_category_lv1'] = ''
+    result['foreign_category_lv2'] = ''
+    result['foreign_category_lv3'] = ''
+    result['foreign_category_lv4'] = ''
+    result['foreign_category_lv5'] = ''
+
+    result = result[[
+        "source_id",
+        "cmid",
+        "target_date",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "target_sales",
+        "target_gross_profit",
+        "category_level",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+        "last_updated",
+    ]]
+
+    return upload_to_s3(result, source_id, date, target_table)
 
 
 def now_timestamp():
