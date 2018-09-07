@@ -152,53 +152,48 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "61YYYYYYYYYYYYY",
-        "erp_name": "宏业",
+        "source_id": "56YYYYYYYYYYYYY",
+        "erp_name": "思迅",
         "date": "2018-09-06",
-        "target_table": "goods",
-        "origin_table_columns": {
-            "inf_goods": [
-                "baseunit",
-                "brandcode",
-                "classcode",
-                "gdsincode",
-                "gdsname",
-                "lastinprice",
-                "lastsupplier",
-                "qcdays",
-                "salecircle",
-                "saleprice",
-                "sendmode",
-                "stripecode",
+        "target_table": "goods_loss",
+        'origin_table_columns': {
+            "t_bd_item_cls": ['item_clsno', ],
+            't_im_check_master': [
+                'check_no', 'branch_no', 'sheet_no', 'oper_date', 'approve_flag'
             ],
-            "inf_goods_salecircle": ["circlename", "circlevalue"],
-            "inf_brand": ["brand", "brandcode"],
-            "inf_tradeunit": ["unitname", "unitcode"],
-            "sys_sendmode": ["sendmode_name", "sendmode"],
-            "inf_goodsclass": ["classcode", "classname", "fatherclass", "classgrade"],
+            't_im_check_sum': ['item_no', 'sheet_no', 'branch_no', 'balance_qty', 'sale_price'],
+            't_bd_branch_info': ['branch_no', 'branch_name'],
+            't_bd_item_info': ['item_no', 'item_subno', 'item_name', 'unit_no', 'item_clsno'],
+
         },
-        "converts": {
-            "inf_goods": {
-                "baseunit": "str",
-                "brandcode": "str",
-                "classcode": "str",
-                "gdsincode": "str",
-                "gdsname": "str",
-                "lastsupplier": "str",
-                "stripecode": "str",
-                "sendmode":"str"
+
+        'converts': {
+            "t_bd_item_cls": {'item_clsno': 'str'},
+            't_im_check_master': {
+                "check_no": "str",
+                'branch_no': "str",
+                'sheet_no': 'str',
+                'oper_date': 'str',
+                'approve_flag': 'str'
             },
-            "inf_goods_salecircle": {"circlename": "str"},
-            "inf_brand": {"brand": "str", "brandcode": "str"},
-            "inf_tradeunit": {"unitname": "str", "unitcode": "str"},
-            "sys_sendmode": {"sendmode_name": "str", "sendmode":"str"},
-            "inf_goodsclass": {
-                "classcode": "str",
-                "classname": "str",
-                "fatherclass": "str",
-                'classgrade': 'int'
+            't_im_check_sum': {
+                'item_no': 'str',
+                'sheet_no': 'str',
+                'branch_no': 'str',
+                'balance_qty': 'str',
+                'sale_price': 'float'
             },
-        },
+            't_bd_branch_info': {
+                'branch_no': 'str'
+            },
+            't_bd_item_info': {
+                'item_no': 'str',
+                'item_subno': 'str',
+                'item_name': 'str',
+                'unit_no': 'str',
+                'item_clsno': 'str'
+            },
+        }
     }
 
     handler(event, None)

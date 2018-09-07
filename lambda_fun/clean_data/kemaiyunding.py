@@ -126,7 +126,7 @@ def clean_cost(source_id, date, target_table, frames):
     cost_frame = cost_frame[
         ["source_id", "foreign_store_id", "foreign_item_id", "date", "costtype", "total_quantity", "total_sale",
          "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-         "foreign_category_lv5"]]
+         "foreign_category_lv5", 'cmid']]
 
     return upload_to_s3(cost_frame, source_id, date, target_table)
 
@@ -307,7 +307,7 @@ def clean_category(source_id, date, target_table, frames):
 
     category3 = category3[['cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
                            'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-                           'last_updateds', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
+                           'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
                            'foreign_category_lv5_name']]
 
     category = pd.concat([category1, category2, category3])
