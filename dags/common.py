@@ -404,13 +404,13 @@ def load_common_function(**kwargs):
         end_time = time.time()
         cost_time = int(end_time - start_time)
         load_result = dict(source_id=source_id,
-                              cmid=cmid,
-                              table_name=target,
-                              extract_date=extract_date,
-                              task_type=3,
-                              start_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time)),
-                              end_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time)),
-                              cost_time=cost_time)
+                           cmid=cmid,
+                           table_name=target,
+                           extract_date=extract_date,
+                           task_type=3,
+                           start_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time)),
+                           end_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time)),
+                           cost_time=cost_time)
 
         if flag:
             # 入库成功
@@ -490,6 +490,18 @@ from airflow.models import Variable
 
 TOKEN_DONE = Variable.get("TOKEN_DONE")
 TOPIC_DONE_ARN = Variable.get("TOPIC_DONE_ARN")
+
+server_ip = Variable.get('SERVER')
+
+import requests
+
+
+def generate_crontab(source_id):
+    response = requests.get(f'http://{server_ip}:5000/etl/admin/api/crontab/full/{source_id}')
+    result = json.loads(response.text)
+    interval = result['data']
+
+    return interval
 
 
 def get_date_delta_by_num_to_ymd(delta=0):
