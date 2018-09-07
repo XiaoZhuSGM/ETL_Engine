@@ -160,6 +160,7 @@ def extract_data_by_filename(**kwargs):
             payload_body = response['Payload']
             payload_str = payload_body.read()
             payload = json.loads(payload_str)
+            print(payload['extract_data'])
             extract_dict['extract_data'].update(**payload['extract_data'])
             current_sqls = read_sqls_by_filename(source_id, date, sql_filename)
             extract_dict['sqls'].update(**current_sqls)
@@ -215,6 +216,7 @@ def check_common_extract_data_result_function(**kwargs):
     log_info_list = list()
 
     for table_name in origin_tables:
+        table_name = table_name.lower()
         table_sqls = sqls[table_name]
         table_datas = extract_data[table_name]
 
@@ -429,8 +431,13 @@ def clean_common_function(**kwargs):
                  erp_name=erp_name,
                  date=query_date,
                  target_table=target_table)
-    event['origin_table_columns'] = result_dict['data']['target']['origin_table']
-    event['converts'] = result_dict['data']['target']['covert_str']
+
+
+
+    event['origin_table_columns'] = {key.lower(): value for (key, value) in
+                                     result_dict['data']['target']['origin_table'].items()}
+
+    event['converts'] = {key.lower(): value for (key, value) in result_dict['data']['target']['covert_str'].items()}
     print('target\t', target)
     print('result\t', result_dict)
     print(event)
