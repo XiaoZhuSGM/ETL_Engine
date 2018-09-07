@@ -748,42 +748,45 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
-        part1["cmid"] = self.cmid
-        part1["foreign_category_lv2"] = part1.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part1["foreign_category_lv3"] = part1.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part1["foreign_category_lv4"] = part1.apply(
-            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
-            axis=1,
-        )
-        part1["foreign_category_lv5"] = ""
-        part1["storage_time"] = datetime.now(_TZINFO)
-        part1["last_updated"] = datetime.now(_TZINFO)
-        part1["isvalid"] = "1"
-        part1["show_code"] = part1["gdsincode"]
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["cmid"] = self.cmid
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+                axis=1,
+            )
+            part1["foreign_category_lv5"] = ""
+            part1["storage_time"] = datetime.now(_TZINFO)
+            part1["last_updated"] = datetime.now(_TZINFO)
+            part1["isvalid"] = "1"
+            part1["show_code"] = part1["gdsincode"]
 
-        part1 = part1.rename(
-            columns={
-                "stripecode": "barcode",
-                "gdsincode": "foreign_item_id",
-                "gdsname": "item_name",
-                "lastinprice": "lastin_price",
-                "saleprice": "sale_price",
-                "baseunit": "item_unit",
-                "circlename": "item_status",
-                "qcdays": "warranty",
-                "sendmode_name": "allot_method",
-                "unitname": "supplier_name",
-                "unitcode": "supplier_code",
-                "brand": "brand_name",
-            }
-        )
-        part1 = part1[columns]
+            part1 = part1.rename(
+                columns={
+                    "stripecode": "barcode",
+                    "gdsincode": "foreign_item_id",
+                    "gdsname": "item_name",
+                    "lastinprice": "lastin_price",
+                    "saleprice": "sale_price",
+                    "baseunit": "item_unit",
+                    "circlename": "item_status",
+                    "qcdays": "warranty",
+                    "sendmode_name": "allot_method",
+                    "unitname": "supplier_name",
+                    "unitcode": "supplier_code",
+                    "brand": "brand_name",
+                }
+            )
+            part1 = part1[columns]
 
         subquery2 = self._goodsclass_subquery_2()
         part2 = (
@@ -816,38 +819,41 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
-        part2["cmid"] = self.cmid
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2["storage_time"] = datetime.now(_TZINFO)
-        part2["last_updated"] = datetime.now(_TZINFO)
-        part2["isvalid"] = "1"
-        part2["show_code"] = part2["gdsincode"]
-        part2 = part2.rename(
-            columns={
-                "stripecode": "barcode",
-                "gdsincode": "foreign_item_id",
-                "gdsname": "item_name",
-                "lastinprice": "lastin_price",
-                "saleprice": "sale_price",
-                "baseunit": "item_unit",
-                "circlename": "item_status",
-                "qcdays": "warranty",
-                "sendmode_name": "allot_method",
-                "unitname": "supplier_name",
-                "unitcode": "supplier_code",
-                "brand": "brand_name",
-            }
-        )
-        part2 = part2[columns]
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["cmid"] = self.cmid
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["storage_time"] = datetime.now(_TZINFO)
+            part2["last_updated"] = datetime.now(_TZINFO)
+            part2["isvalid"] = "1"
+            part2["show_code"] = part2["gdsincode"]
+            part2 = part2.rename(
+                columns={
+                    "stripecode": "barcode",
+                    "gdsincode": "foreign_item_id",
+                    "gdsname": "item_name",
+                    "lastinprice": "lastin_price",
+                    "saleprice": "sale_price",
+                    "baseunit": "item_unit",
+                    "circlename": "item_status",
+                    "qcdays": "warranty",
+                    "sendmode_name": "allot_method",
+                    "unitname": "supplier_name",
+                    "unitcode": "supplier_code",
+                    "brand": "brand_name",
+                }
+            )
+            part2 = part2[columns]
 
         return pd.concat([part1, part2])
 
