@@ -15,7 +15,7 @@ coverts = {"t_sl_master": {"fbrh_no": str}, "t_br_master": {"fbrh_no": str},
            "t_bc_master": {"fitem_clsno": str, "fprt_no": str}}
 
 # 成本
-origin_table_columns = {"t_rpt_sl_detail": ['fitem_id', 'fbrh_no', 'ftrade_date', 'fsl_qty', 'famt', 'fcost_amt'],
+origin_table_columns = {"t_rpt_sl_detail": ['fitem_id', 'fbrh_no', 'ftrade_date', 'fqty', 'famt', 'fcost_amt'],
                         "t_bi_master": ['fitem_clsno', 'fitem_id']
                         }
 
@@ -122,7 +122,7 @@ def clean_cost(source_id, date, target_table, frames):
     cost_frame["foreign_category_lv3"] = cost_frame.fitem_clsno.apply(lambda x: str(x) if x is not None else '')
     cost_frame = cost_frame.rename(
         columns={"fbrh_no": "foreign_store_id", "fitem_id": "foreign_item_id", "ftrade_date": "date",
-                 "fsl_qty": "total_quantity", "famt": "total_sale", "fcost_amt": "total_cost"})
+                 "fqty": "total_quantity", "famt": "total_sale", "fcost_amt": "total_cost"})
     cost_frame = cost_frame[
         ["source_id", "foreign_store_id", "foreign_item_id", "date", "costtype", "total_quantity", "total_sale",
          "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
@@ -178,7 +178,7 @@ def clean_goods(source_id, date, target_table, frames):
         elif x == '2':
             y = '中转'
         elif x == '3':
-            y = "直者"
+            y = "自采"
         else:
             y = ''
         return y
@@ -450,6 +450,7 @@ def frame2(cmid, source_id, frames):
         lambda row: gene_quantity(row["fsell_way"], row["fpack_qty"], row["funit_qty"]), axis=1)
 
     temp2["subtotal"] = temp2.apply(lambda row: gene_sbutotal(row["fsell_way"], row["famt"]), axis=1)
+    temp2["saleprice"] = temp2.apply(lambda row: row["fprice"] / row["funit_qty"], axis=1)
 
     temp2 = temp2.merge(frames["t_bc_master"], how="left", on="fitem_clsno")
 
@@ -459,7 +460,7 @@ def frame2(cmid, source_id, frames):
 
     temp2 = temp2.rename(columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "fflow_no": "receipt_id",
                                   "fitem_id": "foreign_item_id", "fitem_subno": "barcode", "fitem_name": "item_name",
-                                  "funit_no": "item_unit", "fprice": "saleprice", "fitem_clsno": "foreign_category_lv1",
+                                  "funit_no": "item_unit", "fitem_clsno": "foreign_category_lv1",
                                   "fitem_clsname": "foreign_category_lv1_name",
                                   "fitem_clsno_lv2": "foreign_category_lv2",
                                   "fitem_clsname_lv2": "foreign_category_lv2_name",

@@ -429,51 +429,53 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
-        part1 = part1[
-            (~part1["flowno"].str.contains("NNN", regex=False))
-            & (part1["deptcode"].notnull())
-            & (part1["gdsincode"].notnull())
-        ]
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1 = part1[
+                (~part1["flowno"].str.contains("NNN", regex=False))
+                & (part1["deptcode"].notnull())
+                & (part1["gdsincode"].notnull())
+            ]
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1["consumer_id"] = ""
+            part1["last_updated"] = datetime.now(_TZINFO)
+            part1["saleprice"] = part1.apply(
+                lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+                axis=1,
+            )
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+                axis=1,
+            )
+            part1["foreign_category_lv5"] = ""
+            part1["foreign_category_lv5_name"] = None
+            part1["pos_id"] = ""
 
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1["consumer_id"] = ""
-        part1["last_updated"] = datetime.now(_TZINFO)
-        part1["saleprice"] = part1.apply(
-            lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
-            axis=1,
-        )
-        part1["foreign_category_lv2"] = part1.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part1["foreign_category_lv3"] = part1.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part1["foreign_category_lv4"] = part1.apply(
-            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
-            axis=1,
-        )
-        part1["foreign_category_lv5"] = ""
-        part1["foreign_category_lv5_name"] = None
-        part1["pos_id"] = ""
-
-        part1 = part1.rename(
-            columns={
-                "deptcode": "foreign_store_id",
-                "shotname": "store_name",
-                "flowno": "receipt_id",
-                "recorddate": "saletime",
-                "gdsincode": "foreign_item_id",
-                "stripecode": "barcode",
-                "gdsname": "item_name",
-                "baseunit": "item_unit",
-                "amount": "quantity",
-                "actualpay": "subtotal",
-            }
-        )
-        part1 = part1[columns]
+            part1 = part1.rename(
+                columns={
+                    "deptcode": "foreign_store_id",
+                    "shotname": "store_name",
+                    "flowno": "receipt_id",
+                    "recorddate": "saletime",
+                    "gdsincode": "foreign_item_id",
+                    "stripecode": "barcode",
+                    "gdsname": "item_name",
+                    "baseunit": "item_unit",
+                    "amount": "quantity",
+                    "actualpay": "subtotal",
+                }
+            )
+            part1 = part1[columns]
 
         subquery2 = self._goodsclass_subquery_2()
         part2 = (
@@ -499,48 +501,51 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
-        part2 = part2[
-            (~part2["flowno"].str.contains("NNN", regex=False))
-            & (part2["deptcode"].notnull())
-            & (part2["gdsincode"].notnull())
-        ]
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
-        part2["consumer_id"] = ""
-        part2["last_updated"] = datetime.now(_TZINFO)
-        part2["saleprice"] = part2.apply(
-            lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
-            axis=1,
-        )
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv4_name"] = None
-        part2["foreign_category_lv5"] = ""
-        part2["foreign_category_lv5_name"] = None
-        part2["pos_id"] = ""
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2 = part2[
+                (~part2["flowno"].str.contains("NNN", regex=False))
+                & (part2["deptcode"].notnull())
+                & (part2["gdsincode"].notnull())
+            ]
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["consumer_id"] = ""
+            part2["last_updated"] = datetime.now(_TZINFO)
+            part2["saleprice"] = part2.apply(
+                lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+                axis=1,
+            )
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv4_name"] = None
+            part2["foreign_category_lv5"] = ""
+            part2["foreign_category_lv5_name"] = None
+            part2["pos_id"] = ""
 
-        part2 = part2.rename(
-            columns={
-                "deptcode": "foreign_store_id",
-                "shotname": "store_name",
-                "flowno": "receipt_id",
-                "recorddate": "saletime",
-                "gdsincode": "foreign_item_id",
-                "stripecode": "barcode",
-                "gdsname": "item_name",
-                "baseunit": "item_unit",
-                "amount": "quantity",
-                "actualpay": "subtotal",
-            }
-        )
-        part2 = part2[columns]
+            part2 = part2.rename(
+                columns={
+                    "deptcode": "foreign_store_id",
+                    "shotname": "store_name",
+                    "flowno": "receipt_id",
+                    "recorddate": "saletime",
+                    "gdsincode": "foreign_item_id",
+                    "stripecode": "barcode",
+                    "gdsname": "item_name",
+                    "baseunit": "item_unit",
+                    "amount": "quantity",
+                    "actualpay": "subtotal",
+                }
+            )
+            part2 = part2[columns]
 
         return pd.concat([part1, part2])
 
@@ -575,49 +580,52 @@ class HongYeCleaner:
             right_on=["foreign_category_lv4"],
             suffixes=("", ".lv"),
         )
-        part1 = part1.groupby(
-            [
-                "deptcode",
-                "gdsincode",
-                "recorddate",
-                "foreign_category_lv1",
-                "foreign_category_lv2",
-                "foreign_category_lv3",
-                "foreign_category_lv4",
-            ],
-            as_index=False,
-        ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1 = part1.groupby(
+                [
+                    "deptcode",
+                    "gdsincode",
+                    "recorddate",
+                    "foreign_category_lv1",
+                    "foreign_category_lv2",
+                    "foreign_category_lv3",
+                    "foreign_category_lv4",
+                ],
+                as_index=False,
+            ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
 
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1["foreign_store_id"] = part1.apply(
-            lambda row: row["deptcode"][: self.store_id_len], axis=1
-        )
-        part1["cost_type"] = ""
-        part1["foreign_category_lv2"] = part1.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part1["foreign_category_lv3"] = part1.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part1["foreign_category_lv4"] = part1.apply(
-            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
-            axis=1,
-        )
-        part1["foreign_category_lv5"] = ""
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1["foreign_store_id"] = part1.apply(
+                lambda row: row["deptcode"][: self.store_id_len], axis=1
+            )
+            part1["cost_type"] = ""
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+                axis=1,
+            )
+            part1["foreign_category_lv5"] = ""
 
-        part1 = part1.rename(
-            columns={
-                "gdsincode": "foreign_item_id",
-                "recorddate": "date",
-                "totalamount": "total_quantity",
-                "totalsalemoney": "total_sale",
-                "totalinmoney": "total_cost",
-            }
-        )
-        part1 = part1[columns]
+            part1 = part1.rename(
+                columns={
+                    "gdsincode": "foreign_item_id",
+                    "recorddate": "date",
+                    "totalamount": "total_quantity",
+                    "totalsalemoney": "total_sale",
+                    "totalinmoney": "total_cost",
+                }
+            )
+            part1 = part1[columns]
 
         subquery2 = self._goodsclass_subquery_2()
         part2 = rep_goods_sale.merge(
@@ -629,44 +637,47 @@ class HongYeCleaner:
             right_on=["foreign_category_lv3"],
             suffixes=("", ".lv"),
         )
-        part2 = part2.groupby(
-            [
-                "deptcode",
-                "gdsincode",
-                "recorddate",
-                "foreign_category_lv1",
-                "foreign_category_lv2",
-                "foreign_category_lv3",
-            ],
-            as_index=False,
-        ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2 = part2.groupby(
+                [
+                    "deptcode",
+                    "gdsincode",
+                    "recorddate",
+                    "foreign_category_lv1",
+                    "foreign_category_lv2",
+                    "foreign_category_lv3",
+                ],
+                as_index=False,
+            ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
 
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
-        part2["foreign_store_id"] = part2.apply(
-            lambda row: row["deptcode"][: self.store_id_len], axis=1
-        )
-        part2["cost_type"] = ""
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2 = part2.rename(
-            columns={
-                "gdsincode": "foreign_item_id",
-                "recorddate": "date",
-                "totalamount": "total_quantity",
-                "totalsalemoney": "total_sale",
-                "totalinmoney": "total_cost",
-            }
-        )
-        part2 = part2[columns]
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["foreign_store_id"] = part2.apply(
+                lambda row: row["deptcode"][: self.store_id_len], axis=1
+            )
+            part2["cost_type"] = ""
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2 = part2.rename(
+                columns={
+                    "gdsincode": "foreign_item_id",
+                    "recorddate": "date",
+                    "totalamount": "total_quantity",
+                    "totalsalemoney": "total_sale",
+                    "totalinmoney": "total_cost",
+                }
+            )
+            part2 = part2[columns]
         return pd.concat([part1, part2])
 
     def goods(self):
