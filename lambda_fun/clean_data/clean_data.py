@@ -152,37 +152,74 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "74YYYYYYYYYYYYY",
-        "erp_name": "思迅",
+        "source_id": "70YYYYYYYYYYYYY",
+        "erp_name": "科脉云鼎",
         "date": "2018-09-06",
         "target_table": "goodsflow",
         'origin_table_columns': {
-            't_rm_saleflow': ['branch_no',
-                              'item_no',
-                              'sale_price',
-                              'sale_qnty',
-                              'sell_way',
-                              'sale_money',
-                              'flow_no',
-                              'oper_date'],
-            't_bd_branch_info': ['branch_no', 'branch_name'],
-            't_bd_item_info': ['item_no', 'item_clsno', 'item_name', 'unit_no'],
-            't_bd_item_cls': ['item_clsno', 'item_clsname'],
+            "t_bc_master": [
+                "fitem_clsno",
+                "fitem_clsname",
+                "fprt_no"
+            ],
+            "t_bi_barcode": [
+                "funit_qty",
+                "fitem_id",
+                "fitem_subno"
+            ],
+            "t_bi_master": [
+                "fitem_id",
+                "fitem_subno",
+                "fitem_name",
+                "funit_no",
+                "fitem_clsno"
+            ],
+            "t_br_master": [
+                "fbrh_name",
+                "fbrh_no"
+            ],
+            "t_sl_detail": [
+                "fprice",
+                "fpack_qty",
+                "famt",
+                "fflow_no",
+                "fitem_subno",
+                "fitem_id"
+            ],
+            "t_sl_master": [
+                "fbrh_no",
+                "fflow_no",
+                "ftrade_date",
+                "fcr_time",
+                "fsell_way"
+            ]
         },
 
         'converts': {
-            't_rm_saleflow': {'branch_no': 'str',
-                              'item_no': 'str',
-                              'sale_price': 'float',
-                              'sale_qnty': 'float',
-                              'sell_way': 'str',
-                              'sale_money': 'float',
-                              'flow_no': 'str'
-                              },
-
-            't_bd_branch_info': {'branch_no': 'str'},
-            't_bd_item_info': {'item_no': 'str', 'item_clsno': 'str','unit_no':'str'},
-            't_bd_item_cls': {'item_clsno': 'str'},
+            "t_bc_master": {
+                "fitem_clsno": "str",
+                "fprt_no": "str"
+            },
+            "t_bi_barcode": {
+                "fitem_id": "str",
+                "fitem_subno": "str"
+            },
+            "t_bi_master": {
+                "fitem_clsno": "str",
+                "fitem_id": "str",
+                "fitem_subno": "str"
+            },
+            "t_br_master": {
+                "fbrh_no": "str"
+            },
+            "t_sl_detail": {
+                "fitem_id": "str",
+                "fitem_subno": "str"
+            },
+            "t_sl_master": {
+                "fbrh_no": "str",
+                "fflow_no": "str"
+            }
         }
     }
 
