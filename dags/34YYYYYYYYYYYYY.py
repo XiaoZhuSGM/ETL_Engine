@@ -13,8 +13,8 @@ from common import *
 
 lambda_client = boto3.client('lambda')
 S3_CLIENT = boto3.resource('s3')
-source_id = '72YYYYYYYYYYYYY'
-erp_name = '思迅'
+source_id = '34YYYYYYYYYYYYY'
+erp_name = '宏业'
 cmid = source_id.split("Y")[0]
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 S3_BUCKET = 'ext-etl-data'
@@ -35,7 +35,7 @@ args = {
     'provide_context': True
 }
 
-dag = DAG(dag_id='ext_72', schedule_interval='0 22 * * *', default_args=args)
+dag = DAG(dag_id='ext_34', schedule_interval='0 22 * * *', default_args=args)
 
 """
  先创建3个task
@@ -48,7 +48,9 @@ target_list = ['chain_store',
                'chain_goods',
                'chain_category',
                'goodsflow',
-               'cost'
+               'cost',
+               'chain_sales_target',
+               'chain_goods_loss'
                ]
 
 generate_common_task(source_id, cmid, erp_name, dag, target_list)
