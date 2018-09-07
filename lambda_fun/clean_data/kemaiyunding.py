@@ -375,7 +375,19 @@ def now_timestamp():
 
 
 def frame1(cmid, source_id, frames):
+    columns = [
+        [
+            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
+        ]
+    ]
     temp1 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no")
+
+    if not len(temp1):
+        return pd.DataFrame(columns=columns)
 
     def gene_quantity_or_sbutotal(x, y):
         if x == 2:
@@ -420,21 +432,28 @@ def frame1(cmid, source_id, frames):
     # del temp1["fprt_no_lv2"]
     # del temp1["fprt_no"]
 
-    temp1 = temp1[
-        ["source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-         "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-         "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-         "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"]]
+    temp1 = temp1[columns]
 
     return temp1
 
 
 def frame2(cmid, source_id, frames):
+    columns = [
+        [
+            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
+        ]
+    ]
     temp2 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
         .merge(frames["t_br_master"], how="left", on="fbrh_no") \
         .merge(frames["t_bi_master"], how="inner", on="fitem_id", suffixes=('', '_y')) \
         .merge(frames["t_bi_barcode"], how="inner", on=["fitem_id", "fitem_subno"])
+
+    if not len(temp2):
+        return pd.DataFrame(columns=columns)
 
     def gene_quantity(x, y, z):
         if x == 2:
@@ -484,17 +503,22 @@ def frame2(cmid, source_id, frames):
     # del temp2["fprt_no_lv2"]
     # del temp2["fprt_no"]
 
-    temp2 = temp2[
-        ["source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-         "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-         "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-         "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"]]
+    temp2 = temp2[columns]
 
     return temp2
 
 
 def frame3(cmid, source_id, frames):
+    columns = [
+        [
+            "source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
+            "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
+            "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
+            "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
+            "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
+        ]
+    ]
+
     temp3 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
         .merge(frames["t_br_master"], how="left", on="fbrh_no").query("fitem_id == 0")
 
@@ -502,7 +526,8 @@ def frame3(cmid, source_id, frames):
         if x == 2:
             return -1 * y
         return y
-
+    if not len(temp3):
+        return pd.DataFrame(columns=columns)
     temp3["quantity"] = temp3.apply(lambda row: gene_quantity_or_sbutotal(row["fsell_way"], row["fpack_qty"]), axis=1)
     temp3["subtotal"] = temp3.apply(lambda row: gene_quantity_or_sbutotal(row["fsell_way"], row["famt"]), axis=1)
 
@@ -533,11 +558,6 @@ def frame3(cmid, source_id, frames):
     # del temp3["fpack_qty"]
     # del temp3["famt"]
 
-    temp3 = temp3[
-        ["source_id", "cmid", "foreign_store_id", "store_name", "receipt_id", "consumer_id", "saletime", "last_updated",
-         "foreign_item_id", "barcode", "item_name", "item_unit", "saleprice", "quantity", "subtotal",
-         "foreign_category_lv1", "foreign_category_lv1_name", "foreign_category_lv2", "foreign_category_lv2_name",
-         "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
-         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"]]
+    temp3 = temp3[columns]
 
     return temp3
