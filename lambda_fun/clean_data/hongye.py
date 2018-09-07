@@ -243,9 +243,8 @@ _TZINFO = pytz.timezone("Asia/Shanghai")
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
 
-
 class HongYeCleaner:
-    store_id_len_map = {"34": 4, "61": 3, "65": 3, '85':3}
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3}
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
@@ -281,8 +280,8 @@ class HongYeCleaner:
 
     def _goodsclass_subquery_1(self):
         inf_goodsclass = self.data["inf_goodsclass"]
-        inf_goodsclass['fatherclass'] = inf_goodsclass['fatherclass'].str.strip()
-        inf_goodsclass['classcode'] = inf_goodsclass['classcode'].str.strip()
+        inf_goodsclass["fatherclass"] = inf_goodsclass["fatherclass"].str.strip()
+        inf_goodsclass["classcode"] = inf_goodsclass["classcode"].str.strip()
 
         subquery = (
             inf_goodsclass.merge(
@@ -292,14 +291,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv3"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv2"],
@@ -417,14 +416,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(
+            .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-                .merge(
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -445,7 +444,9 @@ class HongYeCleaner:
             part1["consumer_id"] = ""
             part1["last_updated"] = datetime.now(_TZINFO)
             part1["saleprice"] = part1.apply(
-                lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+                lambda row: 0
+                if row["amount"] == 0
+                else row["actualpay"] / row["amount"],
                 axis=1,
             )
             part1["foreign_category_lv2"] = part1.apply(
@@ -489,14 +490,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(
+            .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-                .merge(
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -518,7 +519,9 @@ class HongYeCleaner:
             part2["consumer_id"] = ""
             part2["last_updated"] = datetime.now(_TZINFO)
             part2["saleprice"] = part2.apply(
-                lambda row: 0 if row["amount"] == 0 else row["actualpay"] / row["amount"],
+                lambda row: 0
+                if row["amount"] == 0
+                else row["actualpay"] / row["amount"],
                 axis=1,
             )
             part2["foreign_category_lv2"] = part2.apply(
@@ -598,7 +601,13 @@ class HongYeCleaner:
                     "foreign_category_lv4",
                 ],
                 as_index=False,
-            ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+            ).agg(
+                {
+                    "totalamount": np.sum,
+                    "totalsalemoney": np.sum,
+                    "totalinmoney": np.sum,
+                }
+            )
 
             part1["cmid"] = self.cmid
             part1["source_id"] = self.source_id
@@ -654,7 +663,13 @@ class HongYeCleaner:
                     "foreign_category_lv3",
                 ],
                 as_index=False,
-            ).agg({"totalamount": np.sum, "totalsalemoney": np.sum, "totalinmoney": np.sum})
+            ).agg(
+                {
+                    "totalamount": np.sum,
+                    "totalsalemoney": np.sum,
+                    "totalinmoney": np.sum,
+                }
+            )
 
             part2["cmid"] = self.cmid
             part2["source_id"] = self.source_id
@@ -695,11 +710,11 @@ class HongYeCleaner:
             lambda row: row["lastsupplier"].strip(), axis=1
         )
 
-        inf_brand['brandcode'] = inf_brand['brandcode'].str.strip()
-        inf_goods['brandcode'] = inf_goods['brandcode'].str.strip()
-        inf_goods['sendmode'] = inf_goods['sendmode'].str.strip()
-        inf_goods['classcode'] = inf_goods['classcode'].str.strip()
-        sys_sendmode['sendmode'] = sys_sendmode['sendmode'].str.strip()
+        inf_brand["brandcode"] = inf_brand["brandcode"].str.strip()
+        inf_goods["brandcode"] = inf_goods["brandcode"].str.strip()
+        inf_goods["sendmode"] = inf_goods["sendmode"].str.strip()
+        inf_goods["classcode"] = inf_goods["classcode"].str.strip()
+        sys_sendmode["sendmode"] = sys_sendmode["sendmode"].str.strip()
 
         inf_tradeunit["unitcode_trimed"] = inf_tradeunit.apply(
             lambda row: row["unitcode"].strip(), axis=1
@@ -738,21 +753,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-                .merge(
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier_trimed"],
                 right_on=["unitcode_trimed"],
                 suffixes=("", ".inf_tradeunit"),
             )
-                .merge(
+            .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-                .merge(
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -809,21 +824,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-                .merge(
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier_trimed"],
                 right_on=["unitcode_trimed"],
                 suffixes=("", ".inf_tradeunit"),
             )
-                .merge(
+            .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-                .merge(
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -888,24 +903,27 @@ class HongYeCleaner:
             "foreign_category_lv5_name",
         ]
         part1 = inf_goodsclass[inf_goodsclass["classgrade"] == 1].copy()
-        part1["cmid"] = self.cmid
-        part1["foreign_category_lv2"] = ""
-        part1["foreign_category_lv2_name"] = None
-        part1["foreign_category_lv3"] = ""
-        part1["foreign_category_lv3_name"] = None
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv4_name"] = None
-        part1["foreign_category_lv5"] = ""
-        part1["foreign_category_lv5_name"] = None
-        part1["last_updated"] = datetime.now(_TZINFO)
-        part1 = part1.rename(
-            columns={
-                "classgrade": "level",
-                "classcode": "foreign_category_lv1",
-                "classname": "foreign_category_lv1_name",
-            }
-        )
-        part1 = part1[columns]
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["cmid"] = self.cmid
+            part1["foreign_category_lv2"] = ""
+            part1["foreign_category_lv2_name"] = None
+            part1["foreign_category_lv3"] = ""
+            part1["foreign_category_lv3_name"] = None
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv4_name"] = None
+            part1["foreign_category_lv5"] = ""
+            part1["foreign_category_lv5_name"] = None
+            part1["last_updated"] = datetime.now(_TZINFO)
+            part1 = part1.rename(
+                columns={
+                    "classgrade": "level",
+                    "classcode": "foreign_category_lv1",
+                    "classname": "foreign_category_lv1_name",
+                }
+            )
+            part1 = part1[columns]
 
         part2 = inf_goodsclass.merge(
             inf_goodsclass,
@@ -915,26 +933,29 @@ class HongYeCleaner:
             suffixes=("", ".lv1"),
         )
         part2 = part2[part2["classgrade"] == 2]
-        part2["cmid"] = self.cmid
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: row["classcode.lv1"] + row["classcode"], axis=1
-        )
-        part2["foreign_category_lv3"] = ""
-        part2["foreign_category_lv3_name"] = None
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv4_name"] = None
-        part2["foreign_category_lv5"] = ""
-        part2["foreign_category_lv5_name"] = None
-        part2["last_updated"] = datetime.now(_TZINFO)
-        part2 = part2.rename(
-            columns={
-                "classgrade": "level",
-                "classcode.lv1": "foreign_category_lv1",
-                "classname.lv1": "foreign_category_lv1_name",
-                "classname": "foreign_category_lv2_name",
-            }
-        )
-        part2 = part2[columns]
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["cmid"] = self.cmid
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["classcode.lv1"] + row["classcode"], axis=1
+            )
+            part2["foreign_category_lv3"] = ""
+            part2["foreign_category_lv3_name"] = None
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv4_name"] = None
+            part2["foreign_category_lv5"] = ""
+            part2["foreign_category_lv5_name"] = None
+            part2["last_updated"] = datetime.now(_TZINFO)
+            part2 = part2.rename(
+                columns={
+                    "classgrade": "level",
+                    "classcode.lv1": "foreign_category_lv1",
+                    "classname.lv1": "foreign_category_lv1_name",
+                    "classname": "foreign_category_lv2_name",
+                }
+            )
+            part2 = part2[columns]
 
         part3 = inf_goodsclass.merge(
             inf_goodsclass,
@@ -950,28 +971,31 @@ class HongYeCleaner:
             suffixes=("", ".lv1"),
         )
         part3 = part3[part3["classgrade"] == 3]
-        part3["cmid"] = self.cmid
-        part3["foreign_category_lv2"] = part3.apply(
-            lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
-        )
-        part3["foreign_category_lv3"] = part3.apply(
-            lambda row: row["foreign_category_lv2"] + row["classcode"], axis=1
-        )
-        part3["foreign_category_lv4"] = ""
-        part3["foreign_category_lv4_name"] = None
-        part3["foreign_category_lv5"] = ""
-        part3["foreign_category_lv5_name"] = None
-        part3["last_updated"] = datetime.now(_TZINFO)
-        part3 = part3.rename(
-            columns={
-                "classgrade": "level",
-                "classcode.lv1": "foreign_category_lv1",
-                "classname.lv1": "foreign_category_lv1_name",
-                "classname.lv2": "foreign_category_lv2_name",
-                "classname": "foreign_category_lv3_name",
-            }
-        )
-        part3 = part3[columns]
+        if not len(part3):
+            part3 = pd.DataFrame(columns=columns)
+        else:
+            part3["cmid"] = self.cmid
+            part3["foreign_category_lv2"] = part3.apply(
+                lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
+            )
+            part3["foreign_category_lv3"] = part3.apply(
+                lambda row: row["foreign_category_lv2"] + row["classcode"], axis=1
+            )
+            part3["foreign_category_lv4"] = ""
+            part3["foreign_category_lv4_name"] = None
+            part3["foreign_category_lv5"] = ""
+            part3["foreign_category_lv5_name"] = None
+            part3["last_updated"] = datetime.now(_TZINFO)
+            part3 = part3.rename(
+                columns={
+                    "classgrade": "level",
+                    "classcode.lv1": "foreign_category_lv1",
+                    "classname.lv1": "foreign_category_lv1_name",
+                    "classname.lv2": "foreign_category_lv2_name",
+                    "classname": "foreign_category_lv3_name",
+                }
+            )
+            part3 = part3[columns]
 
         part4 = (
             inf_goodsclass.merge(
@@ -981,14 +1005,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass"],
@@ -997,30 +1021,33 @@ class HongYeCleaner:
             )
         )
         part4 = part4[part4["classgrade"] == 4]
-        part4["cmid"] = self.cmid
-        part4["foreign_category_lv2"] = part4.apply(
-            lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
-        )
-        part4["foreign_category_lv3"] = part4.apply(
-            lambda row: row["foreign_category_lv2"] + row["classcode.lv3"], axis=1
-        )
-        part4["foreign_category_lv4"] = part4.apply(
-            lambda row: row["foreign_category_lv3"] + row["classcode"], axis=1
-        )
-        part4["foreign_category_lv5"] = ""
-        part4["foreign_category_lv5_name"] = None
-        part4["last_updated"] = datetime.now(_TZINFO)
-        part4 = part4.rename(
-            columns={
-                "classgrade": "level",
-                "classcode.lv1": "foreign_category_lv1",
-                "classname.lv1": "foreign_category_lv1_name",
-                "classname.lv2": "foreign_category_lv2_name",
-                "classname.lv3": "foreign_category_lv3_name",
-                "classname": "foreign_category_lv4_name",
-            }
-        )
-        part4 = part4[columns]
+        if not len(part4):
+            part4 = pd.DataFrame(columns=columns)
+        else:
+            part4["cmid"] = self.cmid
+            part4["foreign_category_lv2"] = part4.apply(
+                lambda row: row["classcode.lv1"] + row["classcode.lv2"], axis=1
+            )
+            part4["foreign_category_lv3"] = part4.apply(
+                lambda row: row["foreign_category_lv2"] + row["classcode.lv3"], axis=1
+            )
+            part4["foreign_category_lv4"] = part4.apply(
+                lambda row: row["foreign_category_lv3"] + row["classcode"], axis=1
+            )
+            part4["foreign_category_lv5"] = ""
+            part4["foreign_category_lv5_name"] = None
+            part4["last_updated"] = datetime.now(_TZINFO)
+            part4 = part4.rename(
+                columns={
+                    "classgrade": "level",
+                    "classcode.lv1": "foreign_category_lv1",
+                    "classname.lv1": "foreign_category_lv1_name",
+                    "classname.lv2": "foreign_category_lv2_name",
+                    "classname.lv3": "foreign_category_lv3_name",
+                    "classname": "foreign_category_lv4_name",
+                }
+            )
+            part4 = part4[columns]
 
         return pd.concat([part1, part2, part3, part4])
 
@@ -1153,7 +1180,7 @@ class HongYeCleaner:
         if not len(bil_damagedtl):
             return pd.DataFrame(columns=columns)
         bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
-            lambda row: row["deptcode"][:self.store_id_len], axis=1
+            lambda row: row["deptcode"][: self.store_id_len], axis=1
         )
         inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
             lambda row: row["deptcode"].strip(), axis=1
@@ -1168,8 +1195,8 @@ class HongYeCleaner:
                 right_on=["deptcode_trimed"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-                .merge(
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -1178,39 +1205,42 @@ class HongYeCleaner:
             )
         )
         part1 = part1[~part1["deptcode"].str.contains(r"^998.*$")]
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1["quantity"] = part1.apply(lambda row: row["amount"] * -1, axis=1)
-        part1["subtotal"] = part1.apply(lambda row: row["salemoney"] * -1, axis=1)
-        part1["foreign_category_lv2"] = part1.apply(
-            lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
-            axis=1,
-        )
-        part1["foreign_category_lv3"] = part1.apply(
-            lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
-            axis=1,
-        )
-        part1["foreign_category_lv4"] = part1.apply(
-            lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
-            axis=1,
-        )
-        part1["foreign_category_lv5"] = ""
-        part1["store_show_code"] = part1["deptcode.inf_shop_message"]
-        part1["item_showcode"] = part1["gdsincode"]
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1["quantity"] = part1.apply(lambda row: row["amount"] * -1, axis=1)
+            part1["subtotal"] = part1.apply(lambda row: row["salemoney"] * -1, axis=1)
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"],
+                axis=1,
+            )
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1,
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"],
+                axis=1,
+            )
+            part1["foreign_category_lv5"] = ""
+            part1["store_show_code"] = part1["deptcode.inf_shop_message"]
+            part1["item_showcode"] = part1["gdsincode"]
 
-        part1 = part1.rename(
-            columns={
-                "billno": "lossnum",
-                "recorddate": "lossdate",
-                "deptcode.inf_shop_message": "foreign_store_id",
-                "shotname": "store_name",
-                "gdsincode": "foreign_item_id",
-                "stripecode": "barcode",
-                "gdsname": "item_name",
-                "baseunit": "item_unit",
-            }
-        )
-        part1 = part1[columns]
+            part1 = part1.rename(
+                columns={
+                    "billno": "lossnum",
+                    "recorddate": "lossdate",
+                    "deptcode.inf_shop_message": "foreign_store_id",
+                    "shotname": "store_name",
+                    "gdsincode": "foreign_item_id",
+                    "stripecode": "barcode",
+                    "gdsname": "item_name",
+                    "baseunit": "item_unit",
+                }
+            )
+            part1 = part1[columns]
 
         subquery2 = self._goodsclass_subquery_2()
         part2 = (
@@ -1221,8 +1251,8 @@ class HongYeCleaner:
                 right_on=["deptcode_trimed"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-                .merge(
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
