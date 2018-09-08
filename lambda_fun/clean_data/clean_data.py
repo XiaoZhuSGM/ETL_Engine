@@ -153,7 +153,7 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "70YYYYYYYYYYYYY",
+        "source_id": "59YYYYYYYYYYYYY",
         "erp_name": "科脉云鼎",
         "date": "2018-09-06",
         "target_table": "goodsflow",

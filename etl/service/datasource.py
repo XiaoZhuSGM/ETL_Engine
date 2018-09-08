@@ -22,7 +22,7 @@ class DatasourceService(object):
         self.__datasourceDao = DatasourceDao()
         self.__datasourceConfigDao = DatasourceConfigDao()
         self.db_url_template = {
-            'sqlserver': 'mssql+pymssql://{username}:{password}@{host}:{port}/{db_name}',
+            'sqlserver': 'mssql+pyodbc://{username}:{password}@{host}:{port}/{db_name}',
             'postgresql': 'postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}',
             'oracle': 'oracle+cx_oracle://{username}:{password}@{host}:{port}/?service_name={db_name}'
         }
