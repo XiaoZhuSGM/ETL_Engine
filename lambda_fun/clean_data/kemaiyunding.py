@@ -382,6 +382,9 @@ def frame1(cmid, source_id, frames):
         "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
+    frames['t_sl_master']['fflow_no'] = frames['t_sl_master']['fflow_no'].str.strip()
+    frames['t_sl_detail']['fflow_no'] = frames['t_sl_detail']['fflow_no'].str.strip()
+
     temp1 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no")
 
     if not len(temp1):
@@ -395,14 +398,37 @@ def frame1(cmid, source_id, frames):
     temp1["quantity"] = temp1.apply(lambda row: gene_quantity_or_sbutotal(row["fsell_way"], row["fpack_qty"]), axis=1)
     temp1["subtotal"] = temp1.apply(lambda row: gene_quantity_or_sbutotal(row["fsell_way"], row["famt"]), axis=1)
 
-    temp1 = temp1.merge(frames["t_br_master"], how="left", on="fbrh_no").merge(frames["t_bi_master"], how="inner",
-                                                                               on=["fitem_id", "fitem_subno"],
-                                                                               suffixes=('_x', '')).merge(
+    temp1['fbrh_no'] = temp1['fbrh_no'].str.strip()
+    frames['t_br_master']['fbrh_no'] = frames['t_br_master']['fbrh_no'].str.strip()
+
+
+
+    temp1 = temp1.merge(frames["t_br_master"], how="left", on="fbrh_no")
+
+    frames["t_bi_master"]['fitem_id'] = frames['t_bi_master']['fitem_id'].str.strip()
+    frames["t_bi_master"]['fitem_subno'] = frames['t_bi_master']['fitem_subno'].str.strip()
+
+    temp1['fitem_id'] = temp1['fitem_id'].str.strip()
+    temp1['fitem_subno'] = temp1['fitem_subno'].str.strip()
+
+    temp1 = temp1.merge(frames["t_bi_master"], how="inner", on=["fitem_id", "fitem_subno"],
+                        suffixes=('_x', ''))
+
+    temp1['fitem_clsno'] = temp1['fitem_clsno'].str.strip()
+    frames["t_bc_master"]['fitem_clsno'] = frames['t_bc_master']['fitem_clsno'].str.strip()
+
+    temp1 = temp1.merge(
         frames["t_bc_master"], how="left", on="fitem_clsno")
 
+    temp1['fprt_no'] = temp1['fprt_no'].str.strip()
+
     temp1 = temp1.merge(frames["t_bc_master"], how="left", left_on="fprt_no", right_on="fitem_clsno",
-                        suffixes=('_lv3', '_lv2')).merge(frames["t_bc_master"], how="left", left_on="fprt_no_lv2",
-                                                         right_on="fitem_clsno")
+                        suffixes=('_lv3', '_lv2'))
+
+    temp1['fprt_no_lv2'] = temp1['fprt_no_lv2'].str.strip()
+
+    temp1 = temp1.merge(frames["t_bc_master"], how="left", left_on="fprt_no_lv2",
+                        right_on="fitem_clsno")
 
     temp1 = temp1.rename(columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "fflow_no": "receipt_id",
                                   "fitem_id": "foreign_item_id", "fitem_subno": "barcode", "fitem_name": "item_name",
@@ -443,10 +469,33 @@ def frame2(cmid, source_id, frames):
         "foreign_category_lv3", "foreign_category_lv3_name", "foreign_category_lv4", "foreign_category_lv4_name",
         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
-    temp2 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
-        .merge(frames["t_br_master"], how="left", on="fbrh_no") \
-        .merge(frames["t_bi_master"], how="inner", on="fitem_id", suffixes=('', '_y')) \
-        .merge(frames["t_bi_barcode"], how="inner", on=["fitem_id", "fitem_subno"])
+
+    frames['t_sl_master']['fflow_no'] = frames['t_sl_master']['fflow_no'].str.strip()
+    frames['t_sl_detail']['fflow_no'] = frames['t_sl_detail']['fflow_no'].str.strip()
+
+    temp2 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no")
+
+    temp2['fbrh_no'] = temp2['fbrh_no'].str.strip()
+
+    frames['t_br_master']['fbrh_no'] = frames['t_br_master']['fbrh_no'].str.strip()
+
+    frames["t_bi_master"]['fitem_subno'] = frames['t_bi_master']['fitem_subno'].str.strip()
+
+    temp2 = temp2.merge(frames["t_br_master"], how="left", on="fbrh_no")
+
+
+    frames["t_bi_master"]['fitem_id'] = frames['t_bi_master']['fitem_id'].str.strip()
+    temp2['fitem_id'] = temp2['fitem_id'].str.strip()
+
+    temp2 = temp2.merge(frames["t_bi_master"], how="inner", on="fitem_id", suffixes=('', '_y'))
+
+    temp2['fitem_subno'] = temp2['fitem_subno'].str.strip()
+    temp2['fitem_id'] = temp2['fitem_id'].str.strip()
+
+    frames['t_bi_barcode']['fitem_subno'] = frames['t_bi_barcode']['fitem_subno'].str.strip()
+    frames['t_bi_barcode']['fitem_id'] = frames['t_bi_barcode']['fitem_id'].str.strip()
+
+    temp2 = temp2.merge(frames["t_bi_barcode"], how="inner", on=["fitem_id", "fitem_subno"])
 
     if not len(temp2):
         return pd.DataFrame(columns=columns)
@@ -467,10 +516,21 @@ def frame2(cmid, source_id, frames):
     temp2["subtotal"] = temp2.apply(lambda row: gene_sbutotal(row["fsell_way"], row["famt"]), axis=1)
     temp2["saleprice"] = temp2.apply(lambda row: row["fprice"] / row["funit_qty"], axis=1)
 
+    temp2['fitem_clsno'] = temp2['fitem_clsno'].str.strip()
+    frames['t_bc_master']['fitem_clsno'] = frames['t_bc_master']['fitem_clsno'].str.strip()
+
     temp2 = temp2.merge(frames["t_bc_master"], how="left", on="fitem_clsno")
 
+    temp2['fprt_no'] = temp2['fprt_no'].str.strip()
+    frames['t_bc_master']['fitem_clsno'] = frames['t_bc_master']['fitem_clsno'].str.strip()
+
     temp2 = temp2.merge(frames["t_bc_master"], how="left", left_on="fprt_no", right_on="fitem_clsno",
-                        suffixes=('_lv3', '_lv2')).merge(frames["t_bc_master"], how="left", left_on="fprt_no_lv2",
+                        suffixes=('_lv3', '_lv2'))
+
+    temp2['fprt_no_lv2'] = temp2['fprt_no_lv2'].str.strip()
+
+
+    temp2 = temp2.merge(frames["t_bc_master"], how="left", left_on="fprt_no_lv2",
                                                          right_on="fitem_clsno")
 
     temp2 = temp2.rename(columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "fflow_no": "receipt_id",
@@ -513,13 +573,22 @@ def frame3(cmid, source_id, frames):
         "foreign_category_lv5", "foreign_category_lv5_name", "pos_id"
     ]
 
-    temp3 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no") \
-        .merge(frames["t_br_master"], how="left", on="fbrh_no").query("fitem_id == 0")
+    frames['t_sl_master']['fflow_no'] = frames['t_sl_master']['fflow_no'].str.strip()
+    frames['t_sl_detail']['fflow_no'] = frames['t_sl_detail']['fflow_no'].str.strip()
+
+    temp3 = frames["t_sl_master"].merge(frames["t_sl_detail"], how="left", on="fflow_no")
+
+    temp3['fbrh_no'] = temp3['fbrh_no'].str.strip()
+    frames['t_br_master']['fbrh_no'] = frames['t_br_master']['fbrh_no'].str.strip()
+
+    temp3 = temp3.merge(frames["t_br_master"], how="left", on="fbrh_no")
+    temp3 = temp3[temp3['fitem_id'] == '0']
 
     def gene_quantity_or_sbutotal(x, y):
         if x == 2:
             return -1 * y
         return y
+
     if not len(temp3):
         return pd.DataFrame(columns=columns)
     temp3["quantity"] = temp3.apply(lambda row: gene_quantity_or_sbutotal(row["fsell_way"], row["fpack_qty"]), axis=1)
