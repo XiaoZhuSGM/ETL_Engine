@@ -916,6 +916,7 @@ class HaiDingCleaner:
             & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
         ]
 
+        print(part2)
         part2["fildate"] = part2.apply(lambda row: row["fildate"].split()[0], axis=1)
 
         part2 = part2.rename(

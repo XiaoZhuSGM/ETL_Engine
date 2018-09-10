@@ -60,7 +60,6 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
-            print(key)
             if table in converts:
                 frame = pd.read_csv(
                     key, compression="gzip", usecols=columns, converters=converts[table]
@@ -153,75 +152,36 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "59YYYYYYYYYYYYY",
-        "erp_name": "科脉云鼎",
-        "date": "2018-09-06",
-        "target_table": "goodsflow",
-        'origin_table_columns': {
-            "t_bc_master": [
-                "fitem_clsno",
-                "fitem_clsname",
-                "fprt_no"
+        "source_id": "58YYYYYYYYYYYYY",
+        "erp_name": "美食林",
+        "date": "2018-09-09",
+        "target_table": "store",
+        "origin_table_columns": {
+            "skstore": [
+                "address",
+                "area",
+                "code",
+                "contactor",
+                "gid",
+                "name",
+                "phone",
+                "property",
+                "stat",
             ],
-            "t_bi_barcode": [
-                "funit_qty",
-                "fitem_id",
-                "fitem_subno"
-            ],
-            "t_bi_master": [
-                "fitem_id",
-                "fitem_subno",
-                "fitem_name",
-                "funit_no",
-                "fitem_clsno"
-            ],
-            "t_br_master": [
-                "fbrh_name",
-                "fbrh_no"
-            ],
-            "t_sl_detail": [
-                "fprice",
-                "fpack_qty",
-                "famt",
-                "fflow_no",
-                "fitem_subno",
-                "fitem_id"
-            ],
-            "t_sl_master": [
-                "fbrh_no",
-                "fflow_no",
-                "ftrade_date",
-                "fcr_time",
-                "fsell_way"
-            ]
+            "skcmarea": ["code", "name"],
         },
-
-        'converts': {
-            "t_bc_master": {
-                "fitem_clsno": "str",
-                "fprt_no": "str"
+        "converts": {
+            "skstore": {
+                "gid": "str",
+                "name": "str",
+                "address": "str",
+                "code": "str",
+                "area": "str",
+                "contactor": "str",
+                "phone": "str",
             },
-            "t_bi_barcode": {
-                "fitem_id": "str",
-                "fitem_subno": "str"
-            },
-            "t_bi_master": {
-                "fitem_clsno": "str",
-                "fitem_id": "str",
-                "fitem_subno": "str"
-            },
-            "t_br_master": {
-                "fbrh_no": "str"
-            },
-            "t_sl_detail": {
-                "fitem_id": "str",
-                "fitem_subno": "str"
-            },
-            "t_sl_master": {
-                "fbrh_no": "str",
-                "fflow_no": "str"
-            }
-        }
+            "skcmarea": {"code": "str", "name": "str"},
+        },
     }
 
     handler(event, None)
