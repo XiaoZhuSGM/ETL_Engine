@@ -3,13 +3,11 @@
 # @Author  : 范佳楠
 from datetime import datetime
 
-
 import pandas as pd
 
 from typing import Dict
 from base import Base
 import pytz
-
 
 _TZINFO = pytz.timezone("Asia/Shanghai")
 
@@ -961,42 +959,49 @@ class MeiShiLinCleaner(Base):
             )
         )
 
-        # print(part1)
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv5"] = ""
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1["rtl_amt"] = part1.apply(
+                lambda row: row["rtlprc"] * row["qty"], axis=1
+            )
+            part1["src_type"] = part1.apply(lambda row: src_type[row["alcsrc"]], axis=1)
+            part1["delivery_state"] = part1.apply(
+                lambda row: delivery_state[row["stat"]], axis=1
+            )
+            part1 = part1.rename(
+                columns={
+                    "num": "delivery_num",
+                    "ocrdate": "delivery_date",
+                    "cls": "delivery_type",
+                    "gid": "foreign_store_id",
+                    "code": "store_show_code",
+                    "name": "store_name",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "qty": "delivery_qty",
+                    "rtlprc": "rtl_price",
+                    "gid.warehouse": "warehouse_id",
+                    "code.warehouse": "warehouse_show_code",
+                    "name.warehouse": "warehouse_name",
+                    "code.sort1": "foreign_category_lv1",
+                    "code.sort2": "foreign_category_lv2",
+                    "code.sort3": "foreign_category_lv3",
+                }
+            )
+            part1 = part1[columns]
 
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv5"] = ""
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1["rtl_amt"] = part1.apply(lambda row: row["rtlprc"] * row["qty"], axis=1)
-        part1["src_type"] = part1.apply(lambda row: src_type[row["alcsrc"]], axis=1)
-        part1["delivery_state"] = part1.apply(
-            lambda row: delivery_state[row["stat"]], axis=1
-        )
-        part1 = part1.rename(
-            columns={
-                "num": "delivery_num",
-                "ocrdate": "delivery_date",
-                "cls": "delivery_type",
-                "gid": "foreign_store_id",
-                "code": "store_show_code",
-                "name": "store_name",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "qty": "delivery_qty",
-                "rtlprc": "rtl_price",
-                "gid.warehouse": "warehouse_id",
-                "code.warehouse": "warehouse_show_code",
-                "name.warehouse": "warehouse_name",
-                "code.sort1": "foreign_category_lv1",
-                "code.sort2": "foreign_category_lv2",
-                "code.sort3": "foreign_category_lv3",
-            }
-        )
-        part1 = part1[columns]
-
+        stkoutbck: pd.DataFrame = stkoutbck[
+            (stkoutbck["cls"] == "统配出退")
+            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+            ]
         part2 = (
             stkoutbck.merge(
                 stkoutbckdtl,
@@ -1047,41 +1052,44 @@ class MeiShiLinCleaner(Base):
                 suffixes=("", ".sort3"),
             )
         )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
-        part2["delivery_qty"] = part2.apply(lambda row: row["qty"] * -1, axis=1)
-        part2["rtl_amt"] = part2.apply(
-            lambda row: row["rtlprc"] * row["qty"] * -1, axis=1
-        )
-        part2["delivery_state"] = part2.apply(
-            lambda row: delivery_state[row["stat"]], axis=1
-        )
-        part2 = part2.rename(
-            columns={
-                "num": "delivery_num",
-                "ocrdate": "delivery_date",
-                "cls": "delivery_type",
-                "gid": "foreign_store_id",
-                "code": "store_show_code",
-                "name": "store_name",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "rtlprc": "rtl_price",
-                "gid.warehouse": "warehouse_id",
-                "code.warehouse": "warehouse_show_code",
-                "name.warehouse": "warehouse_name",
-                "bckcls": "src_type",
-                "code.sort1": "foreign_category_lv1",
-                "code.sort2": "foreign_category_lv2",
-                "code.sort3": "foreign_category_lv3",
-            }
-        )
-        part2 = part2[columns]
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["delivery_qty"] = part2.apply(lambda row: row["qty"] * -1, axis=1)
+            part2["rtl_amt"] = part2.apply(
+                lambda row: row["rtlprc"] * row["qty"] * -1, axis=1
+            )
+            part2["delivery_state"] = part2.apply(
+                lambda row: delivery_state[row["stat"]], axis=1
+            )
+            part2 = part2.rename(
+                columns={
+                    "num": "delivery_num",
+                    "ocrdate": "delivery_date",
+                    "cls": "delivery_type",
+                    "gid": "foreign_store_id",
+                    "code": "store_show_code",
+                    "name": "store_name",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "rtlprc": "rtl_price",
+                    "gid.warehouse": "warehouse_id",
+                    "code.warehouse": "warehouse_show_code",
+                    "name.warehouse": "warehouse_name",
+                    "bckcls": "src_type",
+                    "code.sort1": "foreign_category_lv1",
+                    "code.sort2": "foreign_category_lv2",
+                    "code.sort3": "foreign_category_lv3",
+                }
+            )
+            part2 = part2[columns]
         return pd.concat([part1, part2])
 
     """
@@ -1832,7 +1840,8 @@ class MeiShiLinCleaner(Base):
                 suffixes=("", ".modulestat"),
             )
         )
-        part = part[part["cls"].isin(("仓库调拨",))]
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -1840,6 +1849,8 @@ class MeiShiLinCleaner(Base):
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
+        part = part[part["cls"].isin(("仓库调拨",))]
+
         part = part.rename(
             columns={
                 "num": "move_num",
@@ -1951,28 +1962,28 @@ class MeiShiLinCleaner(Base):
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -2039,7 +2050,7 @@ class MeiShiLinCleaner(Base):
         "skcmsort": {"code": "str"},
     },
     """
-    
+
     def check_warehouse(self):
         ckdatas = self.data["skcmckdatas"]
 
@@ -2097,28 +2108,28 @@ class MeiShiLinCleaner(Base):
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-            .merge(
+                .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -2154,4 +2165,3 @@ class MeiShiLinCleaner(Base):
         )
         part = part[columns]
         return part
-

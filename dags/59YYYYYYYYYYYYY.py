@@ -27,8 +27,8 @@ args = {
     'email_on_failure': True,
     'email_on_retry': False,
     'start_date': airflow.utils.dates.days_ago(1),
-    'retries': 20,
-    'retry_delay': timedelta(minutes=1),
+    'retries': 3,
+    'retry_delay': timedelta(minutes=10),
     'provide_context': True
 }
 

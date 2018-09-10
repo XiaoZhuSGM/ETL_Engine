@@ -14,6 +14,8 @@ from collections import defaultdict
 import re
 import botocore.session
 from botocore.config import Config
+from datetime import timedelta
+from airflow.models import Variable
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
 S3_BUCKET = 'ext-etl-data'
@@ -21,8 +23,9 @@ SQL_PREFIX_SPLIT = 'sql/source_id={source_id}/{date}/split/'
 
 S3_CLIENT = boto3.resource('s3')
 session = botocore.session.get_session()
-BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
+BOTO3_CONFIG = Config(connect_timeout=320, read_timeout=320)
 lambda_client = session.create_client('lambda', config=BOTO3_CONFIG)
+AIRFLOW_HEADER = {"token": "AIRFLOW_REQUEST_TOKEN"}
 
 sns_client = boto3.client("sns")
 
@@ -155,12 +158,9 @@ def extract_data_by_filename(**kwargs):
     extract_dict['extract_data'] = defaultdict(list)
 
     start_time = time.time()
-    print("文件集合\t",sql_filename_list)
     for sql_filename in sql_filename_list:
         params['filename'] = sql_filename
-        print(params)
         response = invoke_lambda('extract_db_worker', **params)
-        print('运行完一个lambda')
         if 'FunctionError' not in response:
             payload_body = response['Payload']
             payload_str = payload_body.read()
@@ -171,9 +171,6 @@ def extract_data_by_filename(**kwargs):
             extract_dict['sqls'].update(**current_sqls)
         else:
             print(base64.b64decode(response['LogResult']))
-            payload_body = response['Payload']
-            payload_str = payload_body.read()
-            print(payload_str)
             raise RuntimeError('lambda运行过程中出现问题')
 
         if len(sql_filename_list) != 1:
@@ -347,15 +344,18 @@ def common_return_clean_result(table_name, query_date, **event):
 
 def hook_get(endpoint, data=None):
     hook = HttpHook(method='GET', http_conn_id='host_id')
-    response = hook.run(endpoint=endpoint, data=data)
-    event_dict = json.loads(response.text)
-
-    return event_dict
+    response = hook.run(endpoint=endpoint, data=data, headers=AIRFLOW_HEADER)
+    return response.json()
 
 
 def hook_post(endpoint, data, headers=None):
+    if headers is not None:
+        headers.update(AIRFLOW_HEADER)
+    else:
+        headers = AIRFLOW_HEADER
     hook = HttpHook(method='POST', http_conn_id='host_id')
-    return hook.run(endpoint=endpoint, data=json.dumps(data), headers=headers)
+    response = hook.run(endpoint=endpoint, data=json.dumps(data), headers=headers)
+    return response.json()
 
 
 def recording_clean_common_log_function(**kwargs):
@@ -367,10 +367,12 @@ def recording_clean_common_log_function(**kwargs):
 
 DATA_KEY_TEMPLATE = "{S3_BUCKET}/{clean_data_file_path}"
 
+redshift_url = Variable.get('redshift_url')
+
 
 def get_load_event(target_table, source_id, cmid, extract_date, clean_data_file_path):
     event = {
-***REMOVED***
+        "redshift_url": redshift_url,
         'cmid': cmid,
         'data_date': extract_date,
         'data_key': DATA_KEY_TEMPLATE.format(S3_BUCKET=S3_BUCKET, clean_data_file_path=clean_data_file_path),
@@ -405,7 +407,6 @@ def load_common_function(**kwargs):
         load_result = create_success_log(load_result, clean_data_file_path)
     else:
         # 调用接口
-        print('入库lambda报错,现在开始调用接口进行入库')
         start_time = time.time()
         flag = invoke_load_interface(event)
         end_time = time.time()
@@ -492,22 +493,16 @@ def clean_common_function(**kwargs):
     return common_return_clean_result(target_table, query_date, **event)
 
 
-from datetime import timedelta
-from airflow.models import Variable
 
-TOKEN_DONE = Variable.get("TOKEN_DONE").strip()
-TOPIC_DONE_ARN = Variable.get("TOPIC_DONE_ARN").strip()
 
-server_ip = Variable.get('SERVER').strip()
+TOKEN_DONE = Variable.get("TOKEN_DONE")
+TOPIC_DONE_ARN = Variable.get("TOPIC_DONE_ARN")
 
-import requests
 
 
 def generate_crontab(source_id):
-    response = requests.get(f'http://{server_ip}:5000/etl/admin/api/crontab/full/{source_id}')
-    result = json.loads(response.text)
-    interval = result['data']
-
+    response = hook_get(f"etl/admin/api/crontab/full/{source_id}")
+    interval = response['data']
     return interval
 
 

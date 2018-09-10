@@ -151,6 +151,38 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-   pass
+    event = {
+        "source_id": "58YYYYYYYYYYYYY",
+        "erp_name": "美食林",
+        "date": "2018-09-09",
+        "target_table": "move_warehouse",
+        "origin_table_columns": {
+            "skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
+            "skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
+            "skcmwarehouse": ["gid", "code", "name"],
+            "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+            "skcmmodulestat": ["statname", "no"],
+        },
+        "converts": {
+            "skcminvxf": {
+                "cls": "str",
+                "fildate": "str",
+                "fromwrh": "str",
+                "num": "str",
+                "towrh": "str",
+            },
+            "skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
+            "skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
+            "skgoods": {
+                "code": "str",
+                "code2": "str",
+                "gid": "str",
+                "munit": "str",
+                "name": "str",
+                "sort": "str",
+            },
+            "skcmmodulestat": {"statname": "str"},
+        },
+    }
 
-
+    handler(event, None)
