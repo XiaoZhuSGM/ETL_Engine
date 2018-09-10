@@ -60,7 +60,6 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
-            print(key)
             if table in converts:
                 frame = pd.read_csv(
                     key, compression="gzip", usecols=columns, converters=converts[table]
@@ -152,80 +151,6 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-    event = {
-        "source_id": "1015YYYYYYYYYYY",
-        "erp_name": "富基融通",
-        "date": "2018-08-16",
-        "target_table": "goodsflow",
-        'origin_table_columns': {
-            "dept": [
-                "id",
-                "name"
-            ],
-            "goods": [
-                "goodsid",
-                "name",
-                "unitname",
-                "deptid"
-            ],
-            "pay_j": [
-                "paytype",
-                "cardno",
-                "listno",
-                "posid",
-                "sdate",
-                "shopid",
-                "stime"
-            ],
-            "sale_j": [
-                "listno",
-                "sdate",
-                "stime",
-                "usebarcodeid",
-                "price",
-                "amount",
-                "x",
-                "salevalue",
-                "discvalue",
-                "posid",
-                "goodsid",
-                "shopid"
-            ],
-            "sgroup": [
-                "id",
-                "name"
-            ],
-            "shop": [
-                "id",
-                "name"
-            ]
-        },
+   pass
 
-        'converts': {
-            "dept": {
-                "id": "str"
-            },
-            "goods": {
-                "deptid": "str",
-                "goodsid": "str"
-            },
-            "pay_j": {
-                "cardno": "str",
-                "listno": "str",
-                "posid": "str",
-                "shopid": "str"
-            },
-            "sale_j": {
-                "goodsid": "str",
-                "listno": "str",
-                "posid": "str",
-                "shopid": "str",
-                "usebarcodeid": "str"
-            },
-            "sgroup": {
-                "id": "str"
-            }
-        }
-    }
 
-    handler(event, None)
