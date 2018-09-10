@@ -12,6 +12,7 @@ import re
 from common import *
 import airflow
 
+S3_CLIENT = boto3.resource('s3')
 source_id = '76YYYYYYYYYYYYY'
 erp_name = '便宅家中间库'
 cmid = source_id.split("Y")[0]
@@ -27,8 +28,8 @@ args = {
     'email_on_failure': True,
     'email_on_retry': False,
     'start_date': airflow.utils.dates.days_ago(1),
-    'retries': 20,
-    'retry_delay': timedelta(minutes=1),
+    'retries': 3,
+    'retry_delay': timedelta(minutes=10),
     'provide_context': True
 }
 
