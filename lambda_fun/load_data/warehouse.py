@@ -87,15 +87,19 @@ class Warehouser:
         print(f"拷贝到临时表：{r.rowcount}")
 
     def _upsert(self):
-        if self.sync_column:
-            where = " AND ".join(
-                f"{self.target_table}.{sc} = #{self.target_table}.{sc}"
-                for sc in self.sync_column
-            )
-            r = self.conn.execute(
-                f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
-            )
-            print(f"删除已存在的数据：{r.rowcount}")
+        if not self.sync_column:
+            self.sync_column = ["cmid"]
+        else:
+            self.sync_column.append("cmid")
+
+        where = " AND ".join(
+            f"{self.target_table}.{sc} = #{self.target_table}.{sc}"
+            for sc in self.sync_column
+        )
+        r = self.conn.execute(
+            f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
+        )
+        print(f"删除已存在的数据：{r.rowcount}")
 
         r = self.conn.execute(
             f"INSERT INTO {self.target_table} SELECT * FROM #{self.target_table}"
@@ -110,7 +114,7 @@ class Warehouser:
             datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
         ).strftime("%Y-%m-%d")
 
-        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid={self.cmid}"
+        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid = {self.cmid}"
         r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
         print(f"删除旧数据 {self.data_date}：{r.rowcount}")
 
