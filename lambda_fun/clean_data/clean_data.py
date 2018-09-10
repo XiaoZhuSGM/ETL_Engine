@@ -129,9 +129,9 @@ def handler(event, context):
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "富基融通":
-        from chaoshifa import clean_chaoshifa
+        from fujirongtong import clean_fujirongtong
 
-        return clean_chaoshifa(source_id, date, target_table, data_frames)
+        return clean_fujirongtong(source_id, date, target_table, data_frames)
     elif erp_name == "便宅家中间库":
         from bianzhaijia import clean_bianzhaijia
 
@@ -151,37 +151,6 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-    event = {
-        "source_id": "58YYYYYYYYYYYYY",
-        "erp_name": "美食林",
-        "date": "2018-09-09",
-        "target_table": "store",
-        "origin_table_columns": {
-            "skstore": [
-                "address",
-                "area",
-                "code",
-                "contactor",
-                "gid",
-                "name",
-                "phone",
-                "property",
-                "stat",
-            ],
-            "skcmarea": ["code", "name"],
-        },
-        "converts": {
-            "skstore": {
-                "gid": "str",
-                "name": "str",
-                "address": "str",
-                "code": "str",
-                "area": "str",
-                "contactor": "str",
-                "phone": "str",
-            },
-            "skcmarea": {"code": "str", "name": "str"},
-        },
-    }
+   pass
 
-    handler(event, None)
+

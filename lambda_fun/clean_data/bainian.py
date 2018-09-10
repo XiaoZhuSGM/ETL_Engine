@@ -117,60 +117,66 @@ def clean_cost(source_id, date, target_table, data_frames):
     lv4_frames = data_frames["tbgoodscategory"].rename(columns=lambda x: f"lv4.{x}")
     lv5_frames = data_frames["tbgoodscategory"].rename(columns=lambda x: f"lv5.{x}")
 
-    cost = cost_frames.merge(item_frames, how="left", left_on="cost.goodscode", right_on="item.goodscode")
-    cost["lv1"] = cost["item.categorycode"].apply(lambda x: x[:1] if x is not np.NAN else "")
-    cost["lv2"] = cost["item.categorycode"].apply(lambda x: x[:3] if x is not np.NAN else "")
-    cost["lv3"] = cost["item.categorycode"].apply(lambda x: x[:5] if x is not np.NAN else "")
-    cost["lv4"] = cost["item.categorycode"].apply(lambda x: x[:7] if x is not np.NAN else "")
-    cost["lv5"] = cost["item.categorycode"].apply(lambda x: x[:9] if x is not np.NAN else "")
+    if len(cost_frames) == 0:
+        cost = pd.DataFrame(columns=[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+            "foreign_category_lv4", "foreign_category_lv5", "cmid"])
+    else:
+        cost = cost_frames.merge(item_frames, how="left", left_on="cost.goodscode", right_on="item.goodscode")
+        cost["lv1"] = cost["item.categorycode"].apply(lambda x: x[:1] if x is not np.NAN else "")
+        cost["lv2"] = cost["item.categorycode"].apply(lambda x: x[:3] if x is not np.NAN else "")
+        cost["lv3"] = cost["item.categorycode"].apply(lambda x: x[:5] if x is not np.NAN else "")
+        cost["lv4"] = cost["item.categorycode"].apply(lambda x: x[:7] if x is not np.NAN else "")
+        cost["lv5"] = cost["item.categorycode"].apply(lambda x: x[:9] if x is not np.NAN else "")
 
-    cost = cost.merge(lv1_frames,
-                      how="left",
-                      left_on=["lv1", "item.categoryitemcode"],
-                      right_on=["lv1.categorycode", "lv1.categoryitemcode"]).\
-        merge(lv2_frames,
-              how="left",
-              left_on=["lv2", "item.categoryitemcode"],
-              right_on=["lv2.categorycode", "lv2.categoryitemcode"]).\
-        merge(lv3_frames,
-              how="left",
-              left_on=["lv3", "item.categoryitemcode"],
-              right_on=["lv3.categorycode", "lv3.categoryitemcode"])
+        cost = cost.merge(lv1_frames,
+                          how="left",
+                          left_on=["lv1", "item.categoryitemcode"],
+                          right_on=["lv1.categorycode", "lv1.categoryitemcode"]).\
+            merge(lv2_frames,
+                  how="left",
+                  left_on=["lv2", "item.categoryitemcode"],
+                  right_on=["lv2.categorycode", "lv2.categoryitemcode"]).\
+            merge(lv3_frames,
+                  how="left",
+                  left_on=["lv3", "item.categoryitemcode"],
+                  right_on=["lv3.categorycode", "lv3.categoryitemcode"])
 
-    lv4_frames = lv4_frames[lv4_frames["lv4.categorylevel"] == 4]
-    lv5_frames = lv5_frames[lv5_frames["lv5.categorylevel"] == 5]
-    cost = cost.merge(lv4_frames,
-                      how="left",
-                      left_on=["lv4", "item.categoryitemcode"],
-                      right_on=["lv4.categorycode", "lv4.categoryitemcode"])
-    cost = cost.merge(lv5_frames,
-                      how="left",
-                      left_on=["lv5", "item.categoryitemcode"],
-                      right_on=["lv5.categorycode", "lv5.categoryitemcode"])
+        lv4_frames = lv4_frames[lv4_frames["lv4.categorylevel"] == 4]
+        lv5_frames = lv5_frames[lv5_frames["lv5.categorylevel"] == 5]
+        cost = cost.merge(lv4_frames,
+                          how="left",
+                          left_on=["lv4", "item.categoryitemcode"],
+                          right_on=["lv4.categorycode", "lv4.categoryitemcode"])
+        cost = cost.merge(lv5_frames,
+                          how="left",
+                          left_on=["lv5", "item.categoryitemcode"],
+                          right_on=["lv5.categorycode", "lv5.categoryitemcode"])
 
-    cost = cost.rename(columns={
-        "cost.nodecode": "foreign_store_id",
-        "cost.goodscode": "foreign_item_id",
-        "cost.saleamount": "total_quantity",
-        "cost.taxsalecost": "total_cost",
-        "lv1.categorycode": "foreign_category_lv1",
-        "lv2.categorycode": "foreign_category_lv2",
-        "lv3.categorycode": "foreign_category_lv3",
-    })
+        cost = cost.rename(columns={
+            "cost.nodecode": "foreign_store_id",
+            "cost.goodscode": "foreign_item_id",
+            "cost.saleamount": "total_quantity",
+            "cost.taxsalecost": "total_cost",
+            "lv1.categorycode": "foreign_category_lv1",
+            "lv2.categorycode": "foreign_category_lv2",
+            "lv3.categorycode": "foreign_category_lv3",
+        })
 
-    cost["cmid"] = cmid
-    cost["source_id"] = source_id
-    cost["date"] = cost["cost.occurdate"].apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime('%Y-%m-%d'))
-    cost["cost_type"] = ""
-    cost["total_sale"] = cost.apply(lambda row: row["cost.saleincome"] + row["cost.saletax"], axis=1)
-    cost["foreign_category_lv4"] = cost["lv4.categorycode"].apply(lambda x: x if x else "")
-    cost["foreign_category_lv5"] = cost["lv5.categorycode"].apply(lambda x: x if x else "")
+        cost["cmid"] = cmid
+        cost["source_id"] = source_id
+        cost["date"] = cost["cost.occurdate"].apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime('%Y-%m-%d'))
+        cost["cost_type"] = ""
+        cost["total_sale"] = cost.apply(lambda row: row["cost.saleincome"] + row["cost.saletax"], axis=1)
+        cost["foreign_category_lv4"] = cost["lv4.categorycode"].apply(lambda x: x if x else "")
+        cost["foreign_category_lv5"] = cost["lv5.categorycode"].apply(lambda x: x if x else "")
 
-    cost = cost[[
-        "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
-        "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-        "foreign_category_lv5", "cmid"
-    ]]
+        cost = cost[[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5", "cmid"
+        ]]
     return upload_to_s3(cost, source_id, date, target_table)
 
 
