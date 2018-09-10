@@ -106,7 +106,7 @@ class ExtDBWork(object):
                     print(value)
                     future = executor.submit(self.thread_query_tables, (table_name, value), _type)
                     futures.append(future)
-                    time.sleep(0.1)
+                    time.sleep(1)
 
         response = dict(source_id=self.source_id, query_date=self.query_date, task_type=self.task_type)
         results = [f.result() for f in futures]
@@ -158,12 +158,52 @@ if __name__ == '__main__':
 
     event_3 = {
         "source_id": "73YYYYYYYYYYYYY",
-        "query_date": "2018-09-07",
+        "query_date": "2018-09-08",
         "task_type": "full",
-        "filename": "2018-09-08 19:00:57.674430.json",
-        "db_url": "mssql+pyodbc://chaomeng:ChaoMeng@www.fjbnwj.com:3433/fjwjdb"
+        "filename": "2018-09-09 17:45:29.537564.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:3433/fjwjdb"
     }
 
-    handler(event_3, None)
+    event_4 = {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-08",
+        "task_type": "full",
+        "filename": "2018-09-09 17:45:29.537564.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb"
+    }
+
+    event_5 =  {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "split/2018-09-10 11:05:20.895028.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb"
+    }
+
+    event_6 =  {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "split/2018-09-10 11:05:20.952712.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb"
+    }
+
+    # handler(event_3, None)
+    invoke_response = LAMBDA_CLIENT.invoke(
+        FunctionName="extract_db_worker", InvocationType='RequestResponse',
+        Payload=json.dumps(event_5), )
+    print('FunctionError' in invoke_response)
+    payload_body = invoke_response['Payload']
+    payload_str = payload_body.read()
+    print(payload_str)
+
+    invoke_response = LAMBDA_CLIENT.invoke(
+        FunctionName="extract_db_worker", InvocationType='RequestResponse',
+        Payload=json.dumps(event_6), )
+    print('FunctionError' in invoke_response)
+    payload_body = invoke_response['Payload']
+    payload_str = payload_body.read()
+    print(payload_str)
+
     end_time = time.time() - strat_time
     print(end_time)

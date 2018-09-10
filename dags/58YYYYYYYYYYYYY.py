@@ -14,8 +14,7 @@ import airflow
 
 from common import *
 
-lambda_client = boto3.client('lambda')
-S3_CLIENT = boto3.resource('s3')
+
 source_id = '58YYYYYYYYYYYYY'
 erp_name = '美食林'
 cmid = source_id.split("Y")[0]

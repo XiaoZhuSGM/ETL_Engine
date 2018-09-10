@@ -13,8 +13,6 @@ from common import *
 import airflow
 
 
-lambda_client = boto3.client('lambda')
-S3_CLIENT = boto3.resource('s3')
 source_id = '73YYYYYYYYYYYYY'
 erp_name = '科脉云鼎'
 cmid = source_id.split("Y")[0]
@@ -56,5 +54,4 @@ target_list = [
 generate_common_task(source_id, cmid, erp_name, dag, target_list)
 
 
-DATA_KEY_TEMPLATE = "{S3_BUCKET}/{clean_data_file_path}"
 
