@@ -188,18 +188,32 @@ if __name__ == '__main__':
         "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb"
     }
 
-    # handler(event_3, None)
+    event_7 =  {
+        "source_id": "54YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "2018-09-10 13:13:20.936079.json",
+        "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9"
+    }
+    event_8 =  {
+        "source_id": "56YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "2018-09-10 13:24:56.326832.json",
+        "db_url": "mssql+pymssql://sa:XHpos110@39.105.35.28:1433/eStore10"
+    }
+    handler(event_8, None)
+    # invoke_response = LAMBDA_CLIENT.invoke(
+    #     FunctionName="extract_db_worker", InvocationType='RequestResponse',
+    #     Payload=json.dumps(event_5), )
+    # print('FunctionError' in invoke_response)
+    # payload_body = invoke_response['Payload']
+    # payload_str = payload_body.read()
+    # print(payload_str)
+    #
     invoke_response = LAMBDA_CLIENT.invoke(
         FunctionName="extract_db_worker", InvocationType='RequestResponse',
-        Payload=json.dumps(event_5), )
-    print('FunctionError' in invoke_response)
-    payload_body = invoke_response['Payload']
-    payload_str = payload_body.read()
-    print(payload_str)
-
-    invoke_response = LAMBDA_CLIENT.invoke(
-        FunctionName="extract_db_worker", InvocationType='RequestResponse',
-        Payload=json.dumps(event_6), )
+        Payload=json.dumps(event_8), )
     print('FunctionError' in invoke_response)
     payload_body = invoke_response['Payload']
     payload_str = payload_body.read()

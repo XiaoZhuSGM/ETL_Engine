@@ -130,9 +130,9 @@ def handler(event, context):
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "富基融通":
-        from chaoshifa import clean_chaoshifa
+        from fujirongtong import clean_fujirongtong
 
-        return clean_chaoshifa(source_id, date, target_table, data_frames)
+        return clean_fujirongtong(source_id, date, target_table, data_frames)
     elif erp_name == "便宅家中间库":
         from bianzhaijia import clean_bianzhaijia
 
@@ -153,73 +153,77 @@ def handler(event, context):
 
 if __name__ == '__main__':
     event = {
-        "source_id": "59YYYYYYYYYYYYY",
-        "erp_name": "科脉云鼎",
-        "date": "2018-09-06",
+        "source_id": "1015YYYYYYYYYYY",
+        "erp_name": "富基融通",
+        "date": "2018-08-16",
         "target_table": "goodsflow",
         'origin_table_columns': {
-            "t_bc_master": [
-                "fitem_clsno",
-                "fitem_clsname",
-                "fprt_no"
+            "dept": [
+                "id",
+                "name"
             ],
-            "t_bi_barcode": [
-                "funit_qty",
-                "fitem_id",
-                "fitem_subno"
+            "goods": [
+                "goodsid",
+                "name",
+                "unitname",
+                "deptid"
             ],
-            "t_bi_master": [
-                "fitem_id",
-                "fitem_subno",
-                "fitem_name",
-                "funit_no",
-                "fitem_clsno"
+            "pay_j": [
+                "paytype",
+                "cardno",
+                "listno",
+                "posid",
+                "sdate",
+                "shopid",
+                "stime"
             ],
-            "t_br_master": [
-                "fbrh_name",
-                "fbrh_no"
+            "sale_j": [
+                "listno",
+                "sdate",
+                "stime",
+                "usebarcodeid",
+                "price",
+                "amount",
+                "x",
+                "salevalue",
+                "discvalue",
+                "posid",
+                "goodsid",
+                "shopid"
             ],
-            "t_sl_detail": [
-                "fprice",
-                "fpack_qty",
-                "famt",
-                "fflow_no",
-                "fitem_subno",
-                "fitem_id"
+            "sgroup": [
+                "id",
+                "name"
             ],
-            "t_sl_master": [
-                "fbrh_no",
-                "fflow_no",
-                "ftrade_date",
-                "fcr_time",
-                "fsell_way"
+            "shop": [
+                "id",
+                "name"
             ]
         },
 
         'converts': {
-            "t_bc_master": {
-                "fitem_clsno": "str",
-                "fprt_no": "str"
+            "dept": {
+                "id": "str"
             },
-            "t_bi_barcode": {
-                "fitem_id": "str",
-                "fitem_subno": "str"
+            "goods": {
+                "deptid": "str",
+                "goodsid": "str"
             },
-            "t_bi_master": {
-                "fitem_clsno": "str",
-                "fitem_id": "str",
-                "fitem_subno": "str"
+            "pay_j": {
+                "cardno": "str",
+                "listno": "str",
+                "posid": "str",
+                "shopid": "str"
             },
-            "t_br_master": {
-                "fbrh_no": "str"
+            "sale_j": {
+                "goodsid": "str",
+                "listno": "str",
+                "posid": "str",
+                "shopid": "str",
+                "usebarcodeid": "str"
             },
-            "t_sl_detail": {
-                "fitem_id": "str",
-                "fitem_subno": "str"
-            },
-            "t_sl_master": {
-                "fbrh_no": "str",
-                "fflow_no": "str"
+            "sgroup": {
+                "id": "str"
             }
         }
     }

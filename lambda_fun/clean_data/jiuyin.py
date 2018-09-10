@@ -1,96 +1,6 @@
 """
 九垠清洗逻辑
 销售，成本，库存，商品， 分类
-
-# goodsflow
-        'origin_table_columns': {
-            "app_fdinfo": ["fdbh", "fdmc"],
-            "bm_spdlxx": ["dlbmid", "dlmc"],
-            "bm_spzlxx": ["zlbmid", "zlmc"],
-            "bm_supertype": ["superbm", "supermc"],
-            "uv_saledetail": ["fdbh", "spbm", "xsdbh", "xsrq", "xssj", "zxnsjg", "spsl", "zxssze"],
-            "uv_spbaseinfo": ["spbm", "superbm", "dlbmid", "zlbmid", "spsmm", "spmc", "dw"]
-        },
-        'converts': {
-            "app_fdinfo": {"fdbh": "str"},
-            "bm_spdlxx": {"dlbmid": "str"},
-            "bm_spzlxx": {"zlbmid": "str"},
-            "bm_supertype": {"superbm": "str"},
-            "uv_saledetail": {"fdbh": "str", "spbm": "str"},
-            "uv_spbaseinfo": {"spbm": "str", "superbm": "str", "dlbmid": "str", "zlbmid": "str"}
-        }
-
-# cost
-        'origin_table_columns': {
-            "uv_saledetail": ["spbm", "fdbh", "xsrq", "spsl", "zxssze", "zxcbje"],
-            "uv_spbaseinfo": ["spbm", "superbm", "dlbmid", "zlbmid"]
-        },
-        'converts': {
-            "uv_saledetail": {"fdbh": "str"},
-            "uv_spbaseinfo": {"superbm": "str", "dlbmid": "str", "zlbmid": "str"}
-        }
-
-
-# goods
-        'origin_table_columns': {
-            "bm_ghsshfs": ["shfsid", "shfsmc"],
-            "bm_ppxx": ["ppbmid", "ppmc"],
-            "gh_sjbasicinfo": ["ghsbh", "ghsmc"],
-            "uv_sjhtxx": ["sjbh", "ghsbh", "shfsid"],
-            "uv_spbaseinfo": ["sjbh", "ppbmid", "spsmm", "spbm", "spmc", "pjjj", "nsjg", "dw", "superbm", "dlbmid",
-                              "zlbmid", "ztbz", "bzqts"]
-        },
-        'converts': {
-            "gh_sjbasicinfo": {"ghsbh": "str"},
-            "uv_sjhtxx": {"ghsbh": "str"},
-            "uv_spbaseinfo": {"superbm": "str", "dlbmid": "str", "zlbmid": "str", "spbm": "str", "spsmm": "str"}
-        }
-
-
-
-#category
-        'origin_table_columns': {
-            "bm_spdlxx": ["superbm", "dlbmid", "dlmc"],
-            "bm_spzlxx": ["dlbmid", "zlbmid", "zlmc"],
-            "bm_supertype": ["superbm", "supermc"]
-        },
-        'converts': {
-            "bm_supertype": {"superbm": "str"},
-            "bm_spdlxx": {"superbm": "str", "dlbmid": "str"},
-            "bm_spzlxx": {"dlbmid": "str", "zlbmid": "str"}
-        }
-
-
-#store
-        'origin_table_columns': {
-            "app_fdinfo": ["fdbh", "fdmc", "dz", "kdrq", "telephone", "fzr", "dcbhid", "fdmode"],
-            "bm_dqxx": ["dqmc", "dqbhid"]
-        },
-        'converts': {
-            "app_fdinfo": {"fdbh": "str", "dcbhid": "str"},
-            "bm_dqxx": {"dqbhid": "str"}
-        }
-
-
-#goodsloss
-        'origin_table_columns': {
-            dj_bsmx: [bsdbh,rq,bssl,nsjg,fdbh,spbm],
-            app_fdinfo: [fdbh,fdmc],
-            uv_spbaseinfo: [spbm,spmc,spsmm,dw,superbm,dlbmid,zlbmid],
-            bm_supertype: [superbm],
-            bm_spdlxx: [dlbmid],
-            bm_spzlxx: [zlbmid]
-        },
-        'converts': {
-            "dj_bsmx": {"fdbh": "str", "spbm": "str"},
-            "app_fdinfo": {"fdbh": "str"},
-            "bm_dqxx": {"dqbhid": "str"},
-            "uv_spbaseinfo": {"superbm": "str", "dlbmid": "str", "zlbmid": "str", "spbm": "str", "spsmm": "str"},
-            "bm_supertype": {"superbm": "str"},
-            "bm_spdlxx": {"dlbmid": "str"},
-            "bm_spzlxx": {"zlbmid": "str"}
-        }
-
 """
 from datetime import datetime
 import pandas as pd
@@ -141,57 +51,65 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     lv2 = data_frames["bm_spdlxx"]
     lv3 = data_frames["bm_spzlxx"]
 
-    saleflow.fdbh = saleflow.fdbh.apply(lambda x: x.strip())
-    saleflow.spbm = saleflow.spbm.apply(lambda x: x.strip())
-    store.fdbh = store.fdbh.apply(lambda x: x.strip())
-    goods.spbm = goods.spbm.apply(lambda x: x.strip())
-    goods.superbm = goods.superbm.apply(lambda x: x.strip())
-    goods.dlbmid = goods.dlbmid.apply(lambda x: x.strip())
-    goods.zlbmid = goods.zlbmid.apply(lambda x: x.strip())
-    lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
-    lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
-    lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
+    if len(saleflow) == 0:
+        goodsflow = pd.DataFrame(columns=[
+            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
+            'last_updated', 'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
+            'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
+            'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
+            'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'])
+    else:
+        saleflow.fdbh = saleflow.fdbh.apply(lambda x: x.strip())
+        saleflow.spbm = saleflow.spbm.apply(lambda x: x.strip())
+        store.fdbh = store.fdbh.apply(lambda x: x.strip())
+        goods.spbm = goods.spbm.apply(lambda x: x.strip())
+        goods.superbm = goods.superbm.apply(lambda x: x.strip())
+        goods.dlbmid = goods.dlbmid.apply(lambda x: x.strip())
+        goods.zlbmid = goods.zlbmid.apply(lambda x: x.strip())
+        lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
+        lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
+        lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
 
-    goodsflow = saleflow.merge(store, how="left").merge(goods, how="left").merge(lv1, how="left")\
-        .merge(lv2, how="left").merge(lv3, how="left").merge(lv3, how="left").merge(lv3, how="left")
+        goodsflow = saleflow.merge(store, how="left").merge(goods, how="left").merge(lv1, how="left")\
+            .merge(lv2, how="left").merge(lv3, how="left").merge(lv3, how="left").merge(lv3, how="left")
 
-    goodsflow = goodsflow.rename(columns={
-        "fdbh": "foreign_store_id",
-        "fdmc": "store_name",
-        "xsdbh": "receipt_id",
-        "spbm": "foreign_item_id",
-        "spsmm": "barcode",
-        "spmc": "item_name",
-        "dw": "item_unit",
-        "zxnsjg": "saleprice",
-        "spsl": "quantity",
-        "zxssze": "subtotal",
-        "superbm": "foreign_category_lv1",
-        "supermc": "foreign_category_lv1_name",
-        "dlbmid": "foreign_category_lv2",
-        "dlmc": "foreign_category_lv2_name",
-        "zlbmid": "foreign_category_lv3",
-        "zlmc": "foreign_category_lv3_name"
-    })
+        goodsflow = goodsflow.rename(columns={
+            "fdbh": "foreign_store_id",
+            "fdmc": "store_name",
+            "xsdbh": "receipt_id",
+            "spbm": "foreign_item_id",
+            "spsmm": "barcode",
+            "spmc": "item_name",
+            "dw": "item_unit",
+            "zxnsjg": "saleprice",
+            "spsl": "quantity",
+            "zxssze": "subtotal",
+            "superbm": "foreign_category_lv1",
+            "supermc": "foreign_category_lv1_name",
+            "dlbmid": "foreign_category_lv2",
+            "dlmc": "foreign_category_lv2_name",
+            "zlbmid": "foreign_category_lv3",
+            "zlmc": "foreign_category_lv3_name"
+        })
 
-    goodsflow["source_id"] = source_id
-    goodsflow["cmid"] = cmid
-    goodsflow["consumer_id"] = None
-    goodsflow["saletime"] = goodsflow.apply(lambda row: row["xsrq"].strip() + " " + row["xssj"].strip(), axis=1)
-    goodsflow["last_updated"] = datetime.now(_TZINFO)
-    goodsflow["foreign_category_lv4"] = ""
-    goodsflow["foreign_category_lv4_name"] = None
-    goodsflow["foreign_category_lv5"] = ""
-    goodsflow["foreign_category_lv5_name"] = None
-    goodsflow["pos_id"] = ""
+        goodsflow["source_id"] = source_id
+        goodsflow["cmid"] = cmid
+        goodsflow["consumer_id"] = None
+        goodsflow["saletime"] = goodsflow.apply(lambda row: row["xsrq"].strip() + " " + row["xssj"].strip(), axis=1)
+        goodsflow["last_updated"] = datetime.now(_TZINFO)
+        goodsflow["foreign_category_lv4"] = ""
+        goodsflow["foreign_category_lv4_name"] = None
+        goodsflow["foreign_category_lv5"] = ""
+        goodsflow["foreign_category_lv5_name"] = None
+        goodsflow["pos_id"] = ""
 
-    goodsflow = goodsflow[[
-        'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime', 'last_updated',
-        'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
-        'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
-        'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
-        'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
-    ]]
+        goodsflow = goodsflow[[
+            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
+            'last_updated', 'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
+            'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
+            'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
+            'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
+        ]]
 
     return upload_to_s3(goodsflow, source_id, date, target_table)
 
@@ -202,42 +120,47 @@ def clean_cost(source_id, date, target_table, data_frames):
     :param source_id:
     :param date:
     :param target_table:
-    :param frames:
+    :param data_frames:
     :return:
     """
     cmid = source_id.split("Y")[0]
+    if len(data_frames["uv_saledetail"]) == 0:
+        cost = pd.DataFrame(columns=[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+            "foreign_category_lv4", "foreign_category_lv5", "cmid"])
+    else:
+        cost = data_frames["uv_saledetail"].merge(data_frames["uv_spbaseinfo"], how="left")
+        cost = cost.groupby(["xsrq", "fdbh", "spbm", "superbm", "dlbmid", "zlbmid"], as_index=False)\
+            .agg({"spsl": sum, "zxssze": sum, "zxcbje": sum})
 
-    cost = data_frames["uv_saledetail"].merge(data_frames["uv_spbaseinfo"], how="left")
-    cost = cost.groupby(["xsrq", "fdbh", "spbm", "superbm", "dlbmid", "zlbmid"], as_index=False)\
-        .agg({"spsl": sum, "zxssze": sum, "zxcbje": sum})
+        cost.fdbh = cost.fdbh.apply(lambda x: x.strip())
+        cost.spbm = cost.spbm.apply(lambda x: x.strip())
+        cost.superbm = cost.superbm.apply(lambda x: x.strip())
+        cost.dlbmid = cost.dlbmid.apply(lambda x: x.strip())
+        cost.zlbmid = cost.zlbmid.apply(lambda x: x.strip())
 
-    cost.fdbh = cost.fdbh.apply(lambda x: x.strip())
-    cost.spbm = cost.spbm.apply(lambda x: x.strip())
-    cost.superbm = cost.superbm.apply(lambda x: x.strip())
-    cost.dlbmid = cost.dlbmid.apply(lambda x: x.strip())
-    cost.zlbmid = cost.zlbmid.apply(lambda x: x.strip())
+        cost = cost.rename(columns={
+            "fdbh": "foreign_store_id",
+            "spbm": "foreign_item_id",
+            "xsrq": "date",
+            "spsl": "total_quantity",
+            "zxssze": "total_sale",
+            "zxcbje": "total_cost",
+            "superbm": "foreign_category_lv1",
+            "dlbmid": "foreign_category_lv2",
+            "zlbmid": "foreign_category_lv3"
+        })
+        cost["source_id"] = source_id
+        cost["cost_type"] = ""
+        cost["foreign_category_lv4"] = ""
+        cost["foreign_category_lv5"] = ""
+        cost["cmid"] = cmid
 
-    cost = cost.rename(columns={
-        "fdbh": "foreign_store_id",
-        "spbm": "foreign_item_id",
-        "xsrq": "date",
-        "spsl": "total_quantity",
-        "zxssze": "total_sale",
-        "zxcbje": "total_cost",
-        "superbm": "foreign_category_lv1",
-        "dlbmid": "foreign_category_lv2",
-        "zlbmid": "foreign_category_lv3"
-    })
-    cost["source_id"] = source_id
-    cost["cost_type"] = ""
-    cost["foreign_category_lv4"] = ""
-    cost["foreign_category_lv5"] = ""
-    cost["cmid"] = cmid
-
-    cost = cost[[
-        "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
-        "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-        "foreign_category_lv5", "cmid"]]
+        cost = cost[[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+            "foreign_category_lv4", "foreign_category_lv5", "cmid"]]
 
     return upload_to_s3(cost, source_id, date, target_table)
 
@@ -248,7 +171,7 @@ def clean_goods(source_id, date, target_table, data_frames):
     :param source_id:
     :param date:
     :param target_table:
-    :param frames:
+    :param data_frames:
     :return:
     """
     """
@@ -319,7 +242,7 @@ def clean_category(source_id, date, target_table, data_frames):
     :param source_id:
     :param date:
     :param target_table:
-    :param frames:
+    :param data_frames:
     :return:
     """
     cmid = source_id.split("Y")[0]
@@ -410,7 +333,7 @@ def clean_store(source_id, date, target_table, data_frames):
     :param source_id:
     :param date:
     :param target_table:
-    :param frames:
+    :param data_frames:
     :return:
     """
     cmid = source_id.split("Y")[0]
@@ -468,48 +391,55 @@ def clean_goodsloss(source_id, date, target_table, data_frames):
     lv2 = data_frames["bm_spdlxx"]
     lv3 = data_frames["bm_spzlxx"]
 
-    loss.fdbh = loss.fdbh.apply(lambda x: x.strip())
-    loss.spbm = loss.spbm.apply(lambda x: x.strip())
-    item.spbm = item.spbm.apply(lambda x: x.strip())
-    item.superbm = item.superbm.apply(lambda x: x.strip())
-    item.dlbmid = item.dlbmid.apply(lambda x: x.strip())
-    item.zlbmid = item.zlbmid.apply(lambda x: x.strip())
-    item.spsmm = item.spsmm.apply(lambda x: x.strip())
-    lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
-    lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
-    lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
+    if len(loss) == 0:
+        goodsloss = pd.DataFrame(columns=[
+            "cmid", "source_id", "lossnum", "lossdate", "foreign_store_id", "store_show_code", "store_name",
+            "foreign_item_id", "item_showcode", "barcode", "item_name", "item_unit", "quantity", "subtotal",
+            "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5"])
+    else:
+        loss.fdbh = loss.fdbh.apply(lambda x: x.strip())
+        loss.spbm = loss.spbm.apply(lambda x: x.strip())
+        item.spbm = item.spbm.apply(lambda x: x.strip())
+        item.superbm = item.superbm.apply(lambda x: x.strip())
+        item.dlbmid = item.dlbmid.apply(lambda x: x.strip())
+        item.zlbmid = item.zlbmid.apply(lambda x: x.strip())
+        item.spsmm = item.spsmm.apply(lambda x: x.strip())
+        lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
+        lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
+        lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
 
-    goodsloss = loss.merge(store, how="left").merge(item, how="left").merge(lv1, how="left").merge(lv2, how="left")\
-        .merge(lv3, how="left")
+        goodsloss = loss.merge(store, how="left").merge(item, how="left").merge(lv1, how="left").merge(lv2, how="left")\
+            .merge(lv3, how="left")
 
-    goodsloss["cmid"] = cmid
-    goodsloss["source_id"] = source_id
-    goodsloss["foreign_category_lv4"] = ""
-    goodsloss["foreign_category_lv5"] = ""
-    goodsloss["store_show_code"] = goodsloss.fdbh
-    goodsloss["item_showcode"] = goodsloss.spbm
-    goodsloss["quantity"] = goodsloss.bssl.apply(lambda x: -1 * x)
-    goodsloss["subtotal"] = goodsloss.apply(lambda row: -1 * row["bssl"] * row["nsjg"], axis=1)
-    goodsloss["rq"] = goodsloss.rq.apply(lambda x: x.split()[0])
-    goodsloss = goodsloss.rename(columns={
-        "bsdbh": "lossnum",
-        "rq": "lossdate",
-        "fdbh": "foreign_store_id",
-        "fdmc": "store_name",
-        "spbm": "foreign_item_id",
-        "spsmm": "barcode",
-        "spmc": "item_name",
-        "dw": "item_unit",
-        "superbm": "foreign_category_lv1",
-        "dlbmid": "foreign_category_lv2",
-        "zlbmid": "foreign_category_lv3"
-    })
-    goodsloss = goodsloss[[
-        "cmid", "source_id", "lossnum", "lossdate", "foreign_store_id", "store_show_code", "store_name",
-        "foreign_item_id", "item_showcode", "barcode", "item_name", "item_unit", "quantity", "subtotal",
-        "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-        "foreign_category_lv5",
-    ]]
+        goodsloss["cmid"] = cmid
+        goodsloss["source_id"] = source_id
+        goodsloss["foreign_category_lv4"] = ""
+        goodsloss["foreign_category_lv5"] = ""
+        goodsloss["store_show_code"] = goodsloss.fdbh
+        goodsloss["item_showcode"] = goodsloss.spbm
+        goodsloss["quantity"] = goodsloss.bssl.apply(lambda x: -1 * x)
+        goodsloss["subtotal"] = goodsloss.apply(lambda row: -1 * row["bssl"] * row["nsjg"], axis=1)
+        goodsloss["rq"] = goodsloss.rq.apply(lambda x: x.split()[0])
+        goodsloss = goodsloss.rename(columns={
+            "bsdbh": "lossnum",
+            "rq": "lossdate",
+            "fdbh": "foreign_store_id",
+            "fdmc": "store_name",
+            "spbm": "foreign_item_id",
+            "spsmm": "barcode",
+            "spmc": "item_name",
+            "dw": "item_unit",
+            "superbm": "foreign_category_lv1",
+            "dlbmid": "foreign_category_lv2",
+            "zlbmid": "foreign_category_lv3"
+        })
+        goodsloss = goodsloss[[
+            "cmid", "source_id", "lossnum", "lossdate", "foreign_store_id", "store_show_code", "store_name",
+            "foreign_item_id", "item_showcode", "barcode", "item_name", "item_unit", "quantity", "subtotal",
+            "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]]
 
     return upload_to_s3(goodsloss, source_id, date, target_table)
 
