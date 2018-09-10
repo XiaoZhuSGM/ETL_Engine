@@ -879,53 +879,6 @@ class HaiDingCleaner:
             )
         )
 
-<<<<<<< HEAD
-        part2["source_id"] = self.source_id
-        part2["cmid"] = self.cmid
-        part2["total_quantity"] = part2.apply(
-            lambda row: row["qty"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * row["qty"],
-            axis=1,
-        )
-        part2["total_sale"] = part2.apply(
-            lambda row: row["amt"] + row["tax"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * (row["amt"] + row["tax"]),
-            axis=1,
-        )
-        part2["total_cost"] = part2.apply(
-            lambda row: row["iamt"] + row["itax"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * (row["iamt"] + row["itax"]),
-            axis=1,
-        )
-        part2["foreign_category_lv1"] = part2.apply(
-            lambda row: "" if row["code"] is None else row["code"], axis=1
-        )
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: "" if row["code.sort2"] is None else row["code.sort2"], axis=1
-        )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: "" if row["code.sort3"] is None else row["code.sort3"], axis=1
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        now = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-        part2 = part2[
-            (part2["ocrdate"] >= now)
-            & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
-        ]
-
-        print(part2)
-        part2["fildate"] = part2.apply(lambda row: row["fildate"].split()[0], axis=1)
-=======
         if not len(part2):
             part2 = pd.DataFrame(columns=columns)
         else:
@@ -976,7 +929,6 @@ class HaiDingCleaner:
                 (part2["ocrdate"] >= now)
                 & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
             ]
->>>>>>> 513a4dc9d06854759242d99ee87f9b4ca57b9633
 
             part2 = part2.rename(
                 columns={

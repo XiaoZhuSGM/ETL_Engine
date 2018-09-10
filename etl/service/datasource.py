@@ -102,7 +102,9 @@ class DatasourceService(object):
         frequency = datasource_config.frequency
         cron_list = [x.lstrip('0') for x in ext_time.split(':')]
         cron_list = [x if x else '0' for x in cron_list]
-        hour = cron_list[0]
+        temp_time = datetime(2018, 6, 4, hour=int(cron_list[0]))
+        temp_time = temp_time + timedelta(hours=-8)
+        hour = temp_time.hour
         minute = cron_list[1]
         cron_expression = f'{minute} {hour} * * *'
         return cron_expression
