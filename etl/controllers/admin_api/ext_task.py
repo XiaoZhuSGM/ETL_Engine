@@ -53,12 +53,14 @@ def trigger_task_warehouse():
 def get_task_warehouse_status():
     task_id = request.args.get("task_id")
     reason = ""
-    try:
-        result = huey.result(task_id, preserve=True)
-        status = "success" if result else "running"
-    except Exception as e:
-        reason = str(e)
+    result = huey.result(task_id, preserve=True)
+    if result is None:
+        status = "running"
+    elif result is True:
+        status = "success"
+    else:
         status = "failed"
+        reason = str(result)
     return jsonify_with_data(
         APIError.OK, data={"status": status, "reason": reason, "task_id": task_id}
     )
