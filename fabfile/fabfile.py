@@ -23,7 +23,14 @@ def supervisor(c, env="dev", command=""):
             c.run(f"supervisorctl -c supervisord.conf {command} etl-engine")
 
 
-@task(post=[reload])
+@task
+def restart_queue(c, env="dev"):
+    with Connection(host=ENV[env], user="centos") as c:
+        with c.cd("/data/code"):
+            c.run(f"supervisorctl -c supervisord.conf restart etl-engine:task-queue")
+
+
+@task(post=[reload, restart_queue])
 def deploy(c, env="dev", branch="dev"):
     """Deploy <branch> with <env>.
     """
