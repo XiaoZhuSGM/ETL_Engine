@@ -18,10 +18,10 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    pgsql_db_username = ''
-    pgsql_db_password = ''
-    pgsql_db_name = ''
-    pgsql_db_hostname = ''
+***REMOVED***
+***REMOVED***'
+***REMOVED***
+***REMOVED***
     SQLALCHEMY_ECHO = False
 
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
@@ -29,6 +29,10 @@ class ProductionConfig(Config):
         DB_PASS=pgsql_db_password,
         DB_ADDR=pgsql_db_hostname,
         DB_NAME=pgsql_db_name)
+
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
 
 
 class DevelopmentConfig(Config):
