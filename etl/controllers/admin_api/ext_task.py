@@ -54,7 +54,7 @@ def get_task_warehouse_status():
     task_id = request.args.get("task_id")
     reason = ""
     try:
-        result = huey.result(task_id)
+        result = huey.result(task_id, preserve=True)
         status = "success" if result else "running"
     except Exception as e:
         reason = str(e)
