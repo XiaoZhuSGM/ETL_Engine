@@ -13,8 +13,7 @@ from common import *
 import airflow
 
 
-lambda_client = boto3.client('lambda')
-S3_CLIENT = boto3.resource('s3')
+
 source_id = '85YYYYYYYYYYYYY'
 erp_name = '宏业'
 cmid = source_id.split("Y")[0]

@@ -9,8 +9,8 @@ import boto3
 from collections import defaultdict
 import time
 import re
-from common import generate_common_task
-
+from common import *
+import airflow
 lambda_client = boto3.client("lambda")
 S3_CLIENT = boto3.resource("s3")
 source_id = "59YYYYYYYYYYYYY"
@@ -19,23 +19,20 @@ cmid = source_id.split("Y")[0]
 SQL_PREFIX = "sql/source_id={source_id}/{date}/"
 S3_BUCKET = "ext-etl-data"
 
-# 调用web接口来生成source_id的指定cron表达式
-# response = requests.get('http://172.31.16.17:5000/etl/admin/api/crontab/' + source_id)
-# result = json.loads(response.text)
-# interval = result['data']
+interval = generate_crontab(source_id)
 args = {
-    "owner": "BeanNan",
-    "depends_on_past": False,
-    "email": ["fanjianan@chaomengdata.com"],
-    "email_on_failure": True,
-    "email_on_retry": False,
-    "start_date": datetime(2018, 9, 8),
-    "retries": 10,
-    "retry_delay": timedelta(minutes=1),
-    "provide_context": True,
+    'owner': 'ETL',
+    'depends_on_past': False,
+    'email': ['lvxiang@chaomengdata.com', 'fanjianan@chaomengdata.com', 'guojiaqi@chaomengdata.com', 'yumujun@chaomengdata.com'],
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'start_date': airflow.utils.dates.days_ago(1),
+    'retries': 20,
+    'retry_delay': timedelta(minutes=1),
+    'provide_context': True
 }
 
-dag = DAG(dag_id="ext_59", schedule_interval="0 22 * * *", default_args=args)
+dag = DAG(dag_id='ext_59', schedule_interval=interval, default_args=args)
 
 """
  先创建3个task
