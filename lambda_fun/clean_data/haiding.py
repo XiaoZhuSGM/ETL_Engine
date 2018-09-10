@@ -755,7 +755,7 @@ class HaiDingCleaner:
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         rpt_storesaldrpt["cls"] = rpt_storesaldrpt["cls"].str.strip()
-        sdrpts['cls'] = sdrpts['cls'].str.strip()
+        sdrpts["cls"] = sdrpts["cls"].str.strip()
 
         columns = [
             "source_id",
@@ -804,44 +804,50 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
-        part1["source_id"] = self.source_id
-        part1["cmid"] = self.cmid
-        part1["total_sale"] = part1.apply(
-            lambda row: row["saleamt"] + row["saletax"], axis=1
-        )
-        part1["total_cost"] = part1.apply(
-            lambda row: row["salecamt"] + row["salectax"], axis=1
-        )
-        part1["foreign_category_lv1"] = part1.apply(
-            lambda row: "" if row["code"] is None else row["code"], axis=1
-        )
-        part1["foreign_category_lv2"] = part1.apply(
-            lambda row: "" if row["code.sort2"] is None else row["code.sort2"], axis=1
-        )
-        part1["foreign_category_lv3"] = part1.apply(
-            lambda row: "" if row["code.sort3"] is None else row["code.sort3"], axis=1
-        )
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv5"] = ""
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["source_id"] = self.source_id
+            part1["cmid"] = self.cmid
+            part1["total_sale"] = part1.apply(
+                lambda row: row["saleamt"] + row["saletax"], axis=1
+            )
+            part1["total_cost"] = part1.apply(
+                lambda row: row["salecamt"] + row["salectax"], axis=1
+            )
+            part1["foreign_category_lv1"] = part1.apply(
+                lambda row: "" if row["code"] is None else row["code"], axis=1
+            )
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: "" if row["code.sort2"] is None else row["code.sort2"],
+                axis=1,
+            )
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: "" if row["code.sort3"] is None else row["code.sort3"],
+                axis=1,
+            )
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv5"] = ""
 
-        if self.source_id in ("79YYYYYYYYYYYYY", "80YYYYYYYYYYYYY"):
-            part1 = part1[part1["cls"] == "零售"]
-        elif self.source_id == "82YYYYYYYYYYYYY":
-            part1 = part1[part1["cls"] != "批发"]
+            if self.source_id in ("79YYYYYYYYYYYYY", "80YYYYYYYYYYYYY"):
+                part1 = part1[part1["cls"] == "零售"]
+            elif self.source_id == "82YYYYYYYYYYYYY":
+                part1 = part1[part1["cls"] != "批发"]
 
-        part1["fildate"] = part1.apply(lambda row: row["fildate"].split()[0], axis=1)
+            part1["fildate"] = part1.apply(
+                lambda row: row["fildate"].split()[0], axis=1
+            )
 
-
-        part1 = part1.rename(
-            columns={
-                "orgkey": "foreign_store_id",
-                "pdkey": "foreign_item_id",
-                "fildate": "date",
-                "cls": "cost_type",
-                "saleqty": "total_quantity",
-            }
-        )
-        part1 = part1[columns]
+            part1 = part1.rename(
+                columns={
+                    "orgkey": "foreign_store_id",
+                    "pdkey": "foreign_item_id",
+                    "fildate": "date",
+                    "cls": "cost_type",
+                    "saleqty": "total_quantity",
+                }
+            )
+            part1 = part1[columns]
         part2 = (
             sdrpts.merge(
                 goods,
@@ -873,60 +879,66 @@ class HaiDingCleaner:
             )
         )
 
-        part2["source_id"] = self.source_id
-        part2["cmid"] = self.cmid
-        part2["total_quantity"] = part2.apply(
-            lambda row: row["qty"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * row["qty"],
-            axis=1,
-        )
-        part2["total_sale"] = part2.apply(
-            lambda row: row["amt"] + row["tax"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * (row["amt"] + row["tax"]),
-            axis=1,
-        )
-        part2["total_cost"] = part2.apply(
-            lambda row: row["iamt"] + row["itax"]
-            if row["cls"] in ("零售", "批发")
-            else 0
-            if row["cls"] in ("成本差异", "成本调整")
-            else -1 * (row["iamt"] + row["itax"]),
-            axis=1,
-        )
-        part2["foreign_category_lv1"] = part2.apply(
-            lambda row: "" if row["code"] is None else row["code"], axis=1
-        )
-        part2["foreign_category_lv2"] = part2.apply(
-            lambda row: "" if row["code.sort2"] is None else row["code.sort2"], axis=1
-        )
-        part2["foreign_category_lv3"] = part2.apply(
-            lambda row: "" if row["code.sort3"] is None else row["code.sort3"], axis=1
-        )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        now = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-        part2 = part2[
-            (part2["ocrdate"] >= now)
-            & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
-        ]
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["source_id"] = self.source_id
+            part2["cmid"] = self.cmid
+            part2["total_quantity"] = part2.apply(
+                lambda row: row["qty"]
+                if row["cls"] in ("零售", "批发")
+                else 0
+                if row["cls"] in ("成本差异", "成本调整")
+                else -1 * row["qty"],
+                axis=1,
+            )
+            part2["total_sale"] = part2.apply(
+                lambda row: row["amt"] + row["tax"]
+                if row["cls"] in ("零售", "批发")
+                else 0
+                if row["cls"] in ("成本差异", "成本调整")
+                else -1 * (row["amt"] + row["tax"]),
+                axis=1,
+            )
+            part2["total_cost"] = part2.apply(
+                lambda row: row["iamt"] + row["itax"]
+                if row["cls"] in ("零售", "批发")
+                else 0
+                if row["cls"] in ("成本差异", "成本调整")
+                else -1 * (row["iamt"] + row["itax"]),
+                axis=1,
+            )
+            part2["foreign_category_lv1"] = part2.apply(
+                lambda row: "" if row["code"] is None else row["code"], axis=1
+            )
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: "" if row["code.sort2"] is None else row["code.sort2"],
+                axis=1,
+            )
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: "" if row["code.sort3"] is None else row["code.sort3"],
+                axis=1,
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["fildate"] = part2.apply(
+                lambda row: row["fildate"].split()[0], axis=1
+            )
+            now = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            part2 = part2[
+                (part2["ocrdate"] >= now)
+                & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
+            ]
 
-        part2["fildate"] = part2.apply(lambda row: row["fildate"].split()[0], axis=1)
-
-        part2 = part2.rename(
-            columns={
-                "snd": "foreign_store_id",
-                "gdgid": "foreign_item_id",
-                "fildate": "date",
-                "cls": "cost_type",
-            }
-        )
-        part2 = part2[columns]
+            part2 = part2.rename(
+                columns={
+                    "snd": "foreign_store_id",
+                    "gdgid": "foreign_item_id",
+                    "fildate": "date",
+                    "cls": "cost_type",
+                }
+            )
+            part2 = part2[columns]
         return pd.concat([part1, part2])
 
     def requireorder(self):
@@ -965,8 +977,6 @@ class HaiDingCleaner:
         sort = self.data["sort"]
         vendor = self.data["vendor"]
         employee = self.data["employee"]
-        if not len(otrequireorder):
-            return pd.DataFrame(columns=columns)
         otrequireorder = otrequireorder.drop_duplicates()
         otrequireorderline = otrequireorderline.drop_duplicates()
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
@@ -1031,6 +1041,8 @@ class HaiDingCleaner:
                 suffixes=("", ".employee"),
             )
         )
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
         part["foreign_category_lv4"] = ""
@@ -1121,65 +1133,63 @@ class HaiDingCleaner:
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-        if not len(stkout):
+
+        stkout: pd.DataFrame = stkout[
+            (stkout["cls"] == "统配出")
+            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
+        ]
+
+        part1 = (
+            stkout.merge(
+                stkoutdtl, how="inner", on=["num", "cls"], suffixes=("", ".stkoutdtl")
+            )
+            .merge(
+                store,
+                how="inner",
+                left_on=["billto"],
+                right_on=["gid"],
+                suffixes=("", ".store"),
+            )
+            .merge(
+                warehouse,
+                how="inner",
+                left_on=["wrh"],
+                right_on=["gid"],
+                suffixes=("", ".warehouse"),
+            )
+            .merge(
+                goods,
+                how="inner",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort1"],
+                right_on=["code"],
+                suffixes=("", ".sort1"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort2"],
+                right_on=["code"],
+                suffixes=("", ".sort2"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort3"],
+                right_on=["code"],
+                suffixes=("", ".sort3"),
+            )
+        )
+
+        if not len(part1):
             part1 = pd.DataFrame(columns=columns)
         else:
-            stkout: pd.DataFrame = stkout[
-                (stkout["cls"] == "统配出")
-                & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-
-            part1 = (
-                stkout.merge(
-                    stkoutdtl,
-                    how="inner",
-                    on=["num", "cls"],
-                    suffixes=("", ".stkoutdtl"),
-                )
-                .merge(
-                    store,
-                    how="inner",
-                    left_on=["billto"],
-                    right_on=["gid"],
-                    suffixes=("", ".store"),
-                )
-                .merge(
-                    warehouse,
-                    how="inner",
-                    left_on=["wrh"],
-                    right_on=["gid"],
-                    suffixes=("", ".warehouse"),
-                )
-                .merge(
-                    goods,
-                    how="inner",
-                    left_on=["gdgid"],
-                    right_on=["gid"],
-                    suffixes=("", ".goods"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort1"],
-                    right_on=["code"],
-                    suffixes=("", ".sort1"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort2"],
-                    right_on=["code"],
-                    suffixes=("", ".sort2"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort3"],
-                    right_on=["code"],
-                    suffixes=("", ".sort3"),
-                )
-            )
-
             part1["foreign_category_lv4"] = ""
             part1["foreign_category_lv5"] = ""
             part1["cmid"] = self.cmid
@@ -1216,63 +1226,63 @@ class HaiDingCleaner:
             )
             part1 = part1[columns]
 
-        if not len(stkoutbck):
+        stkoutbck: pd.DataFrame = stkoutbck[
+            (stkoutbck["cls"] == "统配出退")
+            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+        ]
+        part2 = (
+            stkoutbck.merge(
+                stkoutbckdtl,
+                how="inner",
+                on=["num", "cls"],
+                suffixes=("", ".stkoutbckdtl"),
+            )
+            .merge(
+                store,
+                how="inner",
+                left_on=["billto"],
+                right_on=["gid"],
+                suffixes=("", ".store"),
+            )
+            .merge(
+                warehouse,
+                how="inner",
+                left_on=["wrh"],
+                right_on=["gid"],
+                suffixes=("", ".warehouse"),
+            )
+            .merge(
+                goods,
+                how="inner",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort1"],
+                right_on=["code"],
+                suffixes=("", ".sort1"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort2"],
+                right_on=["code"],
+                suffixes=("", ".sort2"),
+            )
+            .merge(
+                sort,
+                how="left",
+                left_on=["sort3"],
+                right_on=["code"],
+                suffixes=("", ".sort3"),
+            )
+        )
+        if not len(part2):
             part2 = pd.DataFrame(columns=columns)
         else:
-            stkoutbck: pd.DataFrame = stkoutbck[
-                (stkoutbck["cls"] == "统配出退")
-                & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-            part2 = (
-                stkoutbck.merge(
-                    stkoutbckdtl,
-                    how="inner",
-                    on=["num", "cls"],
-                    suffixes=("", ".stkoutbckdtl"),
-                )
-                .merge(
-                    store,
-                    how="inner",
-                    left_on=["billto"],
-                    right_on=["gid"],
-                    suffixes=("", ".store"),
-                )
-                .merge(
-                    warehouse,
-                    how="inner",
-                    left_on=["wrh"],
-                    right_on=["gid"],
-                    suffixes=("", ".warehouse"),
-                )
-                .merge(
-                    goods,
-                    how="inner",
-                    left_on=["gdgid"],
-                    right_on=["gid"],
-                    suffixes=("", ".goods"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort1"],
-                    right_on=["code"],
-                    suffixes=("", ".sort1"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort2"],
-                    right_on=["code"],
-                    suffixes=("", ".sort2"),
-                )
-                .merge(
-                    sort,
-                    how="left",
-                    left_on=["sort3"],
-                    right_on=["code"],
-                    suffixes=("", ".sort3"),
-                )
-            )
             part2["foreign_category_lv4"] = ""
             part2["foreign_category_lv5"] = ""
             part2["cmid"] = self.cmid
@@ -1348,49 +1358,50 @@ class HaiDingCleaner:
         warehouseh = self.data["warehouseh"]
         stkinbck = self.data["stkinbck"]
         stkinbckdtl = self.data["stkinbckdtl"]
-        if not len(stkin):
+
+        part1 = (
+            stkin.merge(
+                stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
+            )
+            .merge(
+                vendorh,
+                how="left",
+                left_on=["vendor"],
+                right_on=["gid"],
+                suffixes=("", ".vendorh"),
+            )
+            .merge(
+                modulestat,
+                how="left",
+                left_on=["stat"],
+                right_on=["no"],
+                suffixes=("", ".modulestat"),
+            )
+            .merge(
+                goods,
+                how="left",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            )
+            .merge(
+                brand,
+                how="left",
+                left_on=["brand"],
+                right_on=["code"],
+                suffixes=("", ".brand"),
+            )
+            .merge(
+                warehouseh,
+                how="left",
+                left_on=["wrh"],
+                right_on=["gid"],
+                suffixes=("", ".warehouseh"),
+            )
+        )
+        if not len(part1):
             part1 = pd.DataFrame(columns=columns)
         else:
-            part1 = (
-                stkin.merge(
-                    stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
-                )
-                .merge(
-                    vendorh,
-                    how="left",
-                    left_on=["vendor"],
-                    right_on=["gid"],
-                    suffixes=("", ".vendorh"),
-                )
-                .merge(
-                    modulestat,
-                    how="left",
-                    left_on=["stat"],
-                    right_on=["no"],
-                    suffixes=("", ".modulestat"),
-                )
-                .merge(
-                    goods,
-                    how="left",
-                    left_on=["gdgid"],
-                    right_on=["gid"],
-                    suffixes=("", ".goods"),
-                )
-                .merge(
-                    brand,
-                    how="left",
-                    left_on=["brand"],
-                    right_on=["code"],
-                    suffixes=("", ".brand"),
-                )
-                .merge(
-                    warehouseh,
-                    how="left",
-                    left_on=["wrh"],
-                    right_on=["gid"],
-                    suffixes=("", ".warehouseh"),
-                )
-            )
             part1["purchase_price"] = part1.apply(
                 lambda row: row["price"] / row["qpc"], axis=1
             )
@@ -1431,52 +1442,52 @@ class HaiDingCleaner:
             )
             part1 = part1[columns]
 
-        if not len(stkinbck):
+        part2 = (
+            stkinbck.merge(
+                stkinbckdtl,
+                how="left",
+                on=["num", "cls"],
+                suffixes=("", ".stkinbckdtl"),
+            )
+            .merge(
+                vendorh,
+                how="left",
+                left_on=["vendor"],
+                right_on=["gid"],
+                suffixes=("", ".vendorh"),
+            )
+            .merge(
+                modulestat,
+                how="left",
+                left_on=["stat"],
+                right_on=["no"],
+                suffixes=("", ".modulestat"),
+            )
+            .merge(
+                goods,
+                how="left",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            )
+            .merge(
+                brand,
+                how="left",
+                left_on=["brand"],
+                right_on=["code"],
+                suffixes=("", ".brand"),
+            )
+            .merge(
+                warehouseh,
+                how="left",
+                left_on=["wrh"],
+                right_on=["gid"],
+                suffixes=("", ".warehouseh"),
+            )
+        )
+        if not len(part2):
             part2 = pd.DataFrame(columns=columns)
         else:
-            part2 = (
-                stkinbck.merge(
-                    stkinbckdtl,
-                    how="left",
-                    on=["num", "cls"],
-                    suffixes=("", ".stkinbckdtl"),
-                )
-                .merge(
-                    vendorh,
-                    how="left",
-                    left_on=["vendor"],
-                    right_on=["gid"],
-                    suffixes=("", ".vendorh"),
-                )
-                .merge(
-                    modulestat,
-                    how="left",
-                    left_on=["stat"],
-                    right_on=["no"],
-                    suffixes=("", ".modulestat"),
-                )
-                .merge(
-                    goods,
-                    how="left",
-                    left_on=["gdgid"],
-                    right_on=["gid"],
-                    suffixes=("", ".goods"),
-                )
-                .merge(
-                    brand,
-                    how="left",
-                    left_on=["brand"],
-                    right_on=["code"],
-                    suffixes=("", ".brand"),
-                )
-                .merge(
-                    warehouseh,
-                    how="left",
-                    left_on=["wrh"],
-                    right_on=["gid"],
-                    suffixes=("", ".warehouseh"),
-                )
-            )
             part2["purchase_qty"] = part2.apply(lambda row: -1 * row["qty"], axis=1)
             part2["purchase_total"] = part2.apply(lambda row: -1 * row["total"], axis=1)
             part2["purchase_price"] = part2.apply(
@@ -1557,9 +1568,6 @@ class HaiDingCleaner:
         goods = self.data["goods"]
         brand = self.data["brand"]
 
-        if not len(diralc):
-            return pd.DataFrame(columns=columns)
-
         part = (
             diralc.merge(
                 diralcdtl, how="left", on=["num", "cls"], suffixes=("", ".diralcdtl")
@@ -1600,6 +1608,8 @@ class HaiDingCleaner:
                 suffixes=("", ".brand"),
             )
         )
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -1671,8 +1681,6 @@ class HaiDingCleaner:
         v_prom_gd = self.data["v_prom_gd"]
         goods = self.data["goods"]
 
-        if not len(v_prom_gd):
-            return pd.DataFrame(columns=columns)
         part = v_prom_gd.merge(
             goods,
             how="left",
@@ -1680,6 +1688,8 @@ class HaiDingCleaner:
             right_on=["gid"],
             suffixes=("", ".goods"),
         )
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -1745,9 +1755,6 @@ class HaiDingCleaner:
         goods = self.data["goods"]
         modulestat = self.data["modulestat"]
 
-        if len(invxf):
-            return pd.DataFrame(columns=columns)
-
         part = (
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
@@ -1781,6 +1788,8 @@ class HaiDingCleaner:
                 suffixes=("", ".modulestat"),
             )
         )
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part = part[part["cls"].isin(("门店调拨",))]
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
@@ -1849,10 +1858,6 @@ class HaiDingCleaner:
         goods = self.data["goods"]
         modulestat = self.data["modulestat"]
 
-        if not len(invxf):
-            return pd.DataFrame(columns=columns)
-
-
         part = (
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
@@ -1886,7 +1891,8 @@ class HaiDingCleaner:
                 suffixes=("", ".modulestat"),
             )
         )
-
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -2231,9 +2237,6 @@ class HaiDingCleaner:
         ]
         ckdatas = self.data["ckdatas"]
 
-        if not len(ckdatas):
-            return pd.DataFrame(columns=columns)
-
         store = self.data["store"]
         goods = self.data["goods"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
@@ -2253,7 +2256,8 @@ class HaiDingCleaner:
             right_on=["gid"],
             suffixes=("", ".goods"),
         )
-
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["quantity"] = part["qty"]
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
@@ -2306,9 +2310,6 @@ class HaiDingCleaner:
         ]
         ckdatas = self.data["ckdatas"]
 
-        if not len(ckdatas):
-            return pd.DataFrame(columns=columns)
-
         store = self.data["store"]
         goods = self.data["goods"]
         sort = self.data["sort"]
@@ -2353,6 +2354,8 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
@@ -2409,8 +2412,7 @@ class HaiDingCleaner:
         warehouse = self.data["warehouse"]
         goods = self.data["goods"]
         sort = self.data["sort"]
-        if not len(ckdatas):
-            return pd.DataFrame(columns=columns)
+
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
@@ -2452,7 +2454,8 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
-
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part = part[part["stat"] == 3]
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
