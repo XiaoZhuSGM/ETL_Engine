@@ -34,6 +34,7 @@ class ProductionConfig(Config):
     REDIS_PORT = 6379
     REDIS_DB = 0
 ***REMOVED***
+    SENTRY_DSN = ""
 
 
 class DevelopmentConfig(Config):
