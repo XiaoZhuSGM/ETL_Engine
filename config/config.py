@@ -33,6 +33,7 @@ class ProductionConfig(Config):
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
     REDIS_DB = 0
+***REMOVED***
 
 
 class DevelopmentConfig(Config):
@@ -56,6 +57,7 @@ class DevelopmentConfig(Config):
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
     REDIS_DB = 0
+    REDIS_PASSWORD = None
 
 
 class LocalConfig(Config):
