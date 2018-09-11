@@ -432,6 +432,11 @@ class MeiShiLinCleaner(Base):
             }
         )
         part = part[columns]
+
+        part['supplier_name'] = part['supplier_name'].str.strip()
+        part['supplier_code'] = part['supplier_code'].str.strip()
+        part['brand_name'] = part['brand_name'].str.strip()
+
         return part
 
     """
@@ -1175,16 +1180,18 @@ class MeiShiLinCleaner(Base):
         stkinbckdtl = self.data["skcmstkinbckdtl"]
 
         brand["name"] = brand["name"].str.strip()
+        brand["code"] = brand["code"].str.strip()
 
         stkin["num"] = stkin["num"].str.strip()
-        stkin["cls"] = stkin["cls"].str.strip()
         stkin["vendor"] = stkin["vendor"].str.strip()
         stkin["cls"] = stkin["cls"].str.strip()
-        # stkin["stat"] = stkin["stat"].str.strip()
+        stkin["stat"] = stkin["stat"].str.strip()
 
         modulestat["statname"] = modulestat["statname"].str.strip()
+        modulestat['no'] = modulestat['no'].str.strip()
 
         vendorh["gid"] = vendorh["gid"].str.strip()
+        vendorh["code"] = vendorh["code"].str.strip()
 
         stkindtl["num"] = stkindtl["num"].str.strip()
         stkindtl["cls"] = stkindtl["cls"].str.strip()
@@ -1193,16 +1200,18 @@ class MeiShiLinCleaner(Base):
 
         goods["gid"] = goods["gid"].str.strip()
         goods["brand"] = goods["brand"].str.strip()
+        goods['sort'] = goods['sort'].str.strip()
+        goods['code'] = goods['code'].str.strip()
+        goods['code2'] = goods['code2'].str.strip()
+        goods['munit'] = goods['munit'].str.strip()
+
         warehouseh["gid"] = warehouseh["gid"].str.strip()
 
-        brand["code"] = brand["code"].str.strip()
-
-        stkinbck["num"] = stkinbck["num"].str.strip()
         stkinbck["num"] = stkinbck["num"].str.strip()
         stkinbck["cls"] = stkinbck["cls"].str.strip()
         stkinbck["vendor"] = stkinbck["vendor"].str.strip()
         stkinbck["cls"] = stkinbck["cls"].str.strip()
-        # stkinbck["stat"] = stkinbck["stat"].str.strip()
+        stkinbck["stat"] = stkinbck["stat"].str.strip()
 
         stkinbckdtl["num"] = stkinbckdtl["num"].str.strip()
         stkinbckdtl["cls"] = stkinbckdtl["cls"].str.strip()
@@ -1238,49 +1247,55 @@ class MeiShiLinCleaner(Base):
             "bill_status",
         ]
 
-        part1 = (
-            stkin.merge(
-                stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
-            )
-                .merge(
-                vendorh,
-                how="left",
-                left_on=["vendor"],
-                right_on=["gid"],
-                suffixes=("", ".vendorh"),
-            )
-                .merge(
-                modulestat,
-                how="left",
-                left_on=["stat"],
-                right_on=["no"],
-                suffixes=("", ".modulestat"),
-            )
-                .merge(
-                goods,
-                how="left",
-                left_on=["gdgid"],
-                right_on=["gid"],
-                suffixes=("", ".goods"),
-            )
-                .merge(
-                brand,
-                how="left",
-                left_on=["brand"],
-                right_on=["code"],
-                suffixes=("", ".brand"),
-            )
-                .merge(
-                warehouseh,
-                how="left",
-                left_on=["wrh"],
-                right_on=["gid"],
-                suffixes=("", ".warehouseh"),
-            )
+        part1 = stkin.merge(
+            stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
         )
+
+
+        part1 = part1.merge(
+            vendorh,
+            how="left",
+            left_on=["vendor"],
+            right_on=["gid"],
+            suffixes=("", ".vendorh"),
+        )
+
+        part1 = part1.merge(
+            modulestat,
+            how="left",
+            left_on=["stat"],
+            right_on=["no"],
+            suffixes=("", ".modulestat"),
+        )
+
+        part1 = part1.merge(
+            goods,
+            how="left",
+            left_on=["gdgid"],
+            right_on=["gid"],
+            suffixes=("", ".goods"),
+        )
+
+        part1 = part1.merge(
+            brand,
+            how="left",
+            left_on=["brand"],
+            right_on=["code"],
+            suffixes=("", ".brand"),
+        )
+
+        part1 = part1.merge(
+            warehouseh,
+            how="left",
+            left_on=["wrh"],
+            right_on=["gid"],
+            suffixes=("", ".warehouseh"),
+        )
+
         part1["purchase_price"] = part1.apply(
             lambda row: row["price"] / row["qpc"], axis=1
         )
+
         part1["foreign_category_lv1"] = part1.apply(lambda row: row["sort"][:2], axis=1)
         part1["foreign_category_lv2"] = part1.apply(lambda row: row["sort"][:4], axis=1)
         part1["foreign_category_lv3"] = part1.apply(lambda row: row["sort"][:6], axis=1)

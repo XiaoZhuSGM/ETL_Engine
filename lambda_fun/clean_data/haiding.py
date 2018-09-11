@@ -2100,6 +2100,7 @@ class HaiDingCleaner:
             }
         )
         part = part[columns]
+
         return part
 
     def category(self):
