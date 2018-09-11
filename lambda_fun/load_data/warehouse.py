@@ -76,7 +76,7 @@ class Warehouser:
         r = self.conn.execute(
             f"CREATE TABLE #{self.target_table} (LIKE {self.target_table})"
         )
-        print(f"创建临时表：{r.rowcount}")
+        print(f"<#{self.target_table}> 创建临时表: {r.rowcount}")
         r = self.conn.execute(
             (
                 f"COPY #{self.target_table} FROM '{self.data_source}' "
@@ -84,7 +84,7 @@ class Warehouser:
                 "CSV GZIP IGNOREHEADER 1"
             )
         )
-        print(f"拷贝到临时表：{r.rowcount}")
+        print(f"<#{self.target_table}> 拷贝到临时表: {r.rowcount}")
 
     def _upsert(self):
         if self.sync_column:
@@ -95,12 +95,12 @@ class Warehouser:
             r = self.conn.execute(
                 f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
             )
-            print(f"删除已存在的数据：{r.rowcount}")
+            print(f"<{self.target_table}> 删除已存在的数据: {r.rowcount}")
 
         r = self.conn.execute(
             f"INSERT INTO {self.target_table} SELECT * FROM #{self.target_table}"
         )
-        print(f"插入数据：{r.rowcount}")
+        print(f"<{self.target_table}> 插入数据: {r.rowcount}")
 
     def _delete_old_data(self):
         if not self.date_column:
@@ -110,9 +110,9 @@ class Warehouser:
             datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
         ).strftime("%Y-%m-%d")
 
-        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid={self.cmid}"
+        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid = {self.cmid}"
         r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
-        print(f"删除旧数据 {self.data_date}：{r.rowcount}")
+        print(f"<{self.target_table}> 删除旧数据 {self.data_date}：{r.rowcount}")
 
     def _copy(self):
         r = self.conn.execute(
@@ -122,7 +122,7 @@ class Warehouser:
                 f"CSV GZIP IGNOREHEADER 1"
             )
         )
-        print(f"插入新数据：{r.rowcount}")
+        print(f"<{self.target_table}> 插入新数据：{r.rowcount}")
 
     def run(self, warehouse_type=""):
         with self.conn:
