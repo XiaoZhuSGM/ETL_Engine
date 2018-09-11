@@ -2020,6 +2020,14 @@ class HaiDingCleaner:
         brand = self.data["brand"]
         vendor = self.data["vendor"]
 
+        def num2_convert(row):
+            try:
+                return float(row['validperiod'])
+            except Exception:
+                return 0
+
+        goods['validperiod'] = goods.apply(num2_convert, axis=1)
+
         columns = [
             "cmid",
             "barcode",
@@ -2096,6 +2104,9 @@ class HaiDingCleaner:
             }
         )
         part = part[columns]
+
+        part['warranty'] = part.apply(lambda row: int(row['warranty']), axis=1)
+        print(part['warranty'])
 
         return part
 

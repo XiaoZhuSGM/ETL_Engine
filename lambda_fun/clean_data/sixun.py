@@ -367,7 +367,7 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods_frame_1['allot_method'] = ''
     goods_frame_1['foreign_item_id'] = goods_frame_1['barcode']
 
-    goods_frame_1['warranty'] = goods_frame_1['warranty'].round(decimals=1)
+    goods_frame_1['warranty'] = goods_frame_1.apply(lambda row: int(row['warranty']), axis=1)
 
     goods_frame_1 = goods_frame_1[[
         "cmid",

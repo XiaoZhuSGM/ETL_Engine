@@ -34,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -55,8 +55,8 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
             if (
-                table_name in origin_table_columns.keys()
-                and table_name not in datas.keys()
+                    table_name in origin_table_columns.keys()
+                    and table_name not in datas.keys()
             ):
                 datas[table_name] = records
 
@@ -167,74 +167,66 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "source_id": "58YYYYYYYYYYYYY",
-        "erp_name": "美食林",
+        "source_id": "67YYYYYYYYYYYYY",
+        "erp_name": "海鼎",
         "date": "2018-09-10",
-        "target_table": "purchase_warehouse",
+        "target_table": "goods",
         "origin_table_columns": {
-            "skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
-            "skcmstkindtl": [
-                "qty",
-                "price",
-                "qpc",
-                "total",
-                "num",
-                "cls",
-                "gdgid",
-                "wrh",
+            "brand": [
+                "name",
+                "code"
             ],
-            "skcmvendor": ["gid", "code", "name"],
-            "skcmmodulestat": ["statname", "no"],
-            "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
-            "skcmbrand": ["code", "name"],
-            "skcmwarehouse": ["code", "name", "gid"],
-            "skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
-            "skcmstkinbckdtl": [
-                "qty",
-                "price",
-                "qpc",
-                "total",
-                "num",
-                "cls",
-                "gdgid",
-                "wrh",
+            "goods": [
+                "alc",
+                "brand",
+                "busgate",
+                "code",
+                "code2",
+                "gid",
+                "lstinprc",
+                "munit",
+                "name",
+                "rtlprc",
+                "sort",
+                "validperiod",
+                "vdrgid"
             ],
+            "goodsbusgate": [
+                "gid",
+                "name"
+            ],
+            "vendor": [
+                "name",
+                "code",
+                "gid"
+            ]
         },
         "converts": {
-            "skcmstkin": {
-                "num": "str",
-                "fildate": "str",
-                "cls": "str",
-                "vendor": "str",
-                'stat' : "str"
-            },
-            "skcmstkindtl": {"num": "str", "cls": "str", "gdgid": "str", "wrh": "str"},
-            "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-            "skcmmodulestat": {"statname": "str", 'no' :'str'},
-            "skgoods": {
+            "brand": {
                 "code": "str",
+                "name": "str"
+            },
+            "goods": {
+                "alc": "str",
                 "brand": "str",
+                "busgate": "str",
+                "code": "str",
                 "code2": "str",
                 "gid": "str",
                 "munit": "str",
-                "sort": "str",
                 "name": "str",
+                "sort": "str",
+                "validperiod": "str",
+                "vdrgid": "str"
             },
-            "skcmbrand": {"code": "str", "name": "str"},
-            "skcmwarehouse": {"code": "str", "name": "str", "gid": "str"},
-            "skcmstkinbck": {
-                "num": "str",
-                "fildate": "str",
-                "cls": "str",
-                "vendor": "str",
-                "stat": 'str'
+            "goodsbusgate": {
+                "gid": "str",
+                "name": "str"
             },
-            "skcmstkinbckdtl": {
-                "num": "str",
-                "cls": "str",
-                "gdgid": "str",
-                "wrh": "str",
-            },
-        }
-    }
+            "vendor": {
+                "code": "str",
+                "gid": "str",
+                "name": "str"
+            }
+        }}
     handler(event, None)
