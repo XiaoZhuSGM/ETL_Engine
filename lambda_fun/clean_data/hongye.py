@@ -882,6 +882,10 @@ class HongYeCleaner:
             )
             part2 = part2[columns]
 
+        result = pd.concat([part1, part2])
+
+        result['supplier_code'] = result['supplier_code'].str.strip()
+
         return pd.concat([part1, part2])
 
     def category(self):
@@ -1352,4 +1356,9 @@ class HongYeCleaner:
             }
         )
         part = part[columns]
+
+        part['foreign_store_id'] = part['foreign_store_id'].str.strip()
+        part['show_code'] = part['show_code'].str.strip()
+        part['area_code'] = part['area_code'].str.strip()
+
         return part

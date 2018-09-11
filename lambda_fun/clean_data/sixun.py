@@ -142,6 +142,10 @@ def clean_store(source_id, date, target_table, data_frames):
         'source_id',
         'last_updated'
     ]]
+
+    branch_info_frame['foreign_store_id'] = branch_info_frame['foreign_store_id'].str.strip()
+    branch_info_frame['show_code'] = branch_info_frame['show_code'].str.strip()
+
     return upload_to_s3(branch_info_frame, source_id, date, target_table)
 
 
@@ -167,6 +171,9 @@ def clean_category(source_id, date, target_table, data_frames):
     item_cls_frame_2 = item_cls_frame_1.copy(deep=True)
     item_cls_frame_3 = item_cls_frame_1.copy(deep=True)
     # 处理item_cls_frame1
+
+    item_cls_frame_1['item_clsno'] = item_cls_frame_1['item_clsno'].str.strip()
+
     item_cls_frame_1 = item_cls_frame_1[(item_cls_frame_1['item_clsno'].str.strip()).str.len() == lv1_len]
     item_cls_frame_1 = item_cls_frame_1[['item_clsno', 'item_clsname']]
     item_cls_frame_1 = item_cls_frame_1.rename(columns={'item_clsno': 'foreign_category_lv1',
@@ -399,6 +406,10 @@ def clean_goods(source_id, date, target_table, data_frames):
         "supplier_code",
         "brand_name",
     ]]
+
+    goods_frame_1['barcode'] = goods_frame_1['barcode'].str.strip()
+    goods_frame_1['foreign_item_id'] = goods_frame_1['foreign_item_id'].str.strip()
+    goods_frame_1['brand_name'] = goods_frame_1['brand_name'].str.strip()
 
     return upload_to_s3(goods_frame_1, source_id, date, target_table)
 
