@@ -1,8 +1,9 @@
 import json
 import time
 from sqlalchemy import create_engine
-from datetime import timedelta, datetime
+from datetime import timedelta
 import boto3
+import pandas as pd
 
 S3_BUCKET = "ext-etl-data"
 TARGET_TABLE_KEY = "target_table/target_table.json"
@@ -17,7 +18,6 @@ def handler(event, context):
 
     redshift_url = message["redshift_url"]
     data_key = message["data_key"]
-    data_date = message["data_date"]
     target_table = message["target_table"]
     warehouse_type = message["warehouse_type"]
     source_id = message["source_id"]
@@ -38,14 +38,7 @@ def handler(event, context):
     date_column = target_tables[table_key]["date_column"]
 
     warehouser = Warehouser(
-        redshift_url,
-        target_table,
-        data_key,
-        sync_column,
-        data_date,
-        date_column,
-        cmid,
-        source_id,
+        redshift_url, target_table, data_key, sync_column, date_column, cmid, source_id
     )
     warehouser.run(warehouse_type)
 
@@ -57,7 +50,6 @@ class Warehouser:
         target_table: str,
         data_key: str,
         sync_column: list,
-        data_date: str,
         date_column: str,
         cmid: str,
         source_id: str,
@@ -67,7 +59,6 @@ class Warehouser:
         self.target_table = target_table
         self.data_source = f"s3://{data_key}"
         self.sync_column = sync_column
-        self.data_date = data_date
         self.date_column = date_column
         self.cmid = cmid
         self.source_id = source_id
@@ -105,12 +96,14 @@ class Warehouser:
     def _delete_old_data(self):
         if not self.date_column:
             return
-
-        next_day = (
-            datetime.strptime(self.data_date, "%Y-%m-%d") + timedelta(days=1)
-        ).strftime("%Y-%m-%d")
-
-        where = f"{self.date_column}::date >= '{self.data_date}' AND {self.date_column}::date < '{next_day}' AND cmid = {self.cmid}"
+        dataframes = pd.read_csv(
+            self.data_source,
+            compression="gzip",
+            converters={self.date_column: pd.to_datetime},
+        )
+        start_date = dataframes[self.date_column].min()
+        end_date = dataframes[self.date_column].max() + timedelta(days=1)
+        where = f"{self.date_column}::date >= '{start_date.strftime('%Y-%m-%d')}' AND {self.date_column}::date < '{end_date.strftime('%Y-%m-%d')}' AND cmid = {self.cmid}"
         r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
         print(f"<{self.target_table}> 删除旧数据 {self.data_date}：{r.rowcount}")
 
