@@ -280,8 +280,6 @@ class HongYeCleaner:
 
     def _goodsclass_subquery_1(self):
         inf_goodsclass = self.data["inf_goodsclass"]
-        inf_goodsclass["fatherclass"] = inf_goodsclass["fatherclass"].str.strip()
-        inf_goodsclass["classcode"] = inf_goodsclass["classcode"].str.strip()
 
         subquery = (
             inf_goodsclass.merge(
@@ -373,12 +371,7 @@ class HongYeCleaner:
         bil_goodsflow = self.data["bil_goodsflow"]
         inf_shop_message = self.data["inf_shop_message"]
         inf_goods = self.data["inf_goods"]
-        inf_shop_message["deptcode"] = inf_shop_message.apply(
-            lambda row: row["deptcode"].strip(), axis=1
-        )
-        bil_goodsflow["shopcode"] = bil_goodsflow.apply(
-            lambda row: row["shopcode"].strip(), axis=1
-        )
+
         columns = [
             "source_id",
             "cmid",
@@ -706,20 +699,6 @@ class HongYeCleaner:
         inf_tradeunit = self.data["inf_tradeunit"]
         sys_sendmode = self.data["sys_sendmode"]
 
-        inf_goods["lastsupplier_trimed"] = inf_goods.apply(
-            lambda row: row["lastsupplier"].strip(), axis=1
-        )
-
-        inf_brand["brandcode"] = inf_brand["brandcode"].str.strip()
-        inf_goods["brandcode"] = inf_goods["brandcode"].str.strip()
-        inf_goods["sendmode"] = inf_goods["sendmode"].str.strip()
-        inf_goods["classcode"] = inf_goods["classcode"].str.strip()
-        sys_sendmode["sendmode"] = sys_sendmode["sendmode"].str.strip()
-
-        inf_tradeunit["unitcode_trimed"] = inf_tradeunit.apply(
-            lambda row: row["unitcode"].strip(), axis=1
-        )
-
         columns = [
             "cmid",
             "barcode",
@@ -757,8 +736,8 @@ class HongYeCleaner:
             .merge(
                 inf_tradeunit,
                 how="left",
-                left_on=["lastsupplier_trimed"],
-                right_on=["unitcode_trimed"],
+                left_on=["lastsupplier"],
+                right_on=["unitcode"],
                 suffixes=("", ".inf_tradeunit"),
             )
             .merge(
@@ -828,8 +807,8 @@ class HongYeCleaner:
             .merge(
                 inf_tradeunit,
                 how="left",
-                left_on=["lastsupplier_trimed"],
-                right_on=["unitcode_trimed"],
+                left_on=["lastsupplier"],
+                right_on=["unitcode"],
                 suffixes=("", ".inf_tradeunit"),
             )
             .merge(
@@ -1078,18 +1057,12 @@ class HongYeCleaner:
         inf_goodsclass = self.data["inf_goodsclass"]
         if not len(mbo_classsale):
             return pd.DataFrame(columns=columns)
-        mbo_classsale["shopcode_trimed"] = mbo_classsale.apply(
-            lambda row: row["shopcode"].strip(), axis=1
-        )
-        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
-            lambda row: row["deptcode"].strip(), axis=1
-        )
 
         part = mbo_classsale.merge(
             inf_shop_message,
             how="left",
-            left_on=["shopcode_trimed"],
-            right_on=["deptcode_trimed"],
+            left_on=["shopcode"],
+            right_on=["deptcode"],
             suffixes=("", ".inf_shop_message"),
         ).merge(
             inf_goodsclass,
@@ -1186,9 +1159,6 @@ class HongYeCleaner:
         bil_damagedtl["deptcode_sub"] = bil_damagedtl.apply(
             lambda row: row["deptcode"][: self.store_id_len], axis=1
         )
-        inf_shop_message["deptcode_trimed"] = inf_shop_message.apply(
-            lambda row: row["deptcode"].strip(), axis=1
-        )
 
         subquery1 = self._goodsclass_subquery_1()
         part1 = (
@@ -1196,7 +1166,7 @@ class HongYeCleaner:
                 inf_shop_message,
                 how="left",
                 left_on=["deptcode_sub"],
-                right_on=["deptcode_trimed"],
+                right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
             .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
@@ -1252,7 +1222,7 @@ class HongYeCleaner:
                 inf_shop_message,
                 how="left",
                 left_on=["deptcode_sub"],
-                right_on=["deptcode_trimed"],
+                right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
             .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))

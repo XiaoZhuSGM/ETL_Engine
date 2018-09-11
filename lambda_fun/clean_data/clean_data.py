@@ -7,6 +7,7 @@ import json
 import boto3
 import pandas as pd
 import pytz
+import re
 
 S3_BUCKET = "ext-etl-data"
 
@@ -14,7 +15,9 @@ HISTORY_HUMP_JSON = (
     "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/"
 )
 
-CONVERTERS = {"str": str, "int": int, 'float': float}
+CONVERTERS = {"str": str, "int": int, "float": float}
+
+BLANK_CHAR = re.compile(r"[\r\n\t]+")
 
 _TZINFO = pytz.timezone("Asia/Shanghai")
 S3 = boto3.resource("s3")
@@ -31,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -49,9 +52,12 @@ def fetch_data_frames(keys, origin_table_columns, converts):
     for key in keys:
         content = S3.Object(S3_BUCKET, key).get()
         data = json.loads(content["Body"].read().decode("utf-8"))
-        extract_data_dict = data['extract_data']
+        extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
-            if table_name in origin_table_columns.keys() and table_name not in datas.keys():
+            if (
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
+            ):
                 datas[table_name] = records
 
     data_frames = {}
@@ -99,6 +105,10 @@ def handler(event, context):
     )
 
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
+    for k, v in data_frames.items():
+        data_frames[k] = v.applymap(
+            lambda e: BLANK_CHAR.sub(" ", e).strip() if isinstance(e, str) else e
+        )
 
     if erp_name == "科脉云鼎":
         from kemaiyunding import clean_kemaiyunding
@@ -111,21 +121,26 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "思迅":
         from sixun import clean_sixun
+
         return clean_sixun(source_id, date, target_table, data_frames)
     elif erp_name == "宏业":
         from hongye import HongYeCleaner
+
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "美食林":
         from meishilin import MeiShiLinCleaner
+
         cleaner = MeiShiLinCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == '智百威':
+    elif erp_name == "智百威":
         from zhibaiwei import ZhiBaiWeiCleaner
+
         cleaner = ZhiBaiWeiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == '商海导航':
+    elif erp_name == "商海导航":
         from shanghaidaohang import ShangHaiDaoHangCleaner
+
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "富基融通":
@@ -150,7 +165,7 @@ def handler(event, context):
         return clean_jiuyin(source_id, date, target_table, data_frames)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     event = {
         "source_id": "58YYYYYYYYYYYYY",
         "erp_name": "美食林",
