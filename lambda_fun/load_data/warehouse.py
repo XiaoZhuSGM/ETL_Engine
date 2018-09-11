@@ -67,7 +67,7 @@ class Warehouser:
         r = self.conn.execute(
             f"CREATE TABLE #{self.target_table} (LIKE {self.target_table})"
         )
-        print(f"<#{self.target_table}> 创建临时表: {r.rowcount}")
+        print(f"{self.cmid}:<#{self.target_table}> 创建临时表: {r.rowcount}")
         r = self.conn.execute(
             (
                 f"COPY #{self.target_table} FROM '{self.data_source}' "
@@ -75,7 +75,7 @@ class Warehouser:
                 "CSV GZIP IGNOREHEADER 1"
             )
         )
-        print(f"<#{self.target_table}> 拷贝到临时表: {r.rowcount}")
+        print(f"<{self.cmid}:#{self.target_table}> 拷贝到临时表: {r.rowcount}")
 
     def _upsert(self):
         if self.sync_column:
@@ -86,12 +86,12 @@ class Warehouser:
             r = self.conn.execute(
                 f"DELETE FROM {self.target_table} USING #{self.target_table} WHERE {where}"
             )
-            print(f"<{self.target_table}> 删除已存在的数据: {r.rowcount}")
+            print(f"{self.cmid}:<{self.target_table}> 删除已存在的数据: {r.rowcount}")
 
         r = self.conn.execute(
             f"INSERT INTO {self.target_table} SELECT * FROM #{self.target_table}"
         )
-        print(f"<{self.target_table}> 插入数据: {r.rowcount}")
+        print(f"{self.cmid}:<{self.target_table}> 插入数据: {r.rowcount}")
 
     def _delete_old_data(self):
         if not self.date_column:
@@ -101,11 +101,12 @@ class Warehouser:
             compression="gzip",
             converters={self.date_column: pd.to_datetime},
         )
-        start_date = dataframes[self.date_column].min()
-        end_date = dataframes[self.date_column].max() + timedelta(days=1)
-        where = f"{self.date_column}::date >= '{start_date.strftime('%Y-%m-%d')}' AND {self.date_column}::date < '{end_date.strftime('%Y-%m-%d')}' AND cmid = {self.cmid}"
+        dates = dataframes[self.date_column].drop_duplicates()
+        dates_str = [d.strftime("%Y-%m-%d") for d in dates]
+        dates_str = [f"'{d}'" for d in dates_str]
+        where = f"{self.date_column}::date IN ({','.join(d for d in dates_str)}) AND cmid = {self.cmid}"
         r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
-        print(f"<{self.target_table}> 删除旧数据 {self.data_date}：{r.rowcount}")
+        print(f"{self.cmid}:<{self.target_table}> 删除旧数据：{r.rowcount}")
 
     def _copy(self):
         r = self.conn.execute(
@@ -115,7 +116,7 @@ class Warehouser:
                 f"CSV GZIP IGNOREHEADER 1"
             )
         )
-        print(f"<{self.target_table}> 插入新数据：{r.rowcount}")
+        print(f"{self.cmid}:<{self.target_table}> 插入新数据：{r.rowcount}")
 
     def run(self, warehouse_type=""):
         with self.conn:
@@ -142,25 +143,14 @@ if __name__ == "__main__":
     }
     event1 = {
 ***REMOVED***
-        "target_table": "chain_store",
-        "warehouse_type": "upsert",
-        "cmid": "72",
-        "data_date": "2018-09-03",
-        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-03/target_table=store/dump=2018-09-04 15:19:23.822474+08:00&rowcount=11.csv.gz",
-    }
-
-    "clean_data/source_id=43YYYYYYYYYYYYY/clean_date=2018-09-05/target_table=goodsflow/dump=2018-09-06 15:10:25.132712+08:00&rowcount=145796.csv.gz"
-
-    event2 = {
-        "redshift_url": "oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp",
-        "data_key": "ext-etl-data/clean_data/source_id=43YYYYYYYYYYYYY/clean_date=2018-09-05/target_table=goodsflow/dump=2018-09-06 15:10:25.132712+08:00&rowcount=145796.csv.gz",
-        "target_table": "goodsflow_72YYYYYYYYYYYYY",
-        "data_date": "2018-09-05",
+        "target_table": "chain_sales_target",
         "warehouse_type": "copy",
-        "cmid": "72",
-        "source_id": "72YYYYYYYYYYYYY",
+        "cmid": "57",
+        "data_date": "2018-09-10",
+        "data_key": "ext-etl-data/clean_data/source_id=57YYYYYYYYYYYYY/clean_date=2018-09-10/target_table=sales_target/dump=2018-09-11 23:01:10.434793+08:00&rowcount=35.csv.gz",
+        "source_id": "57YYYYYYYYYYYYY"
     }
 
     begin = time.time()
-    handler(event, None)
+    handler(event1, None)
     print(time.time() - begin)
