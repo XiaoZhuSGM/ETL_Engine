@@ -9,7 +9,7 @@ import pandas as pd
 
 from typing import Dict
 from base import Base
-
+_TZINFO = pytz.timezone("Asia/Shanghai")
 
 class ZhiBaiWeiCleaner(Base):
 
