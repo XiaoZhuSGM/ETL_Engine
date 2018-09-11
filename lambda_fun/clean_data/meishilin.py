@@ -27,11 +27,11 @@ class MeiShiLinCleaner(Base):
 
         "converts": {
             "skstoresellingwater": {"sgid": "str", "gid": "str",
-                                        "flowno": "str", "rtlprc": "float", 
+                                        "flowno": "str", "rtlprc": "float",
                                         "qty": "float", "realamt": "float"},
             "skstore": {"gid": "str", "name": "str"},
             "skgoods": {"gid": "str", "code2": "str", "name": "str", "munit": "str"},
-            "skgoodssort": {"gid": "str", "ascode": "str", "asname": "str", 
+            "skgoodssort": {"gid": "str", "ascode": "str", "asname": "str",
             "bscode": "str", "bsname": "str",
                                 "cscode": "str", "csname": "str"}
         }
@@ -46,7 +46,6 @@ class MeiShiLinCleaner(Base):
         store_frame = self.data["skstore"]
         goods_frame = self.data["skgoods"]
         gsort_frame = self.data["skgoodssort"]
-        flow_frame["flowno"] = flow_frame["flowno"].str.strip()
         result_frame = pd.merge(flow_frame,
                                 store_frame,
                                 left_on="sgid",
@@ -125,21 +124,21 @@ class MeiShiLinCleaner(Base):
 
     """
         "origin_table_columns": {
-                "skcmsale": ["pdkey", 
-                                 "orgkey", 
-                                 "fildate", 
-                                 "saleqty", 
-                                 "saleamt", 
+                "skcmsale": ["pdkey",
+                                 "orgkey",
+                                 "fildate",
+                                 "saleqty",
+                                 "saleamt",
                                  "saletax",
                                  "salecamt",
                                  "salectax",
-    
+
                                  ],
                 "skgoodssort":["gid", "ascode", "bscode", "cscode"],
             },
 
         "converts": {
-            "skcmsale": {"pdkey":"str", 
+            "skcmsale": {"pdkey":"str",
                              "saleqty":"float",
                              "saleamt":"float",
                              "saletax":"float",
@@ -229,10 +228,6 @@ class MeiShiLinCleaner(Base):
     def store(self):
         store = self.data["skstore"]
         area = self.data["skcmarea"]
-
-        store["area"] = store["area"].str.strip()
-        area["code"] = area["code"].str.strip()
-        area["name"] = area["name"].str.strip()
 
         columns = [
             "cmid",
@@ -388,8 +383,6 @@ class MeiShiLinCleaner(Base):
             "brand_name",
         ]
 
-        vendor["gid"] = vendor["gid"].str.strip()
-
         part = goods.merge(
             brand,
             how="left",
@@ -447,8 +440,6 @@ class MeiShiLinCleaner(Base):
     def category(self):
 
         sort = self.data["skcmsort"]
-        sort["code"] = sort["code"].str.strip()
-        sort["name"] = sort["name"].str.strip()
 
         sort["code1"] = sort.apply(lambda row: row["code"][:2], axis=1)
         sort["code2"] = sort.apply(lambda row: row["code"][:4], axis=1)
@@ -556,7 +547,7 @@ class MeiShiLinCleaner(Base):
         return pd.concat([part1, part2, part3])
 
     """
-    
+
     "origin_table_columns": {
         "skcmotrequireorder": [
             "billnumber",
@@ -603,7 +594,7 @@ class MeiShiLinCleaner(Base):
         "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
         "skcmemployee": {"name": "str", "gid": "str"},
     },
-    
+
     """
 
     def requireorder(self):
@@ -618,22 +609,6 @@ class MeiShiLinCleaner(Base):
         sort = self.data["skcmsort"]
         vendor = self.data["skcmvendor"]
         employee = self.data["skcmemployee"]
-
-        employee["name"] = employee["name"].str.strip()
-
-        otrequireorder["billnumber"] = otrequireorder["billnumber"].str.strip()
-        otrequireorder["uuid"] = otrequireorder["uuid"].str.strip()
-        otrequireorder["buyercode"] = otrequireorder["buyercode"].str.strip()
-        otrequireorder["billtype"] = otrequireorder["billtype"].str.strip()
-        otrequireorderline["bill"] = otrequireorderline["bill"].str.strip()
-        otrequireorderline["product"] = otrequireorderline["product"].str.strip()
-        goods["gid"] = goods["gid"].str.strip()
-        goods["sort"] = goods["sort"].str.strip()
-        goods["vdrgid"] = goods["vdrgid"].str.strip()
-        goods["psr"] = goods["psr"].str.strip()
-        sort["code"] = sort["code"].str.strip()
-        vendor["gid"] = vendor["gid"].str.strip()
-        employee["gid"] = employee["gid"].str.strip()
 
         # otrequireorder = otrequireorder.drop_duplicates()
         # otrequireorderline = otrequireorderline.drop_duplicates()
@@ -827,34 +802,6 @@ class MeiShiLinCleaner(Base):
         sort = self.data["skcmsort"]
         stkoutbck = self.data["skcmstkoutbck"]
         stkoutbckdtl = self.data["skcmstkoutbckdtl"]
-
-        stkoutdtl["munit"] = stkoutdtl["munit"].str.strip()
-        stkoutbckdtl["munit"] = stkoutbckdtl["munit"].str.strip()
-
-        sort["code"] = sort["code"].str.strip()
-
-        stkout["num"] = stkout["num"].str.strip()
-        stkoutdtl["num"] = stkoutdtl["num"].str.strip()
-        stkoutdtl["cls"] = stkoutdtl["cls"].str.strip()
-        stkout["cls"] = stkout["cls"].str.strip()
-        store["gid"] = store["gid"].str.strip()
-        stkout["billto"] = stkout["billto"].str.strip()
-        stkoutdtl["wrh"] = stkoutdtl["wrh"].str.strip()
-        warehouse["gid"] = warehouse["gid"].str.strip()
-        stkoutdtl["gdgid"] = stkoutdtl["gdgid"].str.strip()
-        goods["gid"] = goods["gid"].str.strip()
-
-        goods["sort"] = goods["sort"].str.strip()
-        stkout["stat"] = stkout["stat"].str.strip()
-
-        stkoutbck["num"] = stkoutbck["num"].str.strip()
-        stkoutbckdtl["num"] = stkoutbckdtl["num"].str.strip()
-        stkoutbckdtl["cls"] = stkoutbckdtl["cls"].str.strip()
-        stkoutbck["cls"] = stkoutbck["cls"].str.strip()
-        stkoutbck["stat"] = stkoutbck["stat"].str.strip()
-        stkoutbck["billto"] = stkoutbck["billto"].str.strip()
-        stkoutbckdtl["wrh"] = stkoutbckdtl["wrh"].str.strip()
-        stkoutbckdtl["gdgid"] = stkoutbckdtl["gdgid"].str.strip()
 
         stkout: pd.DataFrame = stkout[
             (stkout["cls"] == "统配出")
@@ -1161,7 +1108,7 @@ class MeiShiLinCleaner(Base):
             "wrh": "str",
         },
     },
-    
+
     """
 
     def purchase_warehouse(self):
@@ -1178,45 +1125,6 @@ class MeiShiLinCleaner(Base):
         warehouseh = self.data["skcmwarehouse"]
         stkinbck = self.data["skcmstkinbck"]
         stkinbckdtl = self.data["skcmstkinbckdtl"]
-
-        brand["name"] = brand["name"].str.strip()
-        brand["code"] = brand["code"].str.strip()
-
-        stkin["num"] = stkin["num"].str.strip()
-        stkin["vendor"] = stkin["vendor"].str.strip()
-        stkin["cls"] = stkin["cls"].str.strip()
-        stkin["stat"] = stkin["stat"].str.strip()
-
-        modulestat["statname"] = modulestat["statname"].str.strip()
-        modulestat['no'] = modulestat['no'].str.strip()
-
-        vendorh["gid"] = vendorh["gid"].str.strip()
-        vendorh["code"] = vendorh["code"].str.strip()
-
-        stkindtl["num"] = stkindtl["num"].str.strip()
-        stkindtl["cls"] = stkindtl["cls"].str.strip()
-        stkindtl["gdgid"] = stkindtl["gdgid"].str.strip()
-        stkindtl["wrh"] = stkindtl["wrh"].str.strip()
-
-        goods["gid"] = goods["gid"].str.strip()
-        goods["brand"] = goods["brand"].str.strip()
-        goods['sort'] = goods['sort'].str.strip()
-        goods['code'] = goods['code'].str.strip()
-        goods['code2'] = goods['code2'].str.strip()
-        goods['munit'] = goods['munit'].str.strip()
-
-        warehouseh["gid"] = warehouseh["gid"].str.strip()
-
-        stkinbck["num"] = stkinbck["num"].str.strip()
-        stkinbck["cls"] = stkinbck["cls"].str.strip()
-        stkinbck["vendor"] = stkinbck["vendor"].str.strip()
-        stkinbck["cls"] = stkinbck["cls"].str.strip()
-        stkinbck["stat"] = stkinbck["stat"].str.strip()
-
-        stkinbckdtl["num"] = stkinbckdtl["num"].str.strip()
-        stkinbckdtl["cls"] = stkinbckdtl["cls"].str.strip()
-        stkinbckdtl["gdgid"] = stkinbckdtl["gdgid"].str.strip()
-        stkinbckdtl["wrh"] = stkinbckdtl["wrh"].str.strip()
 
         columns = [
             "source_id",
@@ -1454,26 +1362,6 @@ class MeiShiLinCleaner(Base):
         goods = self.data["skgoods"]
         brand = self.data["skcmbrand"]
 
-        diralc["num"] = diralc["num"].str.strip()
-        diralc["cls"] = diralc["cls"].str.strip()
-        diralc["vendor"] = diralc["vendor"].str.strip()
-        diralc["receiver"] = diralc["receiver"].str.strip()
-
-        diralcdtl["num"] = diralcdtl["num"].str.strip()
-        diralcdtl["cls"] = diralcdtl["cls"].str.strip()
-        diralcdtl["gdgid"] = diralcdtl["gdgid"].str.strip()
-
-        vendor["gid"] = vendor["gid"].str.strip()
-        store["gid"] = store["gid"].str.strip()
-        goods["gid"] = goods["gid"].str.strip()
-        goods["brand"] = goods["brand"].str.strip()
-
-        brand["code"] = brand["code"].str.strip()
-
-        brand["name"] = brand["name"].str.strip()
-
-        modulestat["statname"] = modulestat["statname"].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1627,22 +1515,6 @@ class MeiShiLinCleaner(Base):
         goods = self.data["skgoods"]
         modulestat = self.data["skcmmodulestat"]
 
-        modulestat["statname"] = modulestat["statname"].str.strip()
-
-        invxf["num"] = invxf["num"].str.strip()
-        invxf["cls"] = invxf["cls"].str.strip()
-        invxf["fromstore"] = invxf["fromstore"].str.strip()
-        invxf["tostore"] = invxf["tostore"].str.strip()
-
-        store["gid"] = store["gid"].str.strip()
-
-        invxfdtl["num"] = invxfdtl["num"].str.strip()
-        invxfdtl["cls"] = invxfdtl["cls"].str.strip()
-        invxfdtl["gdgid"] = invxfdtl["gdgid"].str.strip()
-
-        goods["gid"] = goods["gid"].str.strip()
-        goods["sort"] = goods["sort"].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1778,21 +1650,6 @@ class MeiShiLinCleaner(Base):
         warehouse = self.data["skcmwarehouse"]
         goods = self.data["skgoods"]
         modulestat = self.data["skcmmodulestat"]
-
-        modulestat["statname"] = modulestat["statname"].str.strip()
-
-        invxf["num"] = invxf["num"].str.strip()
-        invxf["cls"] = invxf["cls"].str.strip()
-        invxf["fromwrh"] = invxf["fromwrh"].str.strip()
-        invxf["towrh"] = invxf["towrh"].str.strip()
-
-        warehouse["gid"] = warehouse["gid"].str.strip()
-
-        invxfdtl["num"] = invxfdtl["num"].str.strip()
-        invxfdtl["cls"] = invxfdtl["cls"].str.strip()
-        invxfdtl["gdgid"] = invxfdtl["gdgid"].str.strip()
-
-        goods["gid"] = goods["gid"].str.strip()
 
         columns = [
             "source_id",
@@ -1932,17 +1789,6 @@ class MeiShiLinCleaner(Base):
         goods = self.data["skgoods"]
         sort = self.data["skcmsort"]
 
-        ckdatas["store"] = ckdatas["store"].str.strip()
-        ckdatas["gdgid"] = ckdatas["gdgid"].str.strip()
-        ckdatas["num"] = ckdatas["num"].str.strip()
-
-        store["gid"] = store["gid"].str.strip()
-        goods["gid"] = goods["gid"].str.strip()
-        goods["sort"] = goods["sort"].str.strip()
-        goods["munit"] = goods["munit"].str.strip()
-
-        sort["code"] = sort["code"].str.strip()
-
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
@@ -2076,22 +1922,9 @@ class MeiShiLinCleaner(Base):
         goods = self.data["skgoods"]
         sort = self.data["skcmsort"]
 
-        goods["sort"] = goods["sort"].str.strip()
-
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
-        ckdatas["num"] = ckdatas["num"].str.strip()
-        ckdatas["wrh"] = ckdatas["wrh"].str.strip()
-        ckdatas["gdgid"] = ckdatas["gdgid"].str.strip()
-
-        goods["gid"] = goods["gid"].str.strip()
-        goods["sort"] = goods["sort"].str.strip()
-        goods["munit"] = goods["munit"].str.strip()
-        warehouse["gid"] = warehouse["gid"].str.strip()
-
-        sort["code"] = sort["code"].str.strip()
 
         columns = [
             "cmid",

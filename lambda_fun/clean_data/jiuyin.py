@@ -59,16 +59,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
             'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'])
     else:
-        saleflow.fdbh = saleflow.fdbh.apply(lambda x: x.strip())
-        saleflow.spbm = saleflow.spbm.apply(lambda x: x.strip())
-        store.fdbh = store.fdbh.apply(lambda x: x.strip())
-        goods.spbm = goods.spbm.apply(lambda x: x.strip())
-        goods.superbm = goods.superbm.apply(lambda x: x.strip())
-        goods.dlbmid = goods.dlbmid.apply(lambda x: x.strip())
-        goods.zlbmid = goods.zlbmid.apply(lambda x: x.strip())
-        lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
-        lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
-        lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
 
         goodsflow = saleflow.merge(store, how="left").merge(goods, how="left").merge(lv1, how="left")\
             .merge(lv2, how="left").merge(lv3, how="left").merge(lv3, how="left").merge(lv3, how="left")
@@ -95,7 +85,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         goodsflow["source_id"] = source_id
         goodsflow["cmid"] = cmid
         goodsflow["consumer_id"] = None
-        goodsflow["saletime"] = goodsflow.apply(lambda row: row["xsrq"].strip() + " " + row["xssj"].strip(), axis=1)
+        goodsflow["saletime"] = goodsflow.apply(lambda row: row["xsrq"] + " " + row["xssj"], axis=1)
         goodsflow["last_updated"] = datetime.now(_TZINFO)
         goodsflow["foreign_category_lv4"] = ""
         goodsflow["foreign_category_lv4_name"] = None
@@ -133,12 +123,6 @@ def clean_cost(source_id, date, target_table, data_frames):
         cost = data_frames["uv_saledetail"].merge(data_frames["uv_spbaseinfo"], how="left")
         cost = cost.groupby(["xsrq", "fdbh", "spbm", "superbm", "dlbmid", "zlbmid"], as_index=False)\
             .agg({"spsl": sum, "zxssze": sum, "zxcbje": sum})
-
-        cost.fdbh = cost.fdbh.apply(lambda x: x.strip())
-        cost.spbm = cost.spbm.apply(lambda x: x.strip())
-        cost.superbm = cost.superbm.apply(lambda x: x.strip())
-        cost.dlbmid = cost.dlbmid.apply(lambda x: x.strip())
-        cost.zlbmid = cost.zlbmid.apply(lambda x: x.strip())
 
         cost = cost.rename(columns={
             "fdbh": "foreign_store_id",
@@ -193,11 +177,6 @@ def clean_goods(source_id, date, target_table, data_frames):
     shfs = data_frames["bm_ghsshfs"]
     brand = data_frames["bm_ppxx"]
 
-    item.spbm = item.spbm.apply(lambda x: x.strip())
-    item.superbm = item.superbm.apply(lambda x: x.strip())
-    item.dlbmid = item.dlbmid.apply(lambda x: x.strip())
-    item.zlbmid = item.zlbmid.apply(lambda x: x.strip())
-
     goods = item.merge(supp, how="left").merge(gh_sjbasic, how="left").merge(shfs, how="left").merge(brand, how="left")
 
     goods["cmid"] = cmid
@@ -249,9 +228,6 @@ def clean_category(source_id, date, target_table, data_frames):
     lv2 = data_frames["bm_spdlxx"]
     lv1 = data_frames["bm_supertype"]
     lv3 = data_frames["bm_spzlxx"]
-    lv1["superbm"] = lv1.superbm.apply(lambda x: x.strip())
-    lv2["dlbmid"] = lv2.dlbmid.apply(lambda x: x.strip())
-    lv3["zlbmid"] = lv3.zlbmid.apply(lambda x: x.strip())
 
     category1 = lv1.copy()
     category1["cmid"] = cmid
@@ -339,9 +315,6 @@ def clean_store(source_id, date, target_table, data_frames):
     cmid = source_id.split("Y")[0]
     store_frames = data_frames["app_fdinfo"]
     dq = data_frames["bm_dqxx"]
-    store_frames["fdbh"] = store_frames.fdbh.apply(lambda x: x.strip())
-    store_frames["dcbhid"] = store_frames.dcbhid.apply(lambda x: x.strip())
-    dq["dqbhid"] = dq.dqbhid.apply(lambda x: x.strip())
 
     store = store_frames.merge(dq, how="left", left_on="dcbhid", right_on="dqbhid")
     store["cmid"] = cmid
@@ -398,16 +371,6 @@ def clean_goodsloss(source_id, date, target_table, data_frames):
             "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
             "foreign_category_lv5"])
     else:
-        loss.fdbh = loss.fdbh.apply(lambda x: x.strip())
-        loss.spbm = loss.spbm.apply(lambda x: x.strip())
-        item.spbm = item.spbm.apply(lambda x: x.strip())
-        item.superbm = item.superbm.apply(lambda x: x.strip())
-        item.dlbmid = item.dlbmid.apply(lambda x: x.strip())
-        item.zlbmid = item.zlbmid.apply(lambda x: x.strip())
-        item.spsmm = item.spsmm.apply(lambda x: x.strip())
-        lv1.superbm = lv1.superbm.apply(lambda x: x.strip())
-        lv2.dlbmid = lv2.dlbmid.apply(lambda x: x.strip())
-        lv3.zlbmid = lv3.zlbmid.apply(lambda x: x.strip())
 
         goodsloss = loss.merge(store, how="left").merge(item, how="left").merge(lv1, how="left").merge(lv2, how="left")\
             .merge(lv3, how="left")

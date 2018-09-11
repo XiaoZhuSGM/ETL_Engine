@@ -53,20 +53,11 @@ class ZhiBaiWeiCleaner(Base):
         item = self.data['bi_t_item_info']
         item_cls = self.data['bi_t_item_cls']
 
-        flow['branch_no'] = flow.apply(lambda row: (row['branch_no'].strip())[:2], axis=1)
-        flow['item_no'] = flow['item_no'].str.strip()
-
-        item['item_no'] = item['item_no'].str.strip()
-        item['item_clsno'] = item['item_clsno'].str.strip()
+        flow['branch_no'] = flow.apply(lambda row: row['branch_no'][:2], axis=1)
 
         item['item_clsno_1'] = item.apply(lambda row: row['item_clsno'][:2], axis=1)
         item['item_clsno_2'] = item.apply(lambda row: row['item_clsno'][:4], axis=1)
         item['item_clsno_3'] = item.apply(lambda row: row['item_clsno'][:6], axis=1)
-
-        item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
-        item_cls['item_flag'] = item_cls['item_flag'].str.strip()
-
-        store['branch_no'] = store['branch_no'].str.strip()
 
         part1 = (pd.merge(flow,
                           store,
@@ -250,13 +241,7 @@ class ZhiBaiWeiCleaner(Base):
         item = self.data['bi_t_item_info']
         item_cls = self.data['bi_t_item_cls']
 
-        cost['branch_no'] = cost.apply(lambda row: row['branch_no'].strip()[:2], axis=1)
-        cost['oper_date'] = cost['oper_date'].str.strip()
-        cost['item_no'] = cost['item_no'].str.strip()
-        cost['trans_key'] = cost['trans_key'].str.strip()
-        item['item_no'] = item['item_no'].str.strip()
-        item['item_clsno'] = item['item_clsno'].str.strip()
-        item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
+        cost['branch_no'] = cost.apply(lambda row: row['branch_no'][:2], axis=1)
 
         item['item_clsno_1'] = item.apply(lambda row: row['item_clsno'][:2], axis=1)
         item['item_clsno_2'] = item.apply(lambda row: row['item_clsno'][:4], axis=1)
@@ -388,10 +373,6 @@ class ZhiBaiWeiCleaner(Base):
         store = self.data['bi_t_branch_info']
         area = self.data['bi_t_area_info']
 
-        store['area_no'] = store['area_no'].str.strip()
-        store['is_jmd'] = store['is_jmd'].str.strip()
-        area['area_no'] = area['area_no'].str.strip()
-
         result = pd.merge(
             store,
             area,
@@ -485,15 +466,9 @@ class ZhiBaiWeiCleaner(Base):
         item_cls = self.data['bi_t_item_cls']
         supcust = self.data['bi_t_supcust_info']
 
-        item['item_clsno'] = item['item_clsno'].str.strip()
         item['item_clsno_1'] = item.apply(lambda row: row['item_clsno'][:2], axis=1)
         item['item_clsno_2'] = item.apply(lambda row: row['item_clsno'][:4], axis=1)
         item['item_clsno_3'] = item.apply(lambda row: row['item_clsno'][:6], axis=1)
-        item['sup_no'] = item['sup_no'].str.strip()
-        item['display_flag'] = item['display_flag'].str.strip()
-        supcust['supcust_no'] = supcust['supcust_no'].str.strip()
-        supcust['supcust_flag'] = supcust['supcust_flag'].str.strip()
-        item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
 
         part1 = pd.merge(
             item,
@@ -633,17 +608,13 @@ class ZhiBaiWeiCleaner(Base):
                               ]
         },
 
-    'converts': {"bi_t_item_cls": {'item_clsno': 'str', 
-                                        'item_clsname': 'str', 
+    'converts': {"bi_t_item_cls": {'item_clsno': 'str',
+                                        'item_clsname': 'str',
                                         'item_flag': 'str'}}
     """
 
     def category(self):
         item_cls = self.data['bi_t_item_cls']
-
-        item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
-        item_cls['item_clsname'] = item_cls['item_clsname'].str.strip()
-        item_cls['item_flag'] = item_cls['item_flag'].str.strip()
 
         item_cls['item_clsno_1'] = item_cls.apply(lambda row: row['item_clsno'][:2], axis=1)
         item_cls['item_clsno_2'] = item_cls.apply(lambda row: row['item_clsno'][:4], axis=1)
@@ -812,21 +783,6 @@ class ZhiBaiWeiCleaner(Base):
         # item['base_price'] = item.apply(lambda row: float(row['base_price']), axis=1)
 
         item['base_price'] = item.apply(test, axis=1)
-
-        loss['sheet_no'] = loss['sheet_no'].str.strip()
-        loss['branch_no'] = loss['branch_no'].str.strip()
-        loss['approve_flag'] = loss['approve_flag'].str.strip()
-        loss['del_flag'] = loss['del_flag'].str.strip()
-
-        detail['sheet_no'] = detail['sheet_no'].str.strip()
-        detail['item_no'] = detail['item_no'].str.strip()
-
-        store['branch_no'] = store['branch_no'].str.strip()
-
-        item['item_no'] = item['item_no'].str.strip()
-        item['item_clsno'] = item['item_clsno'].str.strip()
-
-        item_cls['item_clsno'] = item_cls['item_clsno'].str.strip()
 
         loss['branch_no'] = loss.apply(lambda row: row['branch_no'][:2], axis=1)
 

@@ -55,22 +55,11 @@ class ShangHaiDaoHangCleaner(Base):
         goods = self.data['goods']
         gclass = self.data['gclass']
 
-        flow['orgcode'] = flow['orgcode'].str.strip()
-        flow['plucode'] = flow['plucode'].str.strip()
-        flow['trantype'] = flow['trantype'].str.strip()
-
-        store['orgcode'] = store['orgcode'].str.strip()
-
-        goods['clscode'] = goods['clscode'].str.strip()
-        goods['plucode'] = goods['plucode'].str.strip()
-
         goods['clscode_1'] = goods.apply(lambda row: row['clscode'][:2], axis=1)
         goods['clscode_2'] = goods.apply(lambda row: row['clscode'][:4], axis=1)
         goods['clscode_3'] = goods.apply(lambda row: row['clscode'][:6], axis=1)
         goods['clscode_4'] = goods.apply(lambda row: row['clscode'][:8], axis=1)
         goods['clscode_5'] = goods.apply(lambda row: row['clscode'][:10], axis=1)
-
-        gclass['clscode'] = gclass['clscode'].str.strip()
 
         result = flow.merge(
             store,
@@ -221,20 +210,11 @@ class ShangHaiDaoHangCleaner(Base):
         goods = self.data['goods']
         gclass = self.data['gclass']
 
-        cost['orgcode'] = cost['orgcode'].str.strip()
-        cost['plucode'] = cost['plucode'].str.strip()
-
-        store['orgcode'] = store['orgcode'].str.strip()
-
-        goods['plucode'] = goods['plucode'].str.strip()
-        goods['clscode'] = goods['clscode'].str.strip()
         goods['clscode_1'] = goods.apply(lambda row: row['clscode'][:2], axis=1)
         goods['clscode_2'] = goods.apply(lambda row: row['clscode'][:4], axis=1)
         goods['clscode_3'] = goods.apply(lambda row: row['clscode'][:6], axis=1)
         goods['clscode_4'] = goods.apply(lambda row: row['clscode'][:8], axis=1)
         goods['clscode_5'] = goods.apply(lambda row: row['clscode'][:10], axis=1)
-
-        gclass['clscode'] = gclass['clscode'].str.strip()
 
         result = cost.merge(
             store,
@@ -339,10 +319,6 @@ class ShangHaiDaoHangCleaner(Base):
     def store(self):
         store = self.data['subshop']
         area = self.data['shoparea']
-
-        store['shopareacode'] = store['shopareacode'].str.strip()
-        store['orgtype'] = store['orgtype'].str.strip()
-        area['shopareacode'] = area['shopareacode'].str.strip()
 
         result = store.merge(
             area,
@@ -456,20 +432,11 @@ class ShangHaiDaoHangCleaner(Base):
         vendor = self.data['vendor']
         brand = self.data['brand']
 
-        goods['vendorcode'] = goods['vendorcode'].str.strip()
-        goods['plustatus'] = goods['plustatus'].str.strip()
-        goods['brand'] = goods['brand'].str.strip()
-        goods['clscode'] = goods['clscode'].str.strip()
         goods['clscode_1'] = goods.apply(lambda row: row['clscode'][:2], axis=1)
         goods['clscode_2'] = goods.apply(lambda row: row['clscode'][:4], axis=1)
         goods['clscode_3'] = goods.apply(lambda row: row['clscode'][:6], axis=1)
         goods['clscode_4'] = goods.apply(lambda row: row['clscode'][:8], axis=1)
         goods['clscode_5'] = goods.apply(lambda row: row['clscode'][:10], axis=1)
-
-        gclass['clscode'] = gclass['clscode'].str.strip()
-
-        vendor['vendorcode'] = vendor['vendorcode'].str.strip()
-        brand['brandcode'] = brand['brandcode'].str.strip()
 
         result = goods.merge(
             gclass,
@@ -589,7 +556,7 @@ class ShangHaiDaoHangCleaner(Base):
     """
     "origin_table_columns": {
                     "gclass": ['clscode','clslevel', 'uppercode1', 'clsname'],
-                    
+
                 },
 
                 "converts": {
@@ -598,14 +565,12 @@ class ShangHaiDaoHangCleaner(Base):
                         'clslevel':'int',
                         'uppercode1':'str'
                     },
-                    
+
                 }
     """
 
     def category(self):
         gclass = self.data['gclass']
-
-        gclass['clscode'] = gclass['clscode'].str.strip()
 
         part1 = gclass[gclass['clslevel'] == 1]
         part1['cmid'] = self.cmid
@@ -805,12 +770,12 @@ class ShangHaiDaoHangCleaner(Base):
             "differform": {
                 'differno':'str',
                 'orgcode':'str',
-            
+
             },
             "differdetail": {
                 'differno':'str',
                 'plucode':'str',
-                'ykcount':'float'  
+                'ykcount':'float'
             },
             "subshop": {
                 'orgcode':'str'
@@ -839,25 +804,11 @@ class ShangHaiDaoHangCleaner(Base):
         item = self.data['goods']
         gclass = self.data['gclass']
 
-        header['differno'] = header['differno'].str.strip()
-        header['orgcode'] = header['orgcode'].str.strip()
-
-        detail['differno'] = detail['differno'].str.strip()
-        detail['plucode'] = detail['plucode'].str.strip()
-
-        store['orgcode'] = store['orgcode'].str.strip()
-
-        item['plucode'] = item['plucode'].str.strip()
-        item['clscode'] = item['clscode'].str.strip()
-        item['barcode'] = item['barcode'].str.strip()
-
         item['clscode_1'] = item.apply(lambda row: row['clscode'][:2], axis=1)
         item['clscode_2'] = item.apply(lambda row: row['clscode'][:4], axis=1)
         item['clscode_3'] = item.apply(lambda row: row['clscode'][:6], axis=1)
         item['clscode_4'] = item.apply(lambda row: row['clscode'][:8], axis=1)
         item['clscode_5'] = item.apply(lambda row: row['clscode'][:10], axis=1)
-
-        gclass['clscode'] = gclass['clscode'].str.strip()
 
         result = header.merge(
             detail,

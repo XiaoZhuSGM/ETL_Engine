@@ -754,9 +754,6 @@ class HaiDingCleaner:
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
-        rpt_storesaldrpt["cls"] = rpt_storesaldrpt["cls"].str.strip()
-        sdrpts["cls"] = sdrpts["cls"].str.strip()
-
         columns = [
             "source_id",
             "foreign_store_id",
@@ -773,7 +770,7 @@ class HaiDingCleaner:
             "foreign_category_lv5",
             "cmid",
         ]
-        print('sort\t', len(sort))
+
         part1 = (
             rpt_storesaldrpt.merge(
                 goods,
@@ -804,8 +801,7 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
-        print(len(part1))
-        print('sort\t', len(sort))
+
         if not len(part1):
             part1 = pd.DataFrame(columns=columns)
         else:
