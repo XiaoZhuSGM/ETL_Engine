@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 import pandas as pd
-
+import pytz
 from typing import Dict
 from base import Base
 _TZINFO = pytz.timezone("Asia/Shanghai")
