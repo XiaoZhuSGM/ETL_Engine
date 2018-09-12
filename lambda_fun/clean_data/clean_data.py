@@ -167,66 +167,25 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "source_id": "67YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
-        "date": "2018-09-10",
-        "target_table": "goods",
+        "source_id": "34YYYYYYYYYYYYY",
+        "erp_name": "宏业",
+        "date": "2018-09-11",
+        "target_table": "category",
         "origin_table_columns": {
-            "brand": [
-                "name",
-                "code"
-            ],
-            "goods": [
-                "alc",
-                "brand",
-                "busgate",
-                "code",
-                "code2",
-                "gid",
-                "lstinprc",
-                "munit",
-                "name",
-                "rtlprc",
-                "sort",
-                "validperiod",
-                "vdrgid"
-            ],
-            "goodsbusgate": [
-                "gid",
-                "name"
-            ],
-            "vendor": [
-                "name",
-                "code",
-                "gid"
+            "inf_goodsclass": [
+                "classcode",
+                "classname",
+                "fatherclass",
+                "classgrade"
             ]
         },
         "converts": {
-            "brand": {
-                "code": "str",
-                "name": "str"
-            },
-            "goods": {
-                "alc": "str",
-                "brand": "str",
-                "busgate": "str",
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str",
-                "validperiod": "str",
-                "vdrgid": "str"
-            },
-            "goodsbusgate": {
-                "gid": "str",
-                "name": "str"
-            },
-            "vendor": {
-                "code": "str",
-                "gid": "str",
-                "name": "str"
+            "inf_goodsclass": {
+                "classcode": "str",
+                "classname": "str",
+                "fatherclass": "str",
+                'classgrade': 'int'
             }
-        }}
+        }
+    }
     handler(event, None)
