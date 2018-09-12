@@ -775,11 +775,32 @@ def upload_to_s3(frame, source_id, date, target_table):
 
 
 def clean_goods_loss(source_id, date, target_table, data_frames):
+    columns = [
+        "cmid",
+        "source_id",
+        "lossnum",
+        "lossdate",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "foreign_item_id",
+        "item_showcode",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "quantity",
+        "subtotal",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+    ]
     cmid = source_id.split("Y")[0]
     header = data_frames['t_im_check_master']
 
     if not len(header):
-        return upload_to_s3(pd.DataFrame(), source_id, date, target_table)
+        return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
 
     detail = data_frames['t_im_check_sum']
 
@@ -870,27 +891,7 @@ def clean_goods_loss(source_id, date, target_table, data_frames):
 
     result['lossdate'] = result.apply(lambda row: row['lossdate'].split()[0], axis=1)
 
-    result = result[[
-        "cmid",
-        "source_id",
-        "lossnum",
-        "lossdate",
-        "foreign_store_id",
-        "store_show_code",
-        "store_name",
-        "foreign_item_id",
-        "item_showcode",
-        "barcode",
-        "item_name",
-        "item_unit",
-        "quantity",
-        "subtotal",
-        "foreign_category_lv1",
-        "foreign_category_lv2",
-        "foreign_category_lv3",
-        "foreign_category_lv4",
-        "foreign_category_lv5",
-    ]]
+    result = result[columns]
 
     return upload_to_s3(result, source_id, date, target_table)
 

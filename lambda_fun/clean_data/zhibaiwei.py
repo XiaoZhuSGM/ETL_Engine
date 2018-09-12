@@ -761,17 +761,33 @@ class ZhiBaiWeiCleaner(Base):
     """
 
     def goods_loss(self):
+        filter_columns = [
+            "cmid",
+            "source_id",
+            "lossnum",
+            "lossdate",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_showcode",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
         loss = self.data['ic_t_check_master']
-
-        if not len(loss):
-            return pd.DataFrame()
 
         detail = self.data['ic_t_check_detail']
         store = self.data['bi_t_branch_info']
         item = self.data['bi_t_item_info']
         item_cls = self.data['bi_t_item_cls']
-
-        detail['balance_qty'] = detail.apply(lambda row: float(row['balance_qty']), axis=1)
 
         def test(row):
             if row['base_price']:
@@ -780,12 +796,12 @@ class ZhiBaiWeiCleaner(Base):
                 print(row['item_no'])
                 return 0
 
+        if not len(loss):
+            return pd.DataFrame(columns=filter_columns)
         # item['base_price'] = item.apply(lambda row: float(row['base_price']), axis=1)
-
-        item['base_price'] = item.apply(test, axis=1)
-
         loss['branch_no'] = loss.apply(lambda row: row['branch_no'][:2], axis=1)
 
+        item['base_price'] = item.apply(test, axis=1)
         item['item_clsno_1'] = item.apply(lambda row: row['item_clsno'][:2], axis=1)
         item['item_clsno_2'] = item.apply(lambda row: row['item_clsno'][:4], axis=1)
         item['item_clsno_3'] = item.apply(lambda row: row['item_clsno'][:6], axis=1)
@@ -821,36 +837,41 @@ class ZhiBaiWeiCleaner(Base):
             right_on='item_clsno',
             suffixes=('', '_lv3')
         )
+        if not len(part1):
+            part1 = pd.DataFrame(columns=filter_columns)
+        else:
+            part1['balance_qty'] = part1.apply(lambda row: float(row['balance_qty']), axis=1)
+            part1 = part1[(part1['balance_qty'] < 0)
+                        & (part1['approve_flag'] == '1')
+                        & (part1['del_flag'] == '0')
+                        & (part1['item_clsno'] != '00')
+                        & (part1['branch_no'] != '00')
+                        ]
 
-        part1 = part1[(part1['balance_qty'] < 0)
-                      & (part1['approve_flag'] == '1')
-                      & (part1['del_flag'] == '0')
-                      & (part1['item_clsno'] != '00')
-                      & (part1['branch_no'] != '00')
-                      ]
+            part1['cmid'] = self.cmid
+            part1['source_id'] = self.cmid
+            part1['foreign_category_lv4'] = ''
+            part1['foreign_category_lv5'] = ''
+            part1['subtotal'] = part1.apply(lambda row: float(row['balance_qty']) * float(row['base_price']), axis=1)
+            part1['store_show_code'] = part1['branch_no']
 
-        part1['cmid'] = self.cmid
-        part1['source_id'] = self.cmid
-        part1['foreign_category_lv4'] = ''
-        part1['foreign_category_lv5'] = ''
-        part1['subtotal'] = part1.apply(lambda row: float(row['balance_qty']) * float(row['base_price']), axis=1)
-        part1['store_show_code'] = part1['branch_no']
+            part1 = part1.rename(columns={
+                'check_no': 'lossnum',
+                'oper_date': 'lossdate',
+                'branch_no': 'foreign_store_id',
+                'branch_name': 'store_name',
+                'item_no': 'foreign_item_id',
+                'item_subno': 'item_showcode',
+                'barcode': 'barcode',
+                'item_name': 'item_name',
+                'unit_no': 'item_unit',
+                'balance_qty': 'quantity',
+                'item_clsno_lv1': 'foreign_category_lv1',
+                'item_clsno_lv2': 'foreign_category_lv2',
+                'item_clsno_lv3': 'foreign_category_lv3',
+            })
 
-        part1 = part1.rename(columns={
-            'check_no': 'lossnum',
-            'oper_date': 'lossdate',
-            'branch_no': 'foreign_store_id',
-            'branch_name': 'store_name',
-            'item_no': 'foreign_item_id',
-            'item_subno': 'item_showcode',
-            'barcode': 'barcode',
-            'item_name': 'item_name',
-            'unit_no': 'item_unit',
-            'balance_qty': 'quantity',
-            'item_clsno_lv1': 'foreign_category_lv1',
-            'item_clsno_lv2': 'foreign_category_lv2',
-            'item_clsno_lv3': 'foreign_category_lv3',
-        })
+            part1["lossdate"] = part1.apply(lambda row: row["lossdate"].split()[0], axis=1)
 
         part2 = loss.merge(
             detail,
@@ -871,64 +892,42 @@ class ZhiBaiWeiCleaner(Base):
             right_on='item_clsno',
             suffixes=('', '_lv1')
         )
+        if not len(part2):
+            part2 = pd.DataFrame(columns=filter_columns)
+        else:
+            part2 = part2[(part2['balance_qty'] < 0)
+                        & (part2['approve_flag'] == '1')
+                        & (part2['del_flag'] == '0')
+                        & (part2['item_clsno'] == '00')
+                        & (part2['branch_no'] != '00')
+                        & (part2['item_flag'] == '0')
+                        ]
 
-        part2 = part2[(part2['balance_qty'] < 0)
-                      & (part2['approve_flag'] == '1')
-                      & (part2['del_flag'] == '0')
-                      & (part2['item_clsno'] == '00')
-                      & (part2['branch_no'] != '00')
-                      & (part2['item_flag'] == '0')
-                      ]
+            part2['cmid'] = self.cmid
+            part2['source_id'] = self.cmid
+            part2['foreign_category_lv2'] = ''
+            part2['foreign_category_lv3'] = ''
+            part2['foreign_category_lv4'] = ''
+            part2['foreign_category_lv5'] = ''
+            part2['subtotal'] = part2.apply(lambda row: float(row['balance_qty']) * float(row['base_price']), axis=1)
+            part2['store_show_code'] = part2['branch_no']
 
-        part2['cmid'] = self.cmid
-        part2['source_id'] = self.cmid
-        part2['foreign_category_lv2'] = ''
-        part2['foreign_category_lv3'] = ''
-        part2['foreign_category_lv4'] = ''
-        part2['foreign_category_lv5'] = ''
-        part2['subtotal'] = part2.apply(lambda row: float(row['balance_qty']) * float(row['base_price']), axis=1)
-        part2['store_show_code'] = part2['branch_no']
-
-        part2 = part2.rename(columns={
-            'check_no': 'lossnum',
-            'oper_date': 'lossdate',
-            'branch_no': 'foreign_store_id',
-            'branch_name': 'store_name',
-            'item_no': 'foreign_item_id',
-            'item_subno': 'item_showcode',
-            'barcode': 'barcode',
-            'item_name': 'item_name',
-            'unit_no': 'item_unit',
-            'balance_qty': 'quantity',
-            'item_clsno_lv1': 'foreign_category_lv1',
-        })
-
-        filter_columns = [
-            "cmid",
-            "source_id",
-            "lossnum",
-            "lossdate",
-            "foreign_store_id",
-            "store_show_code",
-            "store_name",
-            "foreign_item_id",
-            "item_showcode",
-            "barcode",
-            "item_name",
-            "item_unit",
-            "quantity",
-            "subtotal",
-            "foreign_category_lv1",
-            "foreign_category_lv2",
-            "foreign_category_lv3",
-            "foreign_category_lv4",
-            "foreign_category_lv5",
-        ]
+            part2 = part2.rename(columns={
+                'check_no': 'lossnum',
+                'oper_date': 'lossdate',
+                'branch_no': 'foreign_store_id',
+                'branch_name': 'store_name',
+                'item_no': 'foreign_item_id',
+                'item_subno': 'item_showcode',
+                'barcode': 'barcode',
+                'item_name': 'item_name',
+                'unit_no': 'item_unit',
+                'balance_qty': 'quantity',
+                'item_clsno_lv1': 'foreign_category_lv1',
+            })
+            part2["lossdate"] = part2.apply(lambda row: row["lossdate"].split()[0], axis=1)
 
         part1 = part1[filter_columns]
         part2 = part2[filter_columns]
-
-        part1["lossdate"] = part1.apply(lambda row: row["lossdate"].split()[0], axis=1)
-        part2["lossdate"] = part2.apply(lambda row: row["lossdate"].split()[0], axis=1)
 
         return pd.concat([part1, part2])

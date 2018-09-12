@@ -793,11 +793,31 @@ class ShangHaiDaoHangCleaner(Base):
     """
 
     def goods_loss(self):
-
+        columns = [
+            "cmid",
+            "source_id",
+            "lossnum",
+            "lossdate",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_showcode",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
         header = self.data['differform']
 
         if not len(header):
-            return pd.DataFrame()
+            return pd.DataFrame(columns=columns)
 
         detail = self.data['differdetail']
         store = self.data['subshop']
@@ -882,26 +902,6 @@ class ShangHaiDaoHangCleaner(Base):
             'clscode_lv2':'foreign_category_lv2'
         })
 
-        result = result[[
-            "cmid",
-            "source_id",
-            "lossnum",
-            "lossdate",
-            "foreign_store_id",
-            "store_show_code",
-            "store_name",
-            "foreign_item_id",
-            "item_showcode",
-            "barcode",
-            "item_name",
-            "item_unit",
-            "quantity",
-            "subtotal",
-            "foreign_category_lv1",
-            "foreign_category_lv2",
-            "foreign_category_lv3",
-            "foreign_category_lv4",
-            "foreign_category_lv5",
-        ]]
+        result = result[columns]
 
         return result

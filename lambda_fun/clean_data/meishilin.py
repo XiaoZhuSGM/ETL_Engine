@@ -38,10 +38,38 @@ class MeiShiLinCleaner(Base):
     """
 
     def goodsflow(self):
+        columns = [
+            "source_id",
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "receipt_id",
+            "consumer_id",
+            "saletime",
+            "last_updated",
+            "foreign_item_id",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "saleprice",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+            "pos_id"
+        ]
         flow_frame = self.data["skstoresellingwater"]
 
         if not len(flow_frame):
-            return pd.DataFrame()
+            return pd.DataFrame(columns=columns)
 
         store_frame = self.data["skstore"]
         goods_frame = self.data["skgoods"]
@@ -91,34 +119,7 @@ class MeiShiLinCleaner(Base):
 
         })
 
-        result_frame = result_frame[[
-            "source_id",
-            "cmid",
-            "foreign_store_id",
-            "store_name",
-            "receipt_id",
-            "consumer_id",
-            "saletime",
-            "last_updated",
-            "foreign_item_id",
-            "barcode",
-            "item_name",
-            "item_unit",
-            "saleprice",
-            "quantity",
-            "subtotal",
-            "foreign_category_lv1",
-            "foreign_category_lv1_name",
-            "foreign_category_lv2",
-            "foreign_category_lv2_name",
-            "foreign_category_lv3",
-            "foreign_category_lv3_name",
-            "foreign_category_lv4",
-            "foreign_category_lv4_name",
-            "foreign_category_lv5",
-            "foreign_category_lv5_name",
-            "pos_id"
-        ]]
+        result_frame = result_frame[columns]
 
         return result_frame
 
@@ -150,10 +151,26 @@ class MeiShiLinCleaner(Base):
         """
 
     def cost(self):
+        columns = [
+            "source_id",
+            "foreign_store_id",
+            "foreign_item_id",
+            "date",
+            "cost_type",
+            "total_quantity",
+            "total_sale",
+            "total_cost",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+            "cmid",
+        ]
         cost_frame = self.data["skcmsale"]
 
         if not len(cost_frame):
-            return pd.DataFrame()
+            return pd.DataFrame(columns=columns)
 
         gsort_frame = self.data["skgoodssort"]
 
@@ -177,22 +194,7 @@ class MeiShiLinCleaner(Base):
             "cscode": "foreign_category_lv3",
         })
 
-        result_frame = result_frame[[
-            "source_id",
-            "foreign_store_id",
-            "foreign_item_id",
-            "date",
-            "cost_type",
-            "total_quantity",
-            "total_sale",
-            "total_cost",
-            "foreign_category_lv1",
-            "foreign_category_lv2",
-            "foreign_category_lv3",
-            "foreign_category_lv4",
-            "foreign_category_lv5",
-            "cmid",
-        ]]
+        result_frame = result_frame[columns]
 
         return result_frame
 
@@ -598,23 +600,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def requireorder(self):
-        otrequireorder = self.data["skcmotrequireorder"]
-
-        if not len(otrequireorder):
-            return pd.DataFrame()
-
-        otrequireorderline = self.data["skcmotrequireorderline"]
-        store = self.data["skstore"]
-        goods = self.data["skgoods"]
-        sort = self.data["skcmsort"]
-        vendor = self.data["skcmvendor"]
-        employee = self.data["skcmemployee"]
-
-        # otrequireorder = otrequireorder.drop_duplicates()
-        # otrequireorderline = otrequireorderline.drop_duplicates()
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
         columns = [
             "source_id",
             "cmid",
@@ -642,6 +627,24 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv5",
             "purchaser",
         ]
+        otrequireorder = self.data["skcmotrequireorder"]
+
+        if not len(otrequireorder):
+            return pd.DataFrame(columns=columns)
+
+        otrequireorderline = self.data["skcmotrequireorderline"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        vendor = self.data["skcmvendor"]
+        employee = self.data["skcmemployee"]
+
+        # otrequireorder = otrequireorder.drop_duplicates()
+        # otrequireorderline = otrequireorderline.drop_duplicates()
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
+
         part = (
             otrequireorder.merge(
                 otrequireorderline,
@@ -790,32 +793,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def delivery(self):
-        stkout = self.data["skcmstkout"]
-
-        if not len(stkout):
-            return pd.DataFrame()
-
-        stkoutdtl = self.data["skcmstkoutdtl"]
-        store = self.data["skstore"]
-        warehouse = self.data["skcmwarehouse"]
-        goods = self.data["skgoods"]
-        sort = self.data["skcmsort"]
-        stkoutbck = self.data["skcmstkoutbck"]
-        stkoutbckdtl = self.data["skcmstkoutbckdtl"]
-
-        stkout: pd.DataFrame = stkout[
-            (stkout["cls"] == "统配出")
-            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-        stkoutbck: pd.DataFrame = stkoutbck[
-            (stkoutbck["cls"] == "统配出退")
-            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
         columns = [
             "delivery_num",
             "delivery_date",
@@ -844,6 +821,31 @@ class MeiShiLinCleaner(Base):
             "source_id",
             "cmid",
         ]
+        stkout = self.data["skcmstkout"]
+
+        if not len(stkout):
+            return pd.DataFrame(columns=columns)
+
+        stkoutdtl = self.data["skcmstkoutdtl"]
+        store = self.data["skstore"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        stkoutbck = self.data["skcmstkoutbck"]
+        stkoutbckdtl = self.data["skcmstkoutbckdtl"]
+
+        stkout: pd.DataFrame = stkout[
+            (stkout["cls"] == "统配出")
+            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
+            ]
+        stkoutbck: pd.DataFrame = stkoutbck[
+            (stkoutbck["cls"] == "统配出退")
+            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+            ]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         src_type = {
             0: "人工录入",
@@ -1112,20 +1114,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def purchase_warehouse(self):
-        stkin = self.data["skcmstkin"]
-
-        if not len(stkin):
-            return pd.DataFrame()
-
-        stkindtl = self.data["skcmstkindtl"]
-        vendorh = self.data["skcmvendor"]
-        modulestat = self.data["skcmmodulestat"]
-        goods = self.data["skgoods"]
-        brand = self.data["skcmbrand"]
-        warehouseh = self.data["skcmwarehouse"]
-        stkinbck = self.data["skcmstkinbck"]
-        stkinbckdtl = self.data["skcmstkinbckdtl"]
-
         columns = [
             "source_id",
             "cmid",
@@ -1154,11 +1142,23 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv5",
             "bill_status",
         ]
+        stkin = self.data["skcmstkin"]
+
+        if not len(stkin):
+            return pd.DataFrame(columns=columns)
+
+        stkindtl = self.data["skcmstkindtl"]
+        vendorh = self.data["skcmvendor"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
+        warehouseh = self.data["skcmwarehouse"]
+        stkinbck = self.data["skcmstkinbck"]
+        stkinbckdtl = self.data["skcmstkinbckdtl"]
 
         part1 = stkin.merge(
             stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
         )
-
 
         part1 = part1.merge(
             vendorh,
@@ -1350,18 +1350,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def purchase_store(self):
-        diralc = self.data["skcmdiralc"]
-
-        if not len(diralc):
-            return pd.DataFrame()
-
-        diralcdtl = self.data["skcmdiralcdtl"]
-        vendor = self.data["skcmvendor"]
-        store = self.data["skstore"]
-        modulestat = self.data["skcmmodulestat"]
-        goods = self.data["skgoods"]
-        brand = self.data["skcmbrand"]
-
         columns = [
             "source_id",
             "cmid",
@@ -1391,6 +1379,18 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv5",
             "bill_status",
         ]
+
+        diralc = self.data["skcmdiralc"]
+
+        if not len(diralc):
+            return pd.DataFrame(columns=columns)
+
+        diralcdtl = self.data["skcmdiralcdtl"]
+        vendor = self.data["skcmvendor"]
+        store = self.data["skstore"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
 
         part = (
             diralc.merge(
@@ -1505,16 +1505,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def move_store(self):
-        invxf = self.data["skcminvxf"]
-
-        if not len(invxf):
-            return pd.DataFrame()
-
-        invxfdtl = self.data["skcminvxfdtl"]
-        store = self.data["skstore"]
-        goods = self.data["skgoods"]
-        modulestat = self.data["skcmmodulestat"]
-
         columns = [
             "source_id",
             "cmid",
@@ -1542,6 +1532,15 @@ class MeiShiLinCleaner(Base):
             "barcode",
             "item_unit",
         ]
+        invxf = self.data["skcminvxf"]
+
+        if not len(invxf):
+            return pd.DataFrame(columns=columns)
+
+        invxfdtl = self.data["skcminvxfdtl"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
 
         part = (
             invxf.merge(
@@ -1641,16 +1640,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def move_warehouse(self):
-        invxf = self.data["skcminvxf"]
-
-        if not len(invxf):
-            return pd.DataFrame()
-
-        invxfdtl = self.data["skcminvxfdtl"]
-        warehouse = self.data["skcmwarehouse"]
-        goods = self.data["skgoods"]
-        modulestat = self.data["skcmmodulestat"]
-
         columns = [
             "source_id",
             "cmid",
@@ -1678,6 +1667,16 @@ class MeiShiLinCleaner(Base):
             "barcode",
             "item_unit",
         ]
+
+        invxf = self.data["skcminvxf"]
+
+        if not len(invxf):
+            return pd.DataFrame(columns=columns)
+
+        invxfdtl = self.data["skcminvxfdtl"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
 
         part = (
             invxf.merge(
@@ -1780,19 +1779,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def goods_loss(self):
-        ckdatas = self.data["skcmckdatas"]
-
-        if not len(ckdatas):
-            return pd.DataFrame()
-
-        store = self.data["skstore"]
-        goods = self.data["skgoods"]
-        sort = self.data["skcmsort"]
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
         columns = [
             "cmid",
             "source_id",
@@ -1814,6 +1800,18 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4",
             "foreign_category_lv5",
         ]
+        ckdatas = self.data["skcmckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame(columns=columns)
+
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         part = (
             ckdatas.merge(
@@ -1913,19 +1911,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def check_warehouse(self):
-        ckdatas = self.data["skcmckdatas"]
-
-        if not len(ckdatas):
-            return pd.DataFrame()
-
-        warehouse = self.data["skcmwarehouse"]
-        goods = self.data["skgoods"]
-        sort = self.data["skcmsort"]
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
         columns = [
             "cmid",
             "source_id",
@@ -1947,6 +1932,18 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4",
             "foreign_category_lv5",
         ]
+        ckdatas = self.data["skcmckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame(columns=columns)
+
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         part = (
             ckdatas.merge(
