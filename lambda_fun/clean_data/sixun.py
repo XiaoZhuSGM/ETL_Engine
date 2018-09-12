@@ -933,7 +933,7 @@ def sales_target(source_id, date, target_table, data_frames):
 
     result['source_id'] = source_id
     result['cmid'] = cmid
-    result['target_date'] = datetime.now(_TZINFO).strftime('%Y-%m-%d')
+    result['target_date'] = datetime.now(_TZINFO).strftime('%Y-%m-01')
     result['foreign_store_id'] = result['branch_no']
     result['store_show_code'] = result['branch_no']
     result['store_name'] = result['branch_name']
@@ -942,7 +942,7 @@ def sales_target(source_id, date, target_table, data_frames):
     result['target_gross_profit'] = 0
     result['category_level'] = 1
 
-    result['last_updated'] = datetime.now(_TZINFO).strftime('%Y-%m-01')
+    result['last_updated'] = datetime.now(_TZINFO)
 
     result['foreign_category_lv1'] = ''
     result['foreign_category_lv2'] = ''
