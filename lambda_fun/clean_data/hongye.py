@@ -949,7 +949,7 @@ class HongYeCleaner:
         ).merge(
             inf_goodsclass,
             how="left",
-            left_on=["fatherclass"],
+            left_on=["fatherclass.lv2"],
             right_on=["classcode"],
             suffixes=("", ".lv1"),
         )
@@ -991,14 +991,14 @@ class HongYeCleaner:
             .merge(
                 inf_goodsclass,
                 how="left",
-                left_on=["fatherclass"],
+                left_on=["fatherclass.lv3"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
             .merge(
                 inf_goodsclass,
                 how="left",
-                left_on=["fatherclass"],
+                left_on=["fatherclass.lv2"],
                 right_on=["classcode"],
                 suffixes=("", ".lv1"),
             )
