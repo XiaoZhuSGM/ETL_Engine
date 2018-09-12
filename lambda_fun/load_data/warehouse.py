@@ -75,7 +75,7 @@ class Warehouser:
                 "CSV GZIP IGNOREHEADER 1"
             )
         )
-        print(f"<{self.cmid}:#{self.target_table}> 拷贝到临时表: {r.rowcount}")
+        print(f"{self.cmid}:<#{self.target_table}> 拷贝到临时表: {r.rowcount}")
 
     def _upsert(self):
         if self.sync_column:
@@ -94,13 +94,15 @@ class Warehouser:
         print(f"{self.cmid}:<{self.target_table}> 插入数据: {r.rowcount}")
 
     def _delete_old_data(self):
-        if not self.date_column:
+        if not self.date_column:  # 没有日期字段，不需要删除
             return
         dataframes = pd.read_csv(
             self.data_source,
             compression="gzip",
             converters={self.date_column: pd.to_datetime},
         )
+        if not len(dataframes):  # 数据为空，不需要删除
+            return
         dates = dataframes[self.date_column].drop_duplicates()
         dates_str = [d.strftime("%Y-%m-%d") for d in dates]
         dates_str = [f"'{d}'" for d in dates_str]
