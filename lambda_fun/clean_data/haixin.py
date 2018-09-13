@@ -301,10 +301,10 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods1["foreign_category_lv5"] = ""
     goods1["isvalid"] = 1
     goods1["warranty"] = ""
-    goods1["allot_method"] = ""
+    goods1["allot_method"] = goods1["udp3"]
     goods1["supplier_name"] = ""
     goods1["supplier_code"] = ""
-    goods1["brand_name"] = ""
+    goods1["brand_name"] = goods1["brandname"]
     goods1["last_updated"] = datetime.now(_TZINFO)
 
     def generate_item_status(row):
@@ -350,10 +350,10 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods2["foreign_category_lv5"] = ""
     goods2["isvalid"] = 1
     goods2["warranty"] = ""
-    goods2["allot_method"] = ""
+    goods2["allot_method"] = goods2["udp3"]
     goods2["supplier_name"] = ""
     goods2["supplier_code"] = ""
-    goods2["brand_name"] = ""
+    goods2["brand_name"] = goods2["brandname"]
     goods2["last_updated"] = datetime.now(_TZINFO)
 
     def generate_item_status(row):
