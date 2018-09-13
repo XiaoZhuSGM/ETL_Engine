@@ -164,69 +164,32 @@ def handler(event, context):
 
         return clean_jiuyin(source_id, date, target_table, data_frames)
 
+    elif erp_name == "晋中田森":
+        from jinzhongtiansen import clean_jinzhong
+
+        return clean_jinzhong(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
     event = {
-        "source_id": "67YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
-        "date": "2018-09-10",
-        "target_table": "goods",
-        "origin_table_columns": {
-            "brand": [
-                "name",
-                "code"
-            ],
-            "goods": [
-                "alc",
-                "brand",
-                "busgate",
-                "code",
-                "code2",
-                "gid",
-                "lstinprc",
-                "munit",
-                "name",
-                "rtlprc",
-                "sort",
-                "validperiod",
-                "vdrgid"
-            ],
-            "goodsbusgate": [
-                "gid",
-                "name"
-            ],
-            "vendor": [
-                "name",
-                "code",
-                "gid"
+        "source_id": "64YYYYYYYYYYYYY",
+        "erp_name": "海信商定天下",
+        "date": "2018-09-01",
+        "target_table": "store",
+        'origin_table_columns': {
+            "torgmanage": [
+                "orgcode",
+                "orgname",
+                "preorgcode",
+                "orgclass"
             ]
         },
-        "converts": {
-            "brand": {
-                "code": "str",
-                "name": "str"
-            },
-            "goods": {
-                "alc": "str",
-                "brand": "str",
-                "busgate": "str",
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str",
-                "validperiod": "str",
-                "vdrgid": "str"
-            },
-            "goodsbusgate": {
-                "gid": "str",
-                "name": "str"
-            },
-            "vendor": {
-                "code": "str",
-                "gid": "str",
-                "name": "str"
+
+        'converts': {
+            "torgmanage": {
+                "orgclass": "str",
+                "orgcode": "str"
             }
-        }}
+        }
+    }
     handler(event, None)
