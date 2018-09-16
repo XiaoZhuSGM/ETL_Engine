@@ -164,28 +164,11 @@ def handler(event, context):
 
         return clean_jiuyin(source_id, date, target_table, data_frames)
 
+    elif erp_name == "晋中田森":
+        from jinzhongtiansen import clean_jinzhong
+
+        return clean_jinzhong(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
-    event = {
-        "source_id": "34YYYYYYYYYYYYY",
-        "erp_name": "宏业",
-        "date": "2018-09-11",
-        "target_table": "category",
-        "origin_table_columns": {
-            "inf_goodsclass": [
-                "classcode",
-                "classname",
-                "fatherclass",
-                "classgrade"
-            ]
-        },
-        "converts": {
-            "inf_goodsclass": {
-                "classcode": "str",
-                "classname": "str",
-                "fatherclass": "str",
-                'classgrade': 'int'
-            }
-        }
-    }
-    handler(event, None)
+   pass
