@@ -171,4 +171,14 @@ def handler(event, context):
 
 
 if __name__ == "__main__":
-   pass
+    event = {'source_id': '74YYYYYYYYYYYYY', 'erp_name': '思迅', 'date': '2018-09-16', 'target_table': 'cost',
+             'origin_table_columns': {'t_bd_item_cls': ['item_clsno'], 't_bd_item_info': ['item_no', 'item_clsno'],
+                                      't_da_jxc_daysum': ['branch_no', 'oper_date', 'so_qty', 'pos_qty', 'so_amt',
+                                                          'pos_amt', 'fifo_cost_amt', 'item_no']},
+             'converts': {'t_bd_item_cls': {'item_clsno': 'str'},
+                          't_bd_item_info': {'item_clsno': 'str', 'item_no': 'str'},
+                          't_da_jxc_daysum': {'branch_no': 'str', 'fifo_cost_amt': 'float', 'item_no': 'str',
+                                              'pos_amt': 'float', 'pos_qty': 'float', 'so_amt': 'float',
+                                              'so_qty': 'float'}}}
+
+    handler(event, None)
