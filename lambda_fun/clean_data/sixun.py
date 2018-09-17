@@ -633,7 +633,7 @@ def clean_cost(source_id, date, target_table, data_frames):
     cost_frame = data_frames['t_da_jxc_daysum']
 
     if not len(cost_frame):
-        return pd.DataFrame(columns=columns)
+        return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
 
     goods_frame = data_frames['t_bd_item_info']
     item_cls_frame = data_frames['t_bd_item_cls']
