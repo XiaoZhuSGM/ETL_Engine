@@ -171,25 +171,24 @@ def handler(event, context):
 
 
 if __name__ == "__main__":
-    event = {
-        "source_id": "64YYYYYYYYYYYYY",
-        "erp_name": "海信商定天下",
-        "date": "2018-09-01",
-        "target_table": "store",
-        'origin_table_columns': {
-            "torgmanage": [
-                "orgcode",
-                "orgname",
-                "preorgcode",
-                "orgclass"
-            ]
-        },
+    event = {'source_id': '74YYYYYYYYYYYYY', 'erp_name': '思迅', 'date': '2018-09-16', 'target_table': 'cost',
+             'origin_table_columns': {'t_bd_item_cls': ['item_clsno'], 't_bd_item_info': ['item_no', 'item_clsno'],
+                                      't_da_jxc_daysum': ['branch_no', 'oper_date', 'so_qty', 'pos_qty', 'so_amt',
+                                                          'pos_amt', 'fifo_cost_amt', 'item_no']},
+             'converts': {'t_bd_item_cls': {'item_clsno': 'str'},
+                          't_bd_item_info': {'item_clsno': 'str', 'item_no': 'str'},
+                          't_da_jxc_daysum': {'branch_no': 'str', 'fifo_cost_amt': 'float', 'item_no': 'str',
+                                              'pos_amt': 'float', 'pos_qty': 'float', 'so_amt': 'float',
+                                              'so_qty': 'float'}}}
 
-        'converts': {
-            "torgmanage": {
-                "orgclass": "str",
-                "orgcode": "str"
-            }
-        }
-    }
-    handler(event, None)
+    event_1 = {'source_id': '74YYYYYYYYYYYYY', 'erp_name': '思迅', 'date': '2018-09-16', 'target_table': 'cost',
+               'origin_table_columns': {'t_bd_item_cls': ['item_clsno'], 't_bd_item_info': ['item_no', 'item_clsno'],
+                                        't_da_jxc_daysum': ['branch_no', 'oper_date', 'so_qty', 'pos_qty', 'so_amt',
+                                                            'pos_amt', 'fifo_cost_amt', 'item_no']},
+               'converts': {'t_bd_item_cls': {'item_clsno': 'str'},
+                            't_bd_item_info': {'item_clsno': 'str', 'item_no': 'str'},
+                            't_da_jxc_daysum': {'branch_no': 'str', 'fifo_cost_amt': 'float', 'item_no': 'str',
+                                                'pos_amt': 'float', 'pos_qty': 'float', 'so_amt': 'float',
+                                                'so_qty': 'float'}}}
+
+    handler(event_1, None)

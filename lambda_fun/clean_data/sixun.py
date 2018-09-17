@@ -611,8 +611,30 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
 
 
 def clean_cost(source_id, date, target_table, data_frames):
+
+    columns = [
+        'source_id',
+        'foreign_store_id',
+        'foreign_item_id',
+        'date',
+        'cost_type',
+        'total_quantity',
+        'total_sale',
+        'total_cost',
+        'foreign_category_lv1',
+        'foreign_category_lv2',
+        'foreign_category_lv3',
+        'foreign_category_lv4',
+        'foreign_category_lv5',
+        'cmid'
+    ]
+
     cmid = source_id.split("Y")[0]
     cost_frame = data_frames['t_da_jxc_daysum']
+
+    if not len(cost_frame):
+        return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
+
     goods_frame = data_frames['t_bd_item_info']
     item_cls_frame = data_frames['t_bd_item_cls']
 
@@ -696,22 +718,7 @@ def clean_cost(source_id, date, target_table, data_frames):
     result_frame['source_id'] = source_id
     result_frame['cmid'] = cmid
 
-    result_frame = result_frame[[
-        'source_id',
-        'foreign_store_id',
-        'foreign_item_id',
-        'date',
-        'cost_type',
-        'total_quantity',
-        'total_sale',
-        'total_cost',
-        'foreign_category_lv1',
-        'foreign_category_lv2',
-        'foreign_category_lv3',
-        'foreign_category_lv4',
-        'foreign_category_lv5',
-        'cmid'
-    ]]
+    result_frame = result_frame[columns]
     return upload_to_s3(result_frame, source_id, date, target_table)
 
 
