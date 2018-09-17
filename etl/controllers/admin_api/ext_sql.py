@@ -24,3 +24,19 @@ def generate_table_sql():
     extract_date = request.args["date"]
     result = service.generate_table_sql(source_id, table_names, extract_date)
     return jsonify_with_data(APIError.OK, data=result)
+
+
+@etl_admin_api.route("/sql/full/display", methods=["GET"])
+def display_full_sql():
+    """
+    查看根据抓表策略生成的full sql，供人工检查sql的正确性
+    :return:
+    """
+    source_id = request.args["source_id"]
+    extract_date = request.args["date"]
+    if not all([source_id, extract_date]):
+        return jsonify_with_error(APIError.VALIDATE_ERROR)
+    result = service.display_full_sql(source_id, extract_date)
+    if result:
+        return jsonify_with_data(APIError.OK, data=result)
+    return jsonify_with_error(APIError.SERVER_ERROR)

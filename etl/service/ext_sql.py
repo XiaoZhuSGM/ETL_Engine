@@ -157,3 +157,19 @@ class DatasourceSqlService(object):
         date_s = date.strftime(table.filter_format)
         date_e = (date + timedelta(days=1)).strftime(table.filter_format)
         return table.filter.format(recorddate=recorddate, date_s=date_s, date_e=date_e)
+
+    def display_full_sql(self, source_id, extract_date):
+        """
+        查看根据抓表策略生成的full sql，不存入到s3
+        :param source_id:
+        :param extract_date:
+        :return:
+        """
+        tables = (
+            db.session.query(ExtTableInfo)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .options(joinedload(ExtTableInfo.datasource))
+            .all()
+        )
+
+        return self._generate_by_correct_mould(tables, extract_date)
