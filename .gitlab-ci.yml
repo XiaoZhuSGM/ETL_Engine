@@ -1,8 +1,6 @@
 pytest:
   image: python:3.6
   script:
-    - apt-get update -yqq
-    - apt-get upgrade -yqq
-    - apt-get install freetds-dev -yqq
+    - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
     - pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
     - pytest tests --cov=etl --cov-report=term --cov-report=html --cov-branch
