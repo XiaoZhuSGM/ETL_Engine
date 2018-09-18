@@ -16,11 +16,10 @@ build:
 
 pytest:
   stage: test
-  image: python:3.6
   script:
     - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
 
 deploy:
   stage: deploy
   script:
-    - .venv/bin/fab deploy
+    - curl -v 172.31.16.17:9999

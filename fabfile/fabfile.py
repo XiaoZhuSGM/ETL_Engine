@@ -26,9 +26,9 @@ def deploy(c, env="dev", branch="dev"):
             c.run("git pull -r")
             # 3. 更新包
             c.run(
-                "venv/bin/pip install -r requirements.txt -i https://pypi.doubanio.com/simple/"
+                ".venv/bin/pip install -r requirements.txt -i https://pypi.doubanio.com/simple/"
             )
-        c.run("supervisorctl signal HUP etl-egnine:")
+        c.run("supervisorctl signal HUP etl-engine:")
 
 
 @task
