@@ -1,0 +1,5 @@
+pytest:
+  image: python:3.6
+  script:
+    - pip install -r requirements.txt
+    - pytest tests --cov=etl --cov-report=term --cov-report=html --cov-branch
