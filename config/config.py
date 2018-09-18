@@ -84,6 +84,7 @@ class TestingConfig(Config):
 class UnitestConfig(Config):
     TESTING = True
     SENTRY_DSN = ""
+***REMOVED***
 
 
 config = {
