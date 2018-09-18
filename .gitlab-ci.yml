@@ -18,9 +18,9 @@ pytest:
   stage: test
   image: python:3.6
   script:
-    - pytest tests --cov=etl --cov-report=term --cov-branch
+    - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
 
 deploy:
   stage: deploy
   script:
-    - fab deploy
+    - .venv/bin/fab deploy
