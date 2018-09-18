@@ -83,6 +83,12 @@ class TestingConfig(Config):
 
 class UnitestConfig(Config):
     TESTING = True
+    SENTRY_DSN = ""
+***REMOVED***
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD = None
 
 
 config = {
