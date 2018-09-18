@@ -3,11 +3,16 @@ stages:
   - test
   - deploy
 
+cache:
+  paths:
+    - .venv/
+
 build:
   stage: build
   script:
     - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
-    - pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    - python -m venv .venv
+    - .venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 pytest:
   stage: test
