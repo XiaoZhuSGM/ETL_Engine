@@ -21,5 +21,7 @@ pytest:
 
 deploy:
   stage: deploy
+  except:
+    - pushes
   script:
     - curl -v 172.31.16.17:9999
