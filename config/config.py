@@ -35,6 +35,7 @@ class ProductionConfig(Config):
     REDIS_DB = 0
 ***REMOVED***
     SENTRY_DSN = ""
+***REMOVED***
 
 
 class DevelopmentConfig(Config):
@@ -59,6 +60,7 @@ class DevelopmentConfig(Config):
     REDIS_PORT = 6379
     REDIS_DB = 0
     REDIS_PASSWORD = None
+***REMOVED***
 
 
 class LocalConfig(Config):

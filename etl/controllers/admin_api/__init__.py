@@ -34,6 +34,8 @@ from .ext_target_table import *
 
 from .ext_task import *
 
+from .airflow_status import *
+
 class APIError(object):
     """
     定义状态码
