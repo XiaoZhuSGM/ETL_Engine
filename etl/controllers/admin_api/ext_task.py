@@ -17,7 +17,6 @@ def trigger_task_warehouse():
     message = request.json
     redshift_url = message["redshift_url"]
     data_key = message["data_key"]
-    data_date = message["data_date"]
     target_table = message["target_table"]
     warehouse_type = message["warehouse_type"]
     source_id = message["source_id"]
@@ -40,7 +39,6 @@ def trigger_task_warehouse():
         target_table,
         data_key,
         sync_column,
-        data_date,
         date_column,
         cmid,
         source_id,
