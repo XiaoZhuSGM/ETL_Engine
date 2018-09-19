@@ -21,7 +21,9 @@ pytest:
 
 deploy:
   stage: deploy
+  only:
+    - branches@airflow-datapipline/etl-engine
   except:
-    - pushes
+    - master@airflow-datapipline/etl-engine
   script:
     - curl -v 172.31.16.17:9999
