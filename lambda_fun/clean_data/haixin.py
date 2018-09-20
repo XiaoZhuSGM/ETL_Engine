@@ -300,7 +300,6 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods1["foreign_category_lv4"] = ""
     goods1["foreign_category_lv5"] = ""
     goods1["isvalid"] = 1
-    goods1["warranty"] = ""
     goods1["allot_method"] = goods1["udp3"]
     goods1["supplier_name"] = ""
     goods1["supplier_code"] = ""
@@ -327,7 +326,8 @@ def clean_goods(source_id, date, target_table, data_frames):
         "unit": "item_unit",
         "lrdate": "storage_time",
         "plucode": "show_code",
-        "clscode": "foreign_category_lv3"
+        "clscode": "foreign_category_lv3",
+        "bzdays": "warranty"
     })
 
     goods1 = goods1[[
@@ -349,22 +349,11 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods2["foreign_category_lv4"] = ""
     goods2["foreign_category_lv5"] = ""
     goods2["isvalid"] = 1
-    goods2["warranty"] = ""
     goods2["allot_method"] = goods2["udp3"]
     goods2["supplier_name"] = ""
     goods2["supplier_code"] = ""
     goods2["brand_name"] = goods2["brandname"]
     goods2["last_updated"] = datetime.now(_TZINFO)
-
-    def generate_item_status(row):
-        res = None
-        if row == "1":
-            res = "正常"
-        elif row == "2":
-            res = "预淘汰"
-        elif row == "3":
-            res = "淘汰"
-        return res
 
     goods2["item_status"] = goods2["ywstatus"].apply(generate_item_status)
 
@@ -377,7 +366,8 @@ def clean_goods(source_id, date, target_table, data_frames):
         "unit": "item_unit",
         "lrdate": "storage_time",
         "plucode": "show_code",
-        "clscode": "foreign_category_lv2"
+        "clscode": "foreign_category_lv2",
+        "bzdays": "warranty"
     })
 
     goods2 = goods2[[
