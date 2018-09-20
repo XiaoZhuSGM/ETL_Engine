@@ -8,7 +8,7 @@ etl_api = Blueprint('api', __name__)
 
 
 from . import load_sales_target
-
+from . import hook
 
 @etl_api.errorhandler(404)
 def error_404(e):
