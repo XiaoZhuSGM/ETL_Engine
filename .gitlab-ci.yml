@@ -1,3 +1,8 @@
+variables:
+***REMOVED***
+***REMOVED***
+  AWS_DEFAULT_REGION: cn-north-1
+
 stages:
   - build
   - test
