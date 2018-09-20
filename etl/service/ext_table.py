@@ -4,6 +4,7 @@ from etl.models.datasource import ExtDatasource
 from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
 from sqlalchemy.exc import SQLAlchemyError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 
 class ExtTableService(object):
@@ -15,7 +16,7 @@ class ExtTableService(object):
         self.schema = None
         self.db_schema = None
 
-    def connect_test(self, **kwargs):
+    def connect_test(self, kwargs):
 
         db_type = kwargs.get('db_type')
         db_name = kwargs.get('database')
@@ -124,29 +125,35 @@ class ExtTableService(object):
         schema = data.get('schema')
         erp_vendor = data.get('erp_vendor')
 
-        schema_new = None
+        special_schema = None
         if schema and (erp_vendor == "百年创纪云" or erp_vendor == "百年新世纪"):
-            schema_new = f"[{schema}]"
+            special_schema = f"[{schema}]"
 
         tables = self._get_tables(schema)
         views = self._get_views(schema)
         tables.extend(views)
         for table in tables:
+            print(table)
+            table_name = f'{special_schema}.{table}' if special_schema else f'{schema}.{table}' if schema else table
+
             try:
                 if table.startswith('v_'):
                     table = table.replace('v_', '', 1)
-                    table_name = f'{schema}.{table}' if schema else table
                     ext_pri_key = ''
                     record_num = 0
                 else:
                     ext_pri_key = self._get_ext_pri_key(table, schema)
 
-                    if schema_new:
-                        table_name = f'{schema_new}.{table}'
-                    else:
-                        table_name = f'{schema}.{table}'if schema else table
-                    record_num = self._get_record_num(table_name)
+                    executor = ThreadPoolExecutor()
+                    future = executor.submit(self._get_record_num, table_name)
+                    try:
+                        record_num = future.result(15)
+                    except TimeoutError:
+                        record_num = 0
+                    finally:
+                        executor.shutdown(wait=False)
                 ext_column = self._get_ext_column(table, ext_pri_key, schema)
+                print(table_name, record_num, len(ext_column))
             except SQLAlchemyError as e:
                 print(e)
                 continue
@@ -184,6 +191,7 @@ class ExtTableService(object):
             except SQLAlchemyError as e:
                 print(e)
 
+    @session_scope
     def download_tables(self, app, **data):
         with app.app_context():
             source_id = data.get('source_id')
@@ -191,9 +199,9 @@ class ExtTableService(object):
 
             db_name = data.get("db_name")
             schema_list = db_name.get('schema')
-
             try:
                 if not schema_list:
+                    print("start download table")
                     self.download_table_once(data)
                 else:
                     for scheam in schema_list:
@@ -224,3 +232,55 @@ class ExtTableService(object):
         for datasource in datasource_models:
             if datasource.fetch_status == 'running':
                 datasource.fetch_status = 'fail'
+
+    @session_scope
+    def download_special_tables(self, source_id, schema, tables, data):
+        erp_vendor = data.get("erp_vendor")
+        special_schema = None
+        if schema and (erp_vendor == "百年创纪云" or erp_vendor == "百年新世纪"):
+            special_schema = f"[{schema}]"
+        for table in tables:
+            table_name = f'{special_schema}.{table}' if special_schema else f'{schema}.{table}' if schema else table
+            try:
+                ext_pri_key = self._get_ext_pri_key(table, schema)
+
+                executor = ThreadPoolExecutor()
+                future = executor.submit(self._get_record_num, table_name)
+                try:
+                    record_num = future.result(15)
+                except TimeoutError:
+                    record_num = 0
+                finally:
+                    executor.shutdown(wait=False)
+                ext_column = self._get_ext_column(table, ext_pri_key, schema)
+                print(table_name, record_num, len(ext_column))
+            except SQLAlchemyError as e:
+                print(e)
+                continue
+            table_info = self._get_table_from_pgsql(source_id=source_id, table_name=table_name)
+            if len(table_info) == 0:
+                weight = 0 if record_num == 0 else 2
+
+                try:
+                    self._create_ext_table(
+                        source_id=source_id,
+                        table_name=table_name,
+                        ext_pri_key=ext_pri_key,
+                        ext_column=ext_column,
+                        record_num=record_num,
+                        weight=weight
+                    )
+                except SQLAlchemyError as e:
+                    print(e)
+                continue
+            else:
+                table = table_info[0]
+                try:
+                    self._update_ext_table(
+                        table,
+                        ext_pri_key=ext_pri_key,
+                        ext_column=ext_column,
+                        record_num=record_num
+                    )
+                except SQLAlchemyError as e:
+                    print(e)

@@ -465,9 +465,9 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["device_id"] = ""
 
     def generate_stor_status(x):
-        if x == "11":
+        if x == 11:
             res = "正常营业"
-        elif x == "98":
+        elif x == 98:
             res = "闭店"
         else:
             res = "其它"
