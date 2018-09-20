@@ -171,37 +171,33 @@ def handler(event, context):
 
 
 if __name__ == "__main__":
-    event = {'source_id': '73YYYYYYYYYYYYY',
-             'erp_name': '科脉云鼎',
-             'date': '2018-09-19',
-             'target_table': 'cost',
-             'origin_table_columns': {
-                 "t_bi_master": [
-                     "fitem_clsno",
-                     "fitem_id"
-                 ],
-                 "t_rpt_sl_detail": [
-                     "fitem_id",
-                     "fbrh_no",
-                     "ftrade_date",
-                     "fsl_qty",
-                     "famt",
-                     "fcost_amt"
-                 ]
-             },
-             'converts': {
-                 "t_bi_master": {
-                     "fitem_clsno": "str",
-                     "fitem_id": "str"
-                 },
-                 "t_rpt_sl_detail": {
-                     "famt": "float",
-                     "fbrh_no": "str",
-                     "fcost_amt": "float",
-                     "fitem_id": "str",
-                     "fsl_qty": "float",
-                     "ftrade_date": "str"
-                 }
-             }}
+    event = {
+        'source_id': '83YYYYYYYYYYYYY',
+        'erp_name': '思迅',
+        'date': '2018-09-19',
+        'target_table': 'store',
+        'origin_table_columns': {
+            "t_bd_branch_info": [
+                "branch_no",
+                "branch_name",
+                "address",
+                "dj_yw",
+                "init_date",
+                "branch_no",
+                "branch_tel",
+                "branch_fax",
+                "other1",
+                "trade_type",
+                "property"
+            ]
+        },
+        'converts': {
+            "t_bd_branch_info": {
+                "branch_no": "str",
+                "dj_yw": "str",
+                "property": "int",
+                "trade_type": "int"
+            }
+        }}
 
     handler(event, None)

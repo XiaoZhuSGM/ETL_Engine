@@ -26,6 +26,7 @@ category_dict = {
     '56YYYYYYYYYYYYY': (2, 4, 6),
     '57YYYYYYYYYYYYY': (2, 4, 6),
     '74YYYYYYYYYYYYY': (2, 4, 6),
+    '83YYYYYYYYYYYYY': (2, 4, 6),
 }
 
 branch_dict = {
@@ -35,6 +36,7 @@ branch_dict = {
     '56YYYYYYYYYYYYY': 3,
     '57YYYYYYYYYYYYY': 3,
     '74YYYYYYYYYYYYY': 3,
+    '83YYYYYYYYYYYYY': 2,
 }
 
 
@@ -512,12 +514,16 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         else:
             pass
 
-
     result_frame['saleprice'] = result_frame.apply(saleprice_convert, axis=1)
     result_frame['quantity'] = result_frame.apply(quantity_convert, axis=1)
     result_frame['subtotal'] = result_frame.apply(subtotal, axis=1)
     result_frame['item_clsno_s5'] = result_frame['item_clsno_s5'].map(lambda x: x if x else '')
     result_frame['item_clsno_lv3'] = result_frame['item_clsno_lv3'].map(lambda x: x if x else '')
+
+    if source_id == '83YYYYYYYYYYYYY':
+        result_frame['foreign_category_lv1'] = result_frame['item_clsno_s3']
+    else:
+        result_frame['foreign_category_lv1'] = result_frame['item_clsno_lv1']
 
     result_frame = result_frame.rename(columns={
         'branch_no_store': 'foreign_store_id',
@@ -527,7 +533,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         'item_no': 'foreign_item_id',
         'item_name': 'item_name',
         'unit_no': 'item_unit',
-        'item_clsno_lv1': 'foreign_category_lv1',
         'item_clsname_s4': 'foreign_category_lv1_name',
         'item_clsno_s5': 'foreign_category_lv2',
         'item_clsname_lv2': 'foreign_category_lv2_name',
@@ -692,6 +697,12 @@ def clean_cost(source_id, date, target_table, data_frames):
         result_frame['total_cost'] = result_frame.apply(lambda row: row['so_cost'] + row['pos_cost'], axis=1)
     else:
         result_frame['total_cost'] = result_frame['fifo_cost_amt']
+
+    if source_id == '83YYYYYYYYYYYYY':
+        result_frame['foreign_category_lv1'] = result_frame['item_clsno_c1']
+    else:
+        result_frame['foreign_category_lv1'] = result_frame['item_clsno_lv1']
+
 
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
