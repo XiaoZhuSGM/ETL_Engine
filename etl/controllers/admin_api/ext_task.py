@@ -1,5 +1,4 @@
-
-from etl.tasks.tasks import task_warehouse
+from etl.tasks.tasks import task_warehouse, task_extract_data
 from . import etl_admin_api
 from .. import jsonify_with_data, APIError
 from flask import request
@@ -10,6 +9,44 @@ import boto3
 S3_BUCKET = "ext-etl-data"
 TARGET_TABLE_KEY = "target_table/target_table.json"
 S3_CLIENT = boto3.resource("s3")
+
+
+@etl_admin_api.route('/ext/tasks/extract_data', methods=['POST'])
+def trigger_task_extract_data():
+    message = request.json
+
+    source_id = message['source_id']
+    query_date = message['query_date']
+    task_type = message['task_type']
+    filename = message['filename']
+    db_url = message['db_url']
+
+    result = task_extract_data(
+        source_id=source_id,
+        query_date=query_date,
+        task_type=task_type,
+        filename=filename,
+        db_url=db_url
+    )
+    return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
+
+
+@etl_admin_api.route("/ext/tasks/extract_data/status", methods=["GET"])
+def get_task_extract_data_status():
+    task_id = request.args.get("task_id")
+    reason = ""
+    result = huey.result(task_id, preserve=True)
+    if result is None:
+        status = "running"
+    elif isinstance(result, str):
+        status = "success"
+    else:
+        status = "failed"
+        reason = str(result)
+        result = ''
+    return jsonify_with_data(
+        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id, 'result': result}
+    )
 
 
 @etl_admin_api.route("/ext/tasks/warehouse", methods=["POST"])
@@ -23,9 +60,9 @@ def trigger_task_warehouse():
     cmid = message["cmid"]
     target_tables = json.loads(
         S3_CLIENT.Object(S3_BUCKET, TARGET_TABLE_KEY)
-        .get()["Body"]
-        .read()
-        .decode("utf-8")
+            .get()["Body"]
+            .read()
+            .decode("utf-8")
     )
     table_key = (
         target_table
