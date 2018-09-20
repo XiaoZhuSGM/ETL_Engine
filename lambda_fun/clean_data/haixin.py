@@ -16,6 +16,7 @@ S3 = boto3.resource("s3")
 
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
+ALLOT_METHOD = [52]
 
 def clean_haixin(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
@@ -300,7 +301,10 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods1["foreign_category_lv4"] = ""
     goods1["foreign_category_lv5"] = ""
     goods1["isvalid"] = 1
-    goods1["allot_method"] = goods1["udp3"]
+    if cmid in ALLOT_METHOD:
+        goods1["allot_method"] = goods1["udp3"]
+    else:
+        goods1["allot_method"] = ""
     goods1["supplier_name"] = ""
     goods1["supplier_code"] = ""
     goods1["brand_name"] = goods1["brandname"]
@@ -349,6 +353,10 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods2["foreign_category_lv4"] = ""
     goods2["foreign_category_lv5"] = ""
     goods2["isvalid"] = 1
+    if cmid in ALLOT_METHOD:
+        goods2["allot_method"] = goods2["udp3"]
+    else:
+        goods2["allot_method"] = ""
     goods2["allot_method"] = goods2["udp3"]
     goods2["supplier_name"] = ""
     goods2["supplier_code"] = ""
