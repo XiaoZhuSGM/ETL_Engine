@@ -357,7 +357,6 @@ def clean_goods(source_id, date, target_table, data_frames):
         goods2["allot_method"] = goods2["udp3"]
     else:
         goods2["allot_method"] = ""
-    goods2["allot_method"] = goods2["udp3"]
     goods2["supplier_name"] = ""
     goods2["supplier_code"] = ""
     goods2["brand_name"] = goods2["brandname"]
