@@ -172,31 +172,37 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        'source_id': '83YYYYYYYYYYYYY',
-        'erp_name': '思迅',
+        'source_id': '73YYYYYYYYYYYYY',
+        'erp_name': '科脉云鼎',
         'date': '2018-09-19',
         'target_table': 'store',
         'origin_table_columns': {
-            "t_bd_branch_info": [
-                "branch_no",
-                "branch_name",
-                "address",
-                "dj_yw",
-                "init_date",
-                "branch_no",
-                "branch_tel",
-                "branch_fax",
-                "other1",
-                "trade_type",
-                "property"
+            "t_br_ext": [
+                "fbrh_no",
+                "faddr",
+                "ftel",
+                "fman"
+            ],
+            "t_br_master": [
+                "fbrh_no",
+                "fbrh_name",
+                "fstatus",
+                "fcr_date",
+                "fbrh_type"
             ]
         },
         'converts': {
-            "t_bd_branch_info": {
-                "branch_no": "str",
-                "dj_yw": "str",
-                "property": "int",
-                "trade_type": "int"
+            "t_br_ext": {
+                "faddr": "str",
+                "fbrh_no": "str",
+                "fman": "str",
+                "ftel": "str"
+            },
+            "t_br_master": {
+                "fbrh_no": "str",
+                "fbrh_type": "str",
+                "fcr_date": "str",
+                "fstatus": "str"
             }
         }}
 

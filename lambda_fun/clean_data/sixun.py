@@ -707,7 +707,6 @@ def clean_cost(source_id, date, target_table, data_frames):
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
         'item_no': 'foreign_item_id',
-        'item_clsno_lv1': 'foreign_category_lv1',
         'item_clsno_c3': 'foreign_category_lv2',
         'item_clsno_lv3': 'foreign_category_lv3',
     })
