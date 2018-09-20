@@ -37,16 +37,16 @@ class LoadSalestargetServices:
         session = Session()
 
         for target in target_list:
-            select_sql = SELECTSTORE.format(cmid=cmid, show_code=target.get("foreign_store_id"))
+            select_sql = SELECTSTORE.format(cmid=cmid, show_code=target.get("showcode"))
             result = session.execute(select_sql).first()
             if not result:
                 continue
             source_id = result[0]
             foreign_store_id = result[1]
             store_name = result[2]
-            show_code = target.get("foreign_store_id")
-            target_sales = int(target.get("target_sales"))
-            target_gross_profit = int(target.get("target_gross_profit"))
+            show_code = target.get("showcode")
+            target_sales = target.get("target_sales")
+            target_gross_profit = target.get("target_gross_profit")
             select_sales_sql = SELECTSALES.format(
                 source_id=source_id, foreign_store_id=foreign_store_id, date1=date1)
             result = session.execute(select_sales_sql).first()
