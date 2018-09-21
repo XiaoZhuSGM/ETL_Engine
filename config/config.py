@@ -93,6 +93,14 @@ class UnitestConfig(Config):
     REDIS_PASSWORD = None
 
 
+class DockerDevConfig(DevelopmentConfig):
+    REDIS_HOST = "redis"
+
+
+class DockerProdConfig(ProductionConfig):
+    REDIS_HOST = "redis"
+
+
 config = {
     'dev': DevelopmentConfig,
     'testing': TestingConfig,
@@ -100,4 +108,6 @@ config = {
     'default': LocalConfig,
     'local': LocalConfig,
     'unittest': UnitestConfig,
+    'docker_dev': DockerDevConfig,
+    'docker_prod': DockerProdConfig,
 }
