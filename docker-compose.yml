@@ -15,7 +15,6 @@ services:
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
   huey:
     image: etl-engine
-    build: .
     volumes:
       - .:/app
     environment:
