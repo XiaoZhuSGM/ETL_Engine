@@ -17,8 +17,8 @@ def deploy(c, env="dev", branch="dev"):
             # 2. 切换到正确的分支并拉取代码
             c.run(f"git checkout {branch}")
             c.run("git pull -r")
-            c.run("docker-compose build")
-            c.run("docker-compose restart huey gunicorn")
+            c.run("sudo docker-compose build")
+            c.run("sudo docker-compose restart huey gunicorn")
 
 
 @task
