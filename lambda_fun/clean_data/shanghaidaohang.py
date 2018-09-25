@@ -50,7 +50,41 @@ class ShangHaiDaoHangCleaner(Base):
     """
 
     def goodsflow(self):
+
+        columns = [
+            'source_id',
+            'cmid',
+            'foreign_store_id',
+            'store_name',
+            'receipt_id',
+            'consumer_id',
+            'saletime',
+            'last_updated',
+            'foreign_item_id',
+            'barcode',
+            'item_name',
+            'item_unit',
+            'saleprice',
+            'quantity',
+            'subtotal',
+            'foreign_category_lv1',
+            'foreign_category_lv1_name',
+            'foreign_category_lv2',
+            'foreign_category_lv2_name',
+            'foreign_category_lv3',
+            'foreign_category_lv3_name',
+            'foreign_category_lv4',
+            'foreign_category_lv4_name',
+            'foreign_category_lv5',
+            'foreign_category_lv5_name',
+            'pos_id'
+        ]
+
         flow = self.data['item']
+
+        if not len(flow):
+            return pd.DataFrame(columns=columns)
+
         store = self.data['subshop']
         goods = self.data['goods']
         gclass = self.data['gclass']
@@ -142,34 +176,7 @@ class ShangHaiDaoHangCleaner(Base):
 
         })
 
-        result = result[[
-            'source_id',
-            'cmid',
-            'foreign_store_id',
-            'store_name',
-            'receipt_id',
-            'consumer_id',
-            'saletime',
-            'last_updated',
-            'foreign_item_id',
-            'barcode',
-            'item_name',
-            'item_unit',
-            'saleprice',
-            'quantity',
-            'subtotal',
-            'foreign_category_lv1',
-            'foreign_category_lv1_name',
-            'foreign_category_lv2',
-            'foreign_category_lv2_name',
-            'foreign_category_lv3',
-            'foreign_category_lv3_name',
-            'foreign_category_lv4',
-            'foreign_category_lv4_name',
-            'foreign_category_lv5',
-            'foreign_category_lv5_name',
-            'pos_id'
-        ]]
+        result = result[columns]
 
         return result
 
@@ -205,7 +212,29 @@ class ShangHaiDaoHangCleaner(Base):
         """
 
     def cost(self):
+
+        columns = [
+            'source_id',
+            'foreign_store_id',
+            'foreign_item_id',
+            'date',
+            'cost_type',
+            'total_quantity',
+            'total_sale',
+            'total_cost',
+            'foreign_category_lv1',
+            'foreign_category_lv2',
+            'foreign_category_lv3',
+            'foreign_category_lv4',
+            'foreign_category_lv5',
+            'cmid'
+        ]
+
         cost = self.data['goodssale']
+
+        if not len(cost):
+            return pd.DataFrame(columns=columns)
+
         store = self.data['subshop']
         goods = self.data['goods']
         gclass = self.data['gclass']
@@ -281,22 +310,7 @@ class ShangHaiDaoHangCleaner(Base):
             'amount': 'total_sale',
         })
 
-        result = result[[
-            'source_id',
-            'foreign_store_id',
-            'foreign_item_id',
-            'date',
-            'cost_type',
-            'total_quantity',
-            'total_sale',
-            'total_cost',
-            'foreign_category_lv1',
-            'foreign_category_lv2',
-            'foreign_category_lv3',
-            'foreign_category_lv4',
-            'foreign_category_lv5',
-            'cmid'
-        ]]
+        result = result[columns]
 
         return result
 
