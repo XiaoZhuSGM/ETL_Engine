@@ -7,6 +7,8 @@ from ...validators.validator import validate_arg, PageInput
 
 service = ExtLogSqlService()
 
+SUCCESS_RATE_API_GET = '/ext/successRate'
+
 
 @etl_admin_api.route("/ext/log", methods=["POST"])
 def add_log():
@@ -34,4 +36,27 @@ def get_log():
     :return:
     """
     result = service.get_log(request.args)
+    return jsonify_with_data(APIError.OK, data=result)
+
+
+@etl_admin_api.route(SUCCESS_RATE_API_GET, methods=['GET'])
+def get_success_rate():
+    """
+    计算成功率
+    总成功率
+        总成功数 / 总日志条数
+    1. 抓数
+        抓数的总成功率
+            S(1) + S(12) / T(1) + T(12)
+        首次抓数的成功率
+            S(1) / T(1)
+        重抓的成功率
+            S(12) / T(12)
+    2. 清洗
+        总成功率 S(2) / T(2)
+    3. 入库
+        总成功率 S(3) / T(3)
+    :return:
+    """
+    result = service.get_success_rate(request.args)
     return jsonify_with_data(APIError.OK, data=result)

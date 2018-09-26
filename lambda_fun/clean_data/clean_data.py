@@ -172,37 +172,40 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        'source_id': '73YYYYYYYYYYYYY',
-        'erp_name': '科脉云鼎',
-        'date': '2018-09-19',
-        'target_table': 'store',
-        'origin_table_columns': {
-            "t_br_ext": [
-                "fbrh_no",
-                "faddr",
-                "ftel",
-                "fman"
-            ],
-            "t_br_master": [
-                "fbrh_no",
-                "fbrh_name",
-                "fstatus",
-                "fcr_date",
-                "fbrh_type"
-            ]
+        'source_id': '48YYYYYYYYYYYYY',
+        'erp_name': '商海导航',
+        'date': '2018-09-24',
+        'target_table': 'good',
+        "origin_table_columns": {
+            "differform": ['differno', 'orgcode', 'accdate'],
+            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
+            "subshop": ['orgcode', 'orgname'],
+            "goods": ['plucode', 'clscode', 'barcode', 'pluname', 'unit'],
+            'gclass': ['clscode', 'clslevel'],
         },
-        'converts': {
-            "t_br_ext": {
-                "faddr": "str",
-                "fbrh_no": "str",
-                "fman": "str",
-                "ftel": "str"
+
+        "converts": {
+            "differform": {
+                'differno': 'str',
+                'orgcode': 'str',
+
             },
-            "t_br_master": {
-                "fbrh_no": "str",
-                "fbrh_type": "str",
-                "fcr_date": "str",
-                "fstatus": "str"
+            "differdetail": {
+                'differno': 'str',
+                'plucode': 'str',
+                'ykcount': 'float'
+            },
+            "subshop": {
+                'orgcode': 'str'
+            },
+            "goods": {
+                'plucode': 'str',
+                'clscode': 'str',
+                'barcode': 'str'
+            },
+            'gclass': {
+                'clscode': 'str',
+                'clslevel': 'int'
             }
         }}
 
