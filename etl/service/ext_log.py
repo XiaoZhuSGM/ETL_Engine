@@ -84,12 +84,13 @@ class ExtLogSqlService(object):
                 总成功率 S(3) / T(3)
             :return:
         """
+
         # 总成功率
         total_log_count = query.count()
         total_success_log_count = query.filter(ExtLogInfo.result == 1).count()
         total_success_rate = total_success_log_count / self.is_zero(total_log_count)
 
-        result['total_success_rate'] = round(total_success_rate, 2)
+        result['total_success_rate'] = float('{:.2f}'.format(total_success_rate * 100))
 
         # 抓数总成功率
         extract_data_total_log_count = query.filter(or_(ExtLogInfo.task_type == 1,
@@ -102,7 +103,7 @@ class ExtLogSqlService(object):
         extract_data_total_success_rate = extract_data_total_success_log_count / self.is_zero(
             extract_data_total_log_count)
 
-        result['extract_data_total_success_rate'] = round(extract_data_total_success_rate, 2)
+        result['extract_data_total_success_rate'] = float('{:.2f}'.format(extract_data_total_success_rate * 100))
 
         # 首次抓数的成功率
         first_extract_data_total_log_count = query.filter(ExtLogInfo.task_type == 1).count()
@@ -113,7 +114,7 @@ class ExtLogSqlService(object):
         first_extract_data_success_rate = first_extract_data_success_log_count / self.is_zero(
             first_extract_data_total_log_count)
 
-        result['first_extract_data_success_rate'] = round(first_extract_data_success_rate, 2)
+        result['first_extract_data_success_rate'] = float('{:.2f}'.format(first_extract_data_success_rate * 100))
 
         # 重抓的成功率
         retry_extract_data_total_log_count = query.filter(ExtLogInfo.task_type == 12).count()
@@ -122,7 +123,7 @@ class ExtLogSqlService(object):
         ).count()
         retry_extract_data_success_rate = retry_extract_data_success_log_count / self.is_zero(
             retry_extract_data_total_log_count)
-        result['retry_extract_data_success_rate'] = round(retry_extract_data_success_rate, 2)
+        result['retry_extract_data_success_rate'] = float('{:.2f}'.format(retry_extract_data_success_rate * 100))
         # 清洗的成功率
 
         clean_total_log_count = query.filter(ExtLogInfo.task_type == 2).count()
@@ -130,7 +131,7 @@ class ExtLogSqlService(object):
             ExtLogInfo.result == 1
         ).count()
         clean_success_rate = clean_success_log_count / self.is_zero(clean_total_log_count)
-        result['clean_success_rate'] = round(clean_success_rate, 2)
+        result['clean_success_rate'] = float('{:.2f}'.format(clean_success_rate * 100))
 
         # 入库的成功率
         load_total_log_count = query.filter(ExtLogInfo.task_type == 3).count()
@@ -138,7 +139,7 @@ class ExtLogSqlService(object):
             ExtLogInfo.result == 1
         ).count()
         load_success_rate = load_success_log_count / self.is_zero(load_total_log_count)
-        result['load_success_rate'] = round(load_success_rate, 2)
+        result['load_success_rate'] = float('{:.2f}'.format(load_success_rate * 100))
 
         return result
 
