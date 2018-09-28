@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import request
-import time
 ***REMOVED***
 ***REMOVED***
 INSERTSQL = """insert into chain_sales_target_{source_id}
@@ -16,7 +15,7 @@ INSERTVALUE = """('{source_id}',{cmid},'{date1}','{store_id}','{show_code}','{st
 class LoadSalestargetServices:
 
     def __init__(self):
-        engine = create_engine(TEST_REDSHIFT_URL)
+        engine = create_engine(REDSHIFT_URL)
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
@@ -54,8 +53,7 @@ class LoadSalestargetServices:
             value_list.append(value)
 
         deletes = ",".join(delete_list)
-        delete_sales_sql = DELETESALES.format(
-            source_id=source_id, date1=date1, deletes=deletes)
+        delete_sales_sql = DELETESALES.format(source_id=source_id, date1=date1, deletes=deletes)
         self.session.execute(delete_sales_sql)
 
         values = ",".join(value_list)
