@@ -238,8 +238,8 @@ def clean_cost(source_id, date, target_table, data_frames):
         ]]
 
         cost2 = cost.copy()
-        cost2["foreign_category_lv2"] = cost2["clscode"].apply(lambda x: x[:2])
-        cost2 = cost2.merge(cate_frames, how="left", left_on="foreign_category_lv2", right_on="clscode",
+        cost2["foreign_category_lv1"] = cost2["clscode"].apply(lambda x: x[:2])
+        cost2 = cost2.merge(cate_frames, how="left", left_on="foreign_category_lv1", right_on="clscode",
                             suffixes=("", ".lv1"))
         cost2 = cost2[cost2["isactive.lv1"] == "1"]
         cost2 = cost2[(cost2["cost.orgcode"] != "00") & (cost2["clscode"].map(len) == 4) & (cost2["islast"] == "1")]
@@ -257,7 +257,7 @@ def clean_cost(source_id, date, target_table, data_frames):
             "cost.xscount": "total_quantity",
             "cost.hxtotal": "total_sale",
             "cost.hjcost": "total_cost",
-            "clscode": "foreign_category_lv1"
+            "clscode": "foreign_category_lv2"
         })
         cost2["date"] = cost2["date"].apply(lambda row: row.split()[0])
         cost2 = cost2[[
