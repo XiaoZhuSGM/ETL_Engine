@@ -34,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -55,8 +55,8 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
             if (
-                    table_name in origin_table_columns.keys()
-                    and table_name not in datas.keys()
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
             ):
                 datas[table_name] = records
 
@@ -172,41 +172,16 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        'source_id': '48YYYYYYYYYYYYY',
-        'erp_name': '商海导航',
-        'date': '2018-09-24',
-        'target_table': 'good',
+        "source_id": "52YYYYYYYYYYYYY",
+        "erp_name": "海信商定天下",
+        "date": "2018-09-28",
+        "target_table": "category",
         "origin_table_columns": {
-            "differform": ['differno', 'orgcode', 'accdate'],
-            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
-            "subshop": ['orgcode', 'orgname'],
-            "goods": ['plucode', 'clscode', 'barcode', 'pluname', 'unit'],
-            'gclass': ['clscode', 'clslevel'],
+            "tcatcategory": ["clscode", "clsname", "isactive", "clsid"]
         },
-
         "converts": {
-            "differform": {
-                'differno': 'str',
-                'orgcode': 'str',
-
-            },
-            "differdetail": {
-                'differno': 'str',
-                'plucode': 'str',
-                'ykcount': 'float'
-            },
-            "subshop": {
-                'orgcode': 'str'
-            },
-            "goods": {
-                'plucode': 'str',
-                'clscode': 'str',
-                'barcode': 'str'
-            },
-            'gclass': {
-                'clscode': 'str',
-                'clslevel': 'int'
-            }
-        }}
+            "tcatcategory": {"clscode": "str", "clsid": "str", "isactive": "str"}
+        },
+    }
 
     handler(event, None)
