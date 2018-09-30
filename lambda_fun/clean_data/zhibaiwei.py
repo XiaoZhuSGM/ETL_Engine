@@ -483,7 +483,6 @@ class ZhiBaiWeiCleaner(Base):
 
     def goods(self):
         item = self.data["bi_t_item_info"]
-        print(len(item))
         item_cls = self.data["bi_t_item_cls"]
         supcust = self.data["bi_t_supcust_info"]
 
