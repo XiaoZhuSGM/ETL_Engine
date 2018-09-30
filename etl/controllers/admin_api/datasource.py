@@ -100,7 +100,7 @@ def test_connection_datasource():
     if database is None:
         return jsonify_with_error(APIError.BAD_REQUEST, "database is missing")
     data['database'] = database
-    error = table_service.connect_test(**data)
+    error = table_service.connect_test(data)
     if error:
         return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
 
