@@ -113,3 +113,5 @@ manage_local.py
 lambda_fun/fabfile/bundle*
 lambda_fun/fabfile/*.zip
 
+.vscode/
+

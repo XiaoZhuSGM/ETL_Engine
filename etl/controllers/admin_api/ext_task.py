@@ -11,22 +11,22 @@ TARGET_TABLE_KEY = "target_table/target_table.json"
 S3_CLIENT = boto3.resource("s3")
 
 
-@etl_admin_api.route('/ext/tasks/extract_data', methods=['POST'])
+@etl_admin_api.route("/ext/tasks/extract_data", methods=["POST"])
 def trigger_task_extract_data():
     message = request.json
 
-    source_id = message['source_id']
-    query_date = message['query_date']
-    task_type = message['task_type']
-    filename = message['filename']
-    db_url = message['db_url']
+    source_id = message["source_id"]
+    query_date = message["query_date"]
+    task_type = message["task_type"]
+    filename = message["filename"]
+    db_url = message["db_url"]
 
     result = task_extract_data(
         source_id=source_id,
         query_date=query_date,
         task_type=task_type,
         filename=filename,
-        db_url=db_url
+        db_url=db_url,
     )
     return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
 
@@ -43,9 +43,10 @@ def get_task_extract_data_status():
     else:
         status = "failed"
         reason = str(result)
-        result = ''
+        result = ""
     return jsonify_with_data(
-        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id, 'result': result}
+        APIError.OK,
+        data={"status": status, "reason": reason, "task_id": task_id, "result": result},
     )
 
 
@@ -60,9 +61,9 @@ def trigger_task_warehouse():
     cmid = message["cmid"]
     target_tables = json.loads(
         S3_CLIENT.Object(S3_BUCKET, TARGET_TABLE_KEY)
-            .get()["Body"]
-            .read()
-            .decode("utf-8")
+        .get()["Body"]
+        .read()
+        .decode("utf-8")
     )
     table_key = (
         target_table

@@ -103,7 +103,7 @@ class Warehouser:
         )
         if not len(dataframes):  # 数据为空，不需要删除
             return
-        dates = dataframes[self.date_column].drop_duplicates()
+        dates = dataframes[self.date_column].dropna().drop_duplicates()
         dates_str = [d.strftime("%Y-%m-%d") for d in dates]
         dates_str = [f"'{d}'" for d in dates_str]
         where = f"{self.date_column}::date IN ({','.join(d for d in dates_str)}) AND cmid = {self.cmid}"
@@ -136,13 +136,14 @@ class Warehouser:
 if __name__ == "__main__":
     event = {
 ***REMOVED***
-        "data_key": "ext-etl-data/clean_data/source_id=72YYYYYYYYYYYYY/clean_date=2018-09-05/target_table=goodsflow/dump=2018-09-06 11:51:55.981581+08:00&rowcount=4301.csv.gz",
-        "target_table": "goodsflow_72YYYYYYYYYYYYY",
-        "data_date": "2018-09-05",
+        "data_key": "ext-etl-data/clean_data/source_id=79YYYYYYYYYYYYY/clean_date=2018-09-30/target_table=goodsflow/dump=2018-10-01 08:28:27.380358+08:00&rowcount=105016.csv.gz",
+        "target_table": "goodsflow_79YYYYYYYYYYYYY",
+        "data_date": "2018-09-30",
         "warehouse_type": "copy",
-        "cmid": "72",
-        "source_id": "72YYYYYYYYYYYYY",
+        "cmid": "79",
+        "source_id": "79YYYYYYYYYYYYY",
     }
+    
     event1 = {
 ***REMOVED***
         "target_table": "chain_sales_target",
@@ -150,9 +151,9 @@ if __name__ == "__main__":
         "cmid": "57",
         "data_date": "2018-09-10",
         "data_key": "ext-etl-data/clean_data/source_id=57YYYYYYYYYYYYY/clean_date=2018-09-10/target_table=sales_target/dump=2018-09-11 23:01:10.434793+08:00&rowcount=35.csv.gz",
-        "source_id": "57YYYYYYYYYYYYY"
+        "source_id": "57YYYYYYYYYYYYY",
     }
 
     begin = time.time()
-    handler(event1, None)
+    handler(event, None)
     print(time.time() - begin)
