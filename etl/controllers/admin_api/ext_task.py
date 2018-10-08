@@ -7,7 +7,6 @@ from etl.tasks.config import huey
 import json
 import boto3
 from etl.service.ext_datasource_con import ExtDatasourceConService
-from datetime import datetime, timedelta
 
 service = ExtDatasourceConService()
 

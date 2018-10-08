@@ -15,7 +15,6 @@ from etl.tasks.tasks import task_warehouse, task_extract_data
 import json
 from traceback import print_exc
 
-# from etl.tasks.tasks import task_warehouse, task_extract_data
 
 sql_service = DatasourceSqlService()
 datasource_service = DatasourceService()
