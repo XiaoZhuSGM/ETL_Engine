@@ -19,7 +19,7 @@ services:
       - .:/app
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
-    command: huey_consumer.py etl.tasks.tasks.huey -k thread -w 8
+    command: huey_consumer.py etl.tasks.main.huey -k thread -w 8
     depends_on:
       - redis
     stop_signal:
