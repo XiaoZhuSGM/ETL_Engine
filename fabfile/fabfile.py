@@ -19,6 +19,7 @@ def deploy(c, env="dev", branch="dev"):
             c.run("git pull -r")
             c.run("sudo docker-compose build")
             c.run("sudo docker-compose restart huey gunicorn")
+            c.run("sudo docker-compose up -d --scale gunicorn=2")
 
 
 @task
