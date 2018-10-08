@@ -1,5 +1,3 @@
-from flask import request
-from etl.constant import PER_PAGE
 from etl.models.etl_table import ExtCleanInfo
 from etl.models.etl_table import ExtTargetInfo
 from etl.models.ext_table_info import ExtTableInfo
@@ -62,10 +60,7 @@ class TableNotExist(Exception):
 
 class ExtCleanInfoService:
     @session_scope
-    def get_ext_clean_infos(self):
-        source_id = request.args.get("source_id")
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", PER_PAGE))
+    def get_ext_clean_infos(self, source_id, page, per_page):
         if page < 0 or per_page < 0:
             raise ExtCleanInfoParameterError()
 
@@ -255,9 +250,7 @@ class ExtCleanInfoService:
             }
             target_table.update(**info)
 
-    def get_ext_clean_info_target(self):
-        source_id = request.args.get("source_id")
-        target = request.args.get("target")
+    def get_ext_clean_info_target(self, source_id, target):
         if not all([source_id, target]):
             raise ExtCleanInfoParameterError()
         target_table = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=target, deleted=False).first()

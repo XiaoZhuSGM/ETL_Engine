@@ -18,6 +18,7 @@ from etl.validators.ext_clean_info import (
     CreateExtCleanInfo
 )
 from . import etl_admin_api
+from etl.constant import PER_PAGE
 
 services = ExtCleanInfoService()
 
@@ -29,8 +30,11 @@ def get_ext_clean_infos():
     获得source_id下所有的配置的目标表信息
     :return:
     """
+    source_id = request.args.get("source_id")
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", PER_PAGE))
     try:
-        total, items = services.get_ext_clean_infos()
+        total, items = services.get_ext_clean_infos(source_id, page, per_page)
     except (ExtCleanInfoParameterError, ExtDatasourceNotExist) as e:
         return jsonify_with_error(APIError.BAD_REQUEST, str(e))
     return jsonify_with_data(APIError.OK, data={"total": total, "items": items})
@@ -127,8 +131,10 @@ def get_ext_clean_info_target():
     获取source_id下的某个目标表的信息
     :return:
     """
+    source_id = request.args.get("source_id")
+    target = request.args.get("target")
     try:
-        data = services.get_ext_clean_info_target()
+        data = services.get_ext_clean_info_target(source_id, target)
     except (ExtCleanInfoParameterError, ExtCleanInfoNotFound) as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
     return jsonify_with_data(APIError.OK, data={"target": data})
