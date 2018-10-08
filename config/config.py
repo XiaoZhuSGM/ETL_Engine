@@ -42,6 +42,7 @@ class ProductionConfig(Config):
 ***REMOVED***
     SENTRY_DSN = ""
 ***REMOVED***
+***REMOVED***
 
 
 class DevelopmentConfig(Config):
