@@ -3,6 +3,7 @@ the app exam config file
 if another app called other ,so the config file named other_config.py. and so on
 
 """
+from typing import Optional
 
 
 class Config(object):
@@ -15,6 +16,11 @@ class Config(object):
     SQLALCHEMY_MAX_OVERFLOW = 10
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "B18F697BCF51AD270703BF7602C457DA"
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD: Optional[str] = None
+    REDSHIFT_URL = ""
 
 
 class ProductionConfig(Config):
@@ -60,6 +66,7 @@ class DevelopmentConfig(Config):
     REDIS_PORT = 6379
     REDIS_DB = 0
     REDIS_PASSWORD = None
+***REMOVED***
 ***REMOVED***
 
 

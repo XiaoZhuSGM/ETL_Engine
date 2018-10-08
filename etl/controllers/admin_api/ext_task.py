@@ -1,10 +1,14 @@
 from etl.tasks.tasks import task_warehouse, task_extract_data
+from etl.tasks.rollback_taskset import task_rollback
 from . import etl_admin_api
 from .. import jsonify_with_data, APIError
 from flask import request
 from etl.tasks.config import huey
 import json
 import boto3
+from etl.service.ext_datasource_con import ExtDatasourceConService
+
+service = ExtDatasourceConService()
 
 S3_BUCKET = "ext-etl-data"
 TARGET_TABLE_KEY = "target_table/target_table.json"
@@ -87,6 +91,34 @@ def trigger_task_warehouse():
 
 @etl_admin_api.route("/ext/tasks/warehouse/status", methods=["GET"])
 def get_task_warehouse_status():
+    task_id = request.args.get("task_id")
+    reason = ""
+    result = huey.result(task_id, preserve=True)
+    if result is None:
+        status = "running"
+    elif result is True:
+        status = "success"
+    else:
+        status = "failed"
+        reason = str(result)
+    return jsonify_with_data(
+        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id}
+    )
+
+
+@etl_admin_api.route("/ext/tasks/rollback", methods=["POST"])
+def trigger_task_rollback():
+    message = request.json
+    source_id = message["source_id"]
+    date = message["date"]
+    erp_name = message["erp_name"]
+    target_list = message["target_list"]
+    result = task_rollback(source_id, date, erp_name, target_list)
+    return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
+
+
+@etl_admin_api.route("/ext/tasks/rollback/status", methods=["GET"])
+def get_task_rollback_status():
     task_id = request.args.get("task_id")
     reason = ""
     result = huey.result(task_id, preserve=True)
