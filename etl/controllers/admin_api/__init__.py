@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import jsonify
 
-etl_admin_api = Blueprint('admin_api', __name__)
+etl_admin_api = Blueprint("admin_api", __name__)
 
 
 @etl_admin_api.route("/ping")
@@ -36,14 +36,15 @@ from .ext_task import *
 
 from .airflow_status import *
 
+
 class APIError(object):
     """
     定义状态码
     """
 
-    OK = (200, 'OK')
-    NOTFOUBD = (404, 'API or page not found')
-    DBCONNECTFALSE = (500, 'ext dadabase connect false')
+    OK = (200, "OK")
+    NOTFOUBD = (404, "API or page not found")
+    DBCONNECTFALSE = (500, "ext dadabase connect false")
 
 
 def jsonify_with_data(err, **kwargs):
@@ -54,8 +55,7 @@ def jsonify_with_data(err, **kwargs):
     :return:
     """
     code, message = err
-    meta = {'code': code,
-            'message': message}
+    meta = {"code": code, "message": message}
     return jsonify(meta=meta, **kwargs)
 
 
@@ -69,8 +69,7 @@ def jsonify_with_error(err, reason=None):
     code, message = err
 
     if reason:
-        message = '{message}, {reason}'.format(message=message, reason=reason)
+        message = "{message}, {reason}".format(message=message, reason=reason)
 
-    meta = {'code': code,
-            'message': message}
+    meta = {"code": code, "message": message}
     return jsonify(meta=meta, data={})
