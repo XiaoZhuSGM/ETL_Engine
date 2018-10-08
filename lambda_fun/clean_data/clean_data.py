@@ -172,15 +172,51 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "source_id": "52YYYYYYYYYYYYY",
-        "erp_name": "海信商定天下",
-        "date": "2018-09-28",
-        "target_table": "category",
+        "source_id": "53YYYYYYYYYYYYY",
+        "erp_name": "智百威",
+        "date": "2018-09-30",
+        "target_table": "goods_loss",
         "origin_table_columns": {
-            "tcatcategory": ["clscode", "clsname", "isactive", "clsid"]
+            "bi_t_branch_info": ["branch_no", "branch_name"],
+            "bi_t_item_cls": ["item_clsno", "item_flag"],
+            "bi_t_item_info": [
+                "item_no",
+                "item_clsno",
+                "base_price",
+                "item_subno",
+                "barcode",
+                "unit_no",
+                "item_name",
+            ],
+            "ic_t_check_detail": ["sheet_no", "balance_qty", "item_no"],
+            "ic_t_check_master": [
+                "check_no",
+                "oper_date",
+                "sheet_no",
+                "branch_no",
+                "approve_flag",
+                "del_flag",
+            ],
         },
         "converts": {
-            "tcatcategory": {"clscode": "str", "clsid": "str", "isactive": "str"}
+            "bi_t_branch_info": {"branch_no": "str"},
+            "bi_t_item_cls": {"item_clsno": "str", "item_flag": "str"},
+            "bi_t_item_info": {
+                "base_price": "str",
+                "item_clsno": "str",
+                "item_no": "str",
+            },
+            "ic_t_check_detail": {
+                "balance_qty": "str",
+                "item_no": "str",
+                "sheet_no": "str",
+            },
+            "ic_t_check_master": {
+                "approve_flag": "str",
+                "branch_no": "str",
+                "del_flag": "str",
+                "sheet_no": "str",
+            },
         },
     }
 

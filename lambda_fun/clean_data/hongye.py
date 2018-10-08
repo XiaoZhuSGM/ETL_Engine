@@ -1310,7 +1310,7 @@ class HongYeCleaner:
         part["business_area"] = None
         part["property_id"] = None
         part["property"] = ""
-        part["last_updated"] = datetime.now()
+        part["last_updated"] = datetime.now(_TZINFO)
         part["show_code"] = part["deptcode"]
         part = part.rename(
             columns={

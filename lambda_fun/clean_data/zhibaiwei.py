@@ -812,6 +812,9 @@ class ZhiBaiWeiCleaner(Base):
             "foreign_category_lv5",
         ]
         loss = self.data["ic_t_check_master"]
+        
+        if not len(loss):
+            return pd.DataFrame(columns=filter_columns)
 
         detail = self.data["ic_t_check_detail"]
 
