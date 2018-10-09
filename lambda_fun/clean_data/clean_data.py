@@ -63,7 +63,6 @@ def fetch_data_frames(keys, origin_table_columns, converts):
     data_frames = {}
 
     for table, columns in origin_table_columns.items():
-        frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
             if table in converts:
@@ -73,12 +72,10 @@ def fetch_data_frames(keys, origin_table_columns, converts):
             else:
                 frame = pd.read_csv(key, compression="gzip", usecols=columns)
 
-            if frame_table is None:
-                frame_table = frame.copy(deep=True)
+            if table in data_frames:
+                data_frames[table] = data_frames[table].append(frame)
             else:
-                frame_table = frame_table.append(frame)
-            data_frames[table] = frame_table
-
+                data_frames[table] = frame.copy(deep=True)
     return data_frames
 
 
