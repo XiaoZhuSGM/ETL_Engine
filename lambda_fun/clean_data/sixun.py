@@ -883,6 +883,9 @@ def clean_goods_loss(source_id, date, target_table, data_frames):
     result = result[result['approve_flag'] == '1']
     result = result[result['branch_no_1'] != '00']
 
+    if not len(result):
+        return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
+
     result['cmid'] = cmid
     result['source_id'] = source_id
     result['item_showcode'] = result['branch_no.store']
