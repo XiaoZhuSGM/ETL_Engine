@@ -49,10 +49,7 @@ class DatasourceSqlService(object):
         }
 
         file_name = str(now_timestamp()) + ".json"
-        key = (
-            SQL_PREFIX.format(source_id=source_id, date=extract_date)
-            + file_name
-        )
+        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return file_name
 
@@ -75,10 +72,7 @@ class DatasourceSqlService(object):
         }
 
         file_name = str(now_timestamp()) + ".json"
-        key = (
-            SQL_PREFIX.format(source_id=source_id, date=extract_date)
-            + file_name
-        )
+        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return tables_sqls
 
@@ -91,7 +85,11 @@ class DatasourceSqlService(object):
                 db_type = table.datasource.db_type
                 sql_str = self._page_by_limit_mould(table, db_type, extract_date)
 
-            table_name = table.alias_table_name if table.alias_table_name else table.table_name.split('.')[-1]
+            table_name = (
+                table.alias_table_name
+                if table.alias_table_name
+                else table.table_name.split(".")[-1]
+            )
             table_name = table_name.lower()
             sqls[table_name].extend(sql_str)
         return sqls
@@ -117,17 +115,17 @@ class DatasourceSqlService(object):
             if not order_by:
                 order_by = table.ext_pri_key
             if not order_by:
-                order_by = ''
+                order_by = ""
             if order_by:
-                order_by = f'order by {order_by} desc'
+                order_by = f"order by {order_by} desc"
 
             sql_str.append(
                 sql_template.format(
                     table=table.table_name,
                     order_by=order_by,
                     wheres=where,
-                    small=i * 200000,
-                    large=(i + 1) * 200000,
+                    small=i * 200_000,
+                    large=(i + 1) * 200_000,
                 )
             )
         return sql_str

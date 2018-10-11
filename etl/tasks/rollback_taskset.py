@@ -178,7 +178,7 @@ class RollbackTaskSet:
             )
         self.record_log(task_status)
         if task_status["result"] == 0:
-            raise RuntimeError(f"清洗失败：{payload}")
+            raise RuntimeError(f"{target}清洗失败：{payload}")
         return payload
 
     def warehouse_data(self, target, cleaned_file):
@@ -210,7 +210,7 @@ class RollbackTaskSet:
             if not res:
                 task_status.update({"result": 0, "remark": "[回滚]入库失败"})
                 self.record_log(task_status)
-                raise RuntimeError(f"入库失败：{payload}")
+                raise RuntimeError(f"{target}入库失败：{payload}")
         match = re.match(".*rowcount=(\d*).*", cleaned_file).group(1)
         record_num = int(match)
         task_status.update(
