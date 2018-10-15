@@ -1,7 +1,7 @@
 from etl.tasks.config import huey
 from etl.service.ext_sql import DatasourceSqlService
 from config.config import config
-from etl.etl import create_app
+from etl.etl import create_app, db
 from etl.service.datasource import DatasourceService
 from etl.service.ext_clean_info import ExtCleanInfoService
 import os
@@ -218,6 +218,7 @@ class RollbackTaskSet:
 
     def pipeline(self):
         with self.app.app_context():
+            db.engine.dispose()
             print("开始抓数")
             extracted_files = self.extract_data()
             print(f"抓取完成：{extracted_files}")
