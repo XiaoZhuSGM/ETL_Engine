@@ -166,6 +166,11 @@ def handler(event, context):
 
         return clean_jinzhong(source_id, date, target_table, data_frames)
 
+    elif erp_name == "易客来":
+        from yikelai import HongYeCleaner
+        cleaner = HongYeCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+
 
 if __name__ == "__main__":
     event = {
