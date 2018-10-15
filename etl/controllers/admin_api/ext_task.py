@@ -39,7 +39,7 @@ def trigger_task_extract_data():
 def get_task_extract_data_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id, preserve=True)
+    result = huey.result(task_id)
     if result is None:
         status = "running"
     elif isinstance(result, str):
@@ -93,7 +93,7 @@ def trigger_task_warehouse():
 def get_task_warehouse_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id, preserve=True)
+    result = huey.result(task_id)
     if result is None:
         status = "running"
     elif result is True:
@@ -121,7 +121,7 @@ def trigger_task_rollback():
 def get_task_rollback_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id, preserve=True)
+    result = huey.result(task_id)
     if result is None:
         status = "running"
     elif result is True:
