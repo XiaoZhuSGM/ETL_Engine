@@ -58,8 +58,7 @@ class RollbackTaskSet:
         content.update(
             {"extract_date": self.date, "source_id": self.source_id, "cmid": self.cmid}
         )
-        with self.app.app_context():
-            log_service.add_log(**content)
+        log_service.add_log(**content)
 
     def extract_api(self, event):
         task = task_extract_data(
@@ -108,13 +107,11 @@ class RollbackTaskSet:
 
     @property
     def sql_file(self):
-        with self.app.app_context():
-            return sql_service.generate_full_sql(self.source_id, self.date)
+        return sql_service.generate_full_sql(self.source_id, self.date)
 
     def extract_data(self):
         start_time = time.time()
-        with self.app.app_context():
-            event = datasource_service.generator_extract_event(self.source_id)
+        event = datasource_service.generator_extract_event(self.source_id)
         event["query_date"] = self.date
         event["filename"] = self.sql_file
         res = lambda_invoker("extract_db_worker", event, qualifier="$LATEST")
@@ -220,16 +217,17 @@ class RollbackTaskSet:
         return payload
 
     def pipeline(self):
-        print("开始抓数")
-        extracted_files = self.extract_data()
-        print(f"抓取完成：{extracted_files}")
-        for target in self.target_list:
-            print(f"开始清洗：{target}")
-            cleaned_file = self.clean_data(target)
-            print(f"清洗完成：{cleaned_file}")
-            print(f"开始入库：{target}")
-            self.warehouse_data(target, cleaned_file)
-            print(f"入库完成：{target}")
+        with self.app.app_context():
+            print("开始抓数")
+            extracted_files = self.extract_data()
+            print(f"抓取完成：{extracted_files}")
+            for target in self.target_list:
+                print(f"开始清洗：{target}")
+                cleaned_file = self.clean_data(target)
+                print(f"清洗完成：{cleaned_file}")
+                print(f"开始入库：{target}")
+                self.warehouse_data(target, cleaned_file)
+                print(f"入库完成：{target}")
 
 
 @huey.task()
