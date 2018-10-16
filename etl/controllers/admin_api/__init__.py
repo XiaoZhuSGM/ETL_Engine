@@ -36,6 +36,7 @@ from .ext_task import *
 
 from .airflow_status import *
 
+from .ext_history import *
 
 class APIError(object):
     """

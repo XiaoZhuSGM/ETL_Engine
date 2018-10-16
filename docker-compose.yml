@@ -24,6 +24,17 @@ services:
       - redis
     stop_signal:
       SIGINT
+  celery:
+    image: etl-engine
+    volumes:
+      - .:/app
+    environment:
+      ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
+    command: celery -A celery_worker.celery worker -l info
+    depends_on:
+      - redis
+    stop_signal:
+      SIGINT
   redis:
     image: redis:4
   nginx-proxy:

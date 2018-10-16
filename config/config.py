@@ -37,11 +37,18 @@ class ProductionConfig(Config):
         DB_ADDR=pgsql_db_hostname,
         DB_NAME=pgsql_db_name)
 
+    SENTRY_DSN = ""
+
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
     REDIS_DB = 0
 ***REMOVED***
-    SENTRY_DSN = ""
+
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+
 ***REMOVED***
 ***REMOVED***
 
@@ -62,12 +69,17 @@ class DevelopmentConfig(Config):
         DB_NAME=postgresql_db_name)
 
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
-    CELERY_RESULT_BACKEND = ""
-    CELERY_BROKER_URL = ""
+
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
     REDIS_DB = 0
     REDIS_PASSWORD = None
+
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://redis:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://redis:{REDIS_PORT}/10"
+
 ***REMOVED***
 ***REMOVED***
 
@@ -84,6 +96,19 @@ class LocalConfig(Config):
         DB_PASS=pgsql_db_password,
         DB_ADDR=pgsql_db_hostname,
         DB_NAME=pgsql_db_name)
+
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD = None
+
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+
+***REMOVED***
+***REMOVED***
 
 
 class TestingConfig(Config):
