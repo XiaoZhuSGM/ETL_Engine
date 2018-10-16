@@ -214,7 +214,7 @@ def load_one_table(source_id, end_date, table, app):
 
         remark = base64.b64decode(invoke_response['LogResult'])
         print(f"清洗失败，errmsg:{remark}")
-        return False, {table: f"清洗失败，reason:{remark}"}
+        return False, f"{table}清洗失败"
 
     # 调用入库lambda
     event = dict(
@@ -232,7 +232,7 @@ def load_one_table(source_id, end_date, table, app):
     if 'FunctionError' in invoke_response:
         remark = base64.b64decode(invoke_response['LogResult'])
         print(f"入库失败，{table},errmsg:{remark}")
-        return False, {table: f"入库失败，reason:{remark}"}
+        return False, f"{table}入库失败"
     print(f"{table}入库成功")
 
     return True, table
@@ -251,9 +251,7 @@ def record_log(source_id, task_id, ext_date, result=None, success_list=None, fai
     if not result:
         result = 2 if fail_list else 1
     success_table = ",".join(success_list) if success_list else None
-    fail_table = ",".join([list(table)[0] for table in fail_list]) if fail_list else None
-    if not remark and fail_list:
-        remark = ";".join([f"{list(table)[0]}:{list(table.values())[0]}" for table in fail_list])
+    fail_table = ",".join(fail_list) if fail_list else None
 
     info = dict(source_id=source_id, task_id=task_id, ext_date=ext_date, result=result,
                 success_table=success_table, fail_table=fail_table, remark=remark)
