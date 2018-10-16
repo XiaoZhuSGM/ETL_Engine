@@ -14,6 +14,7 @@ import re
 from etl.tasks.tasks import task_warehouse, task_extract_data
 import json
 from traceback import print_exc
+from flask import current_app
 
 
 sql_service = DatasourceSqlService()
@@ -138,11 +139,7 @@ class RollbackTaskSet:
 
     def clean_data(self, target):
         start_time = time.time()
-        app = create_app(setting)
-        with app.app_context():
-            cleaninfo = cleaninfo_service.get_ext_clean_info_target(
-                self.source_id, target
-            )
+        cleaninfo = cleaninfo_service.get_ext_clean_info_target(self.source_id, target)
         event = {
             "source_id": self.source_id,
             "erp_name": self.erp_name,
@@ -181,7 +178,7 @@ class RollbackTaskSet:
     def warehouse_data(self, target, cleaned_file):
         start_time = time.time()
         event = {
-            "redshift_url": setting.REDSHIFT_URL,
+            "redshift_url": current_app.config["REDSHIFT_URL"],
             "cmid": self.cmid,
             "data_date": self.date,
             "data_key": f"{S3_BUCKET}/{cleaned_file}",
@@ -218,7 +215,6 @@ class RollbackTaskSet:
 
     def pipeline(self):
         with self.app.app_context():
-            db.engine.dispose()
             print("开始抓数")
             extracted_files = self.extract_data()
             print(f"抓取完成：{extracted_files}")
@@ -229,6 +225,7 @@ class RollbackTaskSet:
                 print(f"开始入库：{target}")
                 self.warehouse_data(target, cleaned_file)
                 print(f"入库完成：{target}")
+            db.engine.dispose()
 
 
 @huey.task()
