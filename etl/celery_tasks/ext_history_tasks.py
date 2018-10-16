@@ -6,6 +6,7 @@ import lambda_fun.extract_data.extract_db_worker as worker
 from common.common import get_content, SQL_PREFIX, S3_BUCKET, LAMBDA
 from etl.models.etl_table import ExtCleanInfo, ExtHistoryTask, ExtHistoryLog
 from etl.models.datasource import ExtDatasource
+from etl.models.ext_datasource_con import ExtDatasourceCon
 import json
 from datetime import datetime
 from etl.models import session_scope
@@ -14,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import current_app
 from config.config import config
 import os
+import time
 
 ERP_DICT = {"48": "商海导航", "55": "晋中田森", "58": "美食林", "89": "易客来"}
 
@@ -30,14 +32,18 @@ def start_tasks(self, data):
     # 将任务信息记录到数据库中
     create_task_status(data, task_id, task_type)
 
+    # 获取抓数休息时间，防止对数据库造成压力, 默认100s
+    datasource_con = ExtDatasourceCon.query.filter_by(source_id=source_id).first()
+    period = datasource_con.period if datasource_con else 100
+
     if task_type == "1":
         # 抓数，清洗，入库
         print("任务类型：抓数和入库")
-        start_all(self, source_id, start_date, end_date, target_tables, task_id)
+        start_all(self, source_id, start_date, end_date, target_tables, task_id, period)
     elif task_type == "2":
         # 只抓数
         print("任务类型：抓数")
-        start_ext(self, source_id, start_date, end_date, task_id)
+        start_ext(self, source_id, start_date, end_date, task_id, period)
     elif task_type == "3":
         # 清洗，入库
         print("任务类型：入库")
@@ -47,7 +53,7 @@ def start_tasks(self, data):
     update_task_status(task_id, 1)
 
 
-def start_all(self, source_id, start_date, end_date, target_tables, task_id):
+def start_all(self, source_id, start_date, end_date, target_tables, task_id, period):
     total = two_date_total(start_date, end_date)
 
     # 正式开始执行任务
@@ -74,8 +80,12 @@ def start_all(self, source_id, start_date, end_date, target_tables, task_id):
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
 
+        # 休息一段时间再抓数
+        print(f"休息{period}秒")
+        time.sleep(period)
 
-def start_ext(self, source_id, start_date, end_date, task_id):
+
+def start_ext(self, source_id, start_date, end_date, task_id, period):
     """
     只抓数任务
     """
@@ -101,6 +111,10 @@ def start_ext(self, source_id, start_date, end_date, task_id):
         end_date = end_date.strftime("%Y-%m-%d")
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
+
+        # 休息一段时间再抓数
+        print(f"休息{period}秒")
+        time.sleep(period)
 
 
 def start_load(self, source_id, start_date, end_date, target_tables, task_id):
@@ -267,9 +281,8 @@ def create_task_status(data, task_id, task_type):
     start_date = data.get("start_date")
     end_date = data.get("end_date")
 
-    info = dict(source_id=source_id, task_id=task_id, task_type=task_type,
-                ext_start=datetime.strptime(start_date, "%Y-%m-%d"),
-                ext_end=datetime.strptime(end_date, "%Y-%m-%d"), task_start=datetime.now(), status=3)
+    info = dict(source_id=source_id, task_id=task_id, task_type=task_type, ext_start=start_date,
+                ext_end=end_date, task_start=datetime.now(), status=3)
 
     ext_history_task = ExtHistoryTask(**info)
     ext_history_task.save()
