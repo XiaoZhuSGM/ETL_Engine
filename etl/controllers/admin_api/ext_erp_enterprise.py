@@ -61,4 +61,3 @@ def get_all_enterprise():
         return jsonify_with_data(APIError.OK, data=enterprise_dict)
     else:
         return jsonify_with_error(APIError.VALIDATE_ERROR, reason='paramter error')
-

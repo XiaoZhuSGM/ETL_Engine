@@ -21,7 +21,6 @@ from .login import *  # noqa
 
 from .ext_table import *  # noqa
 
-
 from .ext_sql import *  # noqa
 
 from .ext_erp_enterprise import *
@@ -37,6 +36,9 @@ from .ext_task import *
 from .airflow_status import *
 
 from .ext_history import *
+
+from .ext_table_check import *
+
 
 class APIError(object):
     """
