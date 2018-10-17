@@ -104,3 +104,15 @@ class ExtHistoryLog(CRUDMixin, db.Model):
     success_table = Column(String(500))
     fail_table = Column(String(500))
     remark = Column(String(2000))
+
+
+class ExtTestQuery(CRUDMixin, db.Model):
+    source_id = Column(String(15))
+    target_table = Column(VARCHAR(50))
+    query_sql = Column(VARCHAR(1000))
+
+
+class ExtCheckNum(CRUDMixin, db.Model):
+    source_id = Column(String(15))
+    date = Column(DateTime)
+    num = Column(Integer)
