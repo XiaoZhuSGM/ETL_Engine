@@ -17,7 +17,7 @@ def get_ext_check(source_id):
     # 查看本地数据库是否有数
     my_data = ExtCheckNum.query.filter_by(source_id=source_id, date=date).first()
     if my_data and my_data.num > 500:
-        return jsonify_with_data(APIError.OK, data={'result': my_data.num})
+        return jsonify_with_data(APIError.OK, data={'num': my_data.num})
 
     # 测试数据库是否能够正常连接，无法连接就返回错误信息
     data_source = ext_check_table.get_datasource_by_source_id(source_id)
