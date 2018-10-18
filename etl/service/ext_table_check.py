@@ -75,19 +75,17 @@ class ExtCheckTable(object):
 
     def get_target_num(self, source_id, date):
         ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table="cost").first()
-        sql = ext_test_query.query_sql.format(date=date)
-
-        # 检测对方数据库是否有数
-        num = self.execute_sql(sql, date, source_id)
-        return num
-
-    @session_scope
-    def create_check_num(self, info):
-        ext_check_num = ExtCheckNum(**info)
-        ext_check_num.save()
+        if ext_test_query:
+            sql = ext_test_query.query_sql.format(date=date)
+            num = self.execute_sql(sql, date, source_id)
+            return num
+        else:
+            return None
 
     @session_scope
-    def modify_check_num(self, source_id, num, date):
-        print(source_id, date, num)
+    def create_check_num(self, source_id, num, date):
         ext_check_num = ExtCheckNum.query.filter_by(source_id=source_id, date=date).first()
-        ext_check_num.update(num=num)
+        if ext_check_num:
+            ext_check_num.update(num=num)
+        else:
+            ExtCheckNum(source_id=source_id, num=num, date=date).save()
