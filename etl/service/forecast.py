@@ -118,9 +118,10 @@ class ForecastService:
                 continue
             if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
                 continue
-            suggest_order.append({d.strftime("%Y-%m-%d"): percent_to_float(so)})
-            order_match.append({d.strftime("%Y-%m-%d"): percent_to_float(om)})
-            unsuggest.append({d.strftime("%Y-%m-%d"): percent_to_float(us)})
+            date = d.strftime("%Y-%m-%d")
+            suggest_order.append({date: percent_to_float(so)})
+            order_match.append({date: percent_to_float(om)})
+            unsuggest.append({date: percent_to_float(us)})
 
         return {
             "suggest_order": suggest_order,
