@@ -3,12 +3,14 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
+from config.config import config
+import os
 
 __all__ = ['create_app']
 
 DEFAULT_APP_NAME = 'etl'
 db = SQLAlchemy()
-celery = Celery(DEFAULT_APP_NAME)
+celery = Celery(DEFAULT_APP_NAME, broker=config[os.getenv("ETL_ENVIREMENT", "dev")].CELERY_BROKER_URL)
 sentry = Sentry()
 
 

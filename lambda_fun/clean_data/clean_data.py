@@ -171,50 +171,43 @@ def handler(event, context):
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
 
+    elif erp_name == "中山及时中间库":
+        from zhongshanjishi import clean_jishi
+
+        return clean_jishi(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
     event = {
-        "source_id": "67YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
-        "date": "2018-10-09",
+        "source_id": "86YYYYYYYYYYYYY",
+        "erp_name": "中山及时中间库",
+        "date": "2018-10-08",
         "target_table": "goods",
         "origin_table_columns": {
-            "brand": ["name", "code"],
-            "goods": [
-                "alc",
-                "brand",
-                "busgate",
-                "code",
-                "code2",
-                "gid",
-                "lstinprc",
-                "munit",
-                "name",
-                "rtlprc",
-                "sort",
-                "validperiod",
-                "vdrgid",
+            "tcatcategory": [
+                "clscode",
+                "clsid"
             ],
-            "goodsbusgate": ["gid", "name"],
-            "vendor": ["name", "code", "gid"],
+            "tskuplu": [
+                "barcode",
+                "pluid",
+                "pluname",
+                "hjprice",
+                "price",
+                "unit",
+                "ywstatus",
+                "lrdate",
+                "plucode",
+                "clsid"
+            ]
         },
         "converts": {
-            "brand": {"code": "str", "name": "str"},
-            "goods": {
-                "alc": "str",
-                "brand": "str",
-                "busgate": "str",
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str",
-                "validperiod": "str",
-                "vdrgid": "str",
+            "tcatcategory": {
+                "clscode": "str"
             },
-            "goodsbusgate": {"gid": "str", "name": "str"},
-            "vendor": {"code": "str", "gid": "str", "name": "str"},
+            "tskuplu": {
+                "ywstatus": "str"
+            }
         },
     }
 
