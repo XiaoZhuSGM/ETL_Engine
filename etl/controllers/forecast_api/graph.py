@@ -12,6 +12,29 @@ from flask import request
 forecast_service = ForecastService()
 
 
+@forecast_api.route("/graph/authorize", methods=["POST"])
+def authorize():
+    command = request.json["command"]
+    if command in store_hash:
+        store = store_hash[command]
+        data = {
+            "type": "store",
+            "info": [{"command": command, "store": store["store_name"]}],
+        }
+        return jsonify_with_data(APIError.OK, data=data)
+    elif command in enterprise_hash:
+        stores = r_store_hash[enterprise_hash[command]]
+        data = {
+            "type": "enterprise",
+            "info": [
+                {"store": v["store_name"], "command": k} for k, v in stores.items()
+            ],
+        }
+        return jsonify_with_data(APIError.OK, data=data)
+    else:
+        return jsonify_with_error(APIError.UNAUTHORIZED)
+
+
 @forecast_api.route("/graph/lacking", methods=["GET"])
 def lacking():
     command = request.args.get("command")
