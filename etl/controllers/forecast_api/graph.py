@@ -14,7 +14,7 @@ forecast_service = ForecastService()
 
 @forecast_api.route("/graph/authorize", methods=["POST"])
 def authorize():
-    command = request.json["command"]
+    command = request.json.get("command")
     if command in store_hash:
         store = store_hash[command]
         data = {
