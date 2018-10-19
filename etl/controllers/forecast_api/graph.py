@@ -27,7 +27,8 @@ def authorize():
         data = {
             "type": "enterprise",
             "info": [
-                {"store": v["store_name"], "command": k} for k, v in stores.items()
+                {"store": v["store_name"], "command": v["command"]}
+                for v in stores.values()
             ],
         }
         return jsonify_with_data(APIError.OK, data=data)
