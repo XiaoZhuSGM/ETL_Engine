@@ -83,7 +83,12 @@ class ForecastService:
         for _, row in data.iterrows():
             store_name = r_store_hash[cmid][row["foreign_store_id"]]["store_name"]
             achieved.append(
-                {"store": store_name, "achieved": row["total_sale"] / row["target"]}
+                {
+                    "store": store_name,
+                    "achieved": row["total_sale"] / row["target"],
+                    "sales": row["total_sale"],
+                    "target": row["target"],
+                }
             )
 
         return achieved
@@ -108,14 +113,17 @@ class ForecastService:
                 )
                 df.set_index("门店编码", inplace=True)
                 if show_code not in df.index:
+                    print(f"{d}:{show_code}:no show_code")
                     continue
             except Exception as e:
+                print(f"{d}:{show_code}:{e}")
                 continue
             try:
                 so = df.loc[show_code][0]
                 om = df.loc[show_code][1]
                 us = df.loc[show_code][2]
             except Exception as e:
+                print(f"{d}:{show_code}:{e}")
                 continue
             if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
                 continue
