@@ -8,7 +8,7 @@ import boto3
 import tempfile
 import pytz
 import time
-import numpy as np
+
 _TZINFO = pytz.timezone("Asia/Shanghai")
 
 S3_BUCKET = "ext-etl-data"
@@ -49,9 +49,10 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     lv2 = data_frames["tcatcategory"].rename(columns=lambda x: f"lv2.{x}")
     lv1 = data_frames["tcatcategory"].rename(columns=lambda x: f"lv1.{x}")
 
-    frames = head.merge(stores, on="orgcode").merge(item, on="pluid").merge(lv3, how="left", left_on="clsid", right_on="lv3.clsid")
+    frames = head.merge(stores, on="orgcode").merge(item, on="pluid").merge(lv3, how="left", left_on="clsid",
+                                                                            right_on="lv3.clsid")
     if len(frames) == 0:
-        goodsflow_frames = pd.DataFrame(columns=[
+        frames = pd.DataFrame(columns=[
             'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
             'last_updated',
             'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
@@ -96,8 +97,8 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         })
 
         frames = frames[[
-            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime', 'last_updated',
-            'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
+            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
+            'last_updated', 'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
             'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
             'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
             'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
@@ -109,11 +110,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
 def clean_cost(source_id, date, target_table, data_frames):
     """
     清洗成本
-    :param source_id:
-    :param date:
-    :param target_table:
-    :param frames:
-    :return:
     """
     cmid = source_id.split("Y")[0]
 
@@ -122,7 +118,7 @@ def clean_cost(source_id, date, target_table, data_frames):
     lv3 = data_frames["tcatcategory"]
 
     frames = cost.merge(item, on="pluid")
-    print(len(frames))
+
     if len(frames) == 0:
         frames = pd.DataFrame(columns=[
             "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
@@ -131,7 +127,10 @@ def clean_cost(source_id, date, target_table, data_frames):
     else:
         frames = frames.merge(lv3, how="left", on="clsid")
         frames = frames[(frames["orgcode"] != "00") & (frames["clscode"].map(len) == 6)]
-        print(len(frames))
+
+        frames = frames.groupby(["orgcode", "pluid", "rptdate", "clscode"], as_index=False)\
+            .agg({"xscount": sum, "hxtotal": sum, "hjcost": sum})
+
         frames["source_id"] = source_id
         frames["cost_type"] = ""
         frames["foreign_category_lv1"] = frames["clscode"].apply(lambda x: x[:len(x) - 4])
@@ -152,8 +151,8 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames["date"] = frames["date"].apply(lambda row: row.split()[0])
         frames = frames[[
             "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
-            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-            "foreign_category_lv5", "cmid"
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+            "foreign_category_lv4", "foreign_category_lv5", "cmid"
         ]]
 
     return upload_to_s3(frames, source_id, date, target_table)
@@ -162,11 +161,6 @@ def clean_cost(source_id, date, target_table, data_frames):
 def clean_goods(source_id, date, target_table, data_frames):
     """
     清洗商品
-    :param source_id:
-    :param date:
-    :param target_table:
-    :param frames:
-    :return:
     """
     cmid = source_id.split("Y")[0]
 
@@ -222,11 +216,6 @@ def clean_goods(source_id, date, target_table, data_frames):
 def clean_category(source_id, date, target_table, data_frames):
     """
     分类清洗
-    :param source_id:
-    :param date:
-    :param target_table:
-    :param frames:
-    :return:
     """
     cmid = source_id.split("Y")[0]
 
@@ -288,7 +277,8 @@ def clean_category(source_id, date, target_table, data_frames):
     category3 = lv3.copy()
     category3["lv2.clscode"] = category3["lv3.clscode"].apply(lambda x: x[:len(x) - 2])
     category3["lv1.clscode"] = category3["lv3.clscode"].apply(lambda x: x[:len(x) - 4])
-    category3 = category3.merge(lv2.copy(), how="left", on="lv2.clscode").merge(lv1.copy(), how="left", on="lv1.clscode")
+    category3 = category3.merge(lv2.copy(), how="left", on="lv2.clscode").merge(lv1.copy(), how="left",
+                                                                                on="lv1.clscode")
 
     category3 = category3[category3["lv3.clscode"].map(len) == 6]
     category3["cmid"] = cmid
@@ -321,11 +311,6 @@ def clean_category(source_id, date, target_table, data_frames):
 def clean_store(source_id, date, target_table, data_frames):
     """
     门店清洗
-    :param source_id:
-    :param date:
-    :param target_table:
-    :param frames:
-    :return:
     """
     cmid = source_id.split("Y")[0]
 
