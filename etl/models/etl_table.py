@@ -73,3 +73,46 @@ class ExtTargetInfo(CRUDMixin, db.Model):
     weight = Column(Integer)
     sync_column = Column(String(200))
     date_column = Column(String(50))
+
+
+class ExtHistoryTask(CRUDMixin, db.Model):
+    """
+    记录抓历史数据的任务
+    task_type: 1 抓数和入库  2 抓数 3 入库
+    status: 1 完成 2 取消 3 开始
+    """
+    source_id = Column(String(15))
+    task_id = Column(String(50))
+    task_type = Column(Integer)
+    ext_start = Column(String(50))
+    ext_end = Column(String(50))
+    task_start = Column(DateTime)
+    task_end = Column(DateTime)
+    status = Column(Integer)
+    remark = Column(String(1000))
+
+
+class ExtHistoryLog(CRUDMixin, db.Model):
+    """
+    记录抓取历史数据的每一天日志
+    result = 1 成功 2 失败
+    """
+    source_id = Column(String(15))
+    task_id = Column(String(50))
+    ext_date = Column(String(50))
+    result = Column(Integer)
+    success_table = Column(String(500))
+    fail_table = Column(String(500))
+    remark = Column(String(2000))
+
+
+class ExtTestQuery(CRUDMixin, db.Model):
+    source_id = Column(String(15))
+    target_table = Column(VARCHAR(50))
+    query_sql = Column(VARCHAR(1000))
+
+
+class ExtCheckNum(CRUDMixin, db.Model):
+    source_id = Column(String(15))
+    date = Column(DateTime)
+    num = Column(Integer)
