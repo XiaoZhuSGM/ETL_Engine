@@ -2,7 +2,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from collections import defaultdict
 import boto3
-import calendar
+
+# import calendar
 
 s3 = boto3.resource("s3")
 BUCKET = "replenish"
@@ -70,19 +71,22 @@ class ForecastService:
             reverse=True,
         )[0]
 
-        date = datetime.strptime(
-            obj.key.rsplit("/", 1)[-1].split(".", 1)[0], "%Y-%m-%d"
-        )
-        month_days = calendar.monthrange(date.year, date.month)[1]
-        should_achieve = date.day / month_days
+        # date = datetime.strptime(
+        #     obj.key.rsplit("/", 1)[-1].split(".", 1)[0], "%Y-%m-%d"
+        # )
+        # month_days = calendar.monthrange(date.year, date.month)[1]
+        # should_achieve = date.day / month_days
         data = pd.read_csv(
             f"s3://replenish/{obj.key}", dtype={"foreign_store_id": "str"}
         )
-        achieved = {}
+        achieved = []
         for _, row in data.iterrows():
-            achieved[row["foreign_store_id"]] = row["total_sale"] / row["target"]
+            store_name = r_store_hash[cmid][row["foreign_store_id"]]["store_name"]
+            achieved.append(
+                {"store": store_name, "achieved": row["total_sale"] / row["target"]}
+            )
 
-        return {"should_achieve": should_achieve, "achieved": achieved}
+        return achieved
 
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
@@ -93,10 +97,7 @@ class ForecastService:
         def percent_to_float(x):
             return float(x[:-1]) / 100
 
-        suggest_order = []
-        order_match = []
-        unsuggest = []
-
+        data = []
         for d in dates:
             try:
                 df = pd.read_excel(
@@ -119,12 +120,13 @@ class ForecastService:
             if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
                 continue
             date = d.strftime("%Y-%m-%d")
-            suggest_order.append({date: percent_to_float(so)})
-            order_match.append({date: percent_to_float(om)})
-            unsuggest.append({date: percent_to_float(us)})
+            data.append(
+                {
+                    "date": date,
+                    "suggest_order": percent_to_float(so),
+                    "order_match": percent_to_float(om),
+                    "unsuggest": percent_to_float(us),
+                }
+            )
 
-        return {
-            "suggest_order": suggest_order,
-            "order_match": order_match,
-            "unsuggest": unsuggest,
-        }
+        return data
