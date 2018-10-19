@@ -42,6 +42,12 @@ store_hash = {
     "2033": {"cmid": "58", "store_id": "1007081", "show_code": "0835", "store_name": "美乐成五楼店"},
     "d8c6": {"cmid": "58", "store_id": "1005400", "show_code": "0686", "store_name": "锦绣江南店"},
 }
+
+enterprise_hash = {
+    "f604": "43",
+    "8cae": "58",
+    "7e88": "79",
+}
 # fmt: on
 
 r_store_hash: dict = defaultdict(dict)
@@ -63,6 +69,34 @@ class ForecastService:
         if not store_info:
             raise ForecastError("command not found")
         return store_info
+
+    def lacking_rate(self, cmid, store_id):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                df = pd.read_excel(
+                    f"s3://{BUCKET}/lacking_rate/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
+                    sheet_name=0,
+                    dtype={"门店ID": str},
+                    usecols=[1, 3, 5],
+                )
+                df.set_index("门店ID", inplace=True)
+                if store_id not in df.index:
+                    continue
+            except Exception as e:
+                print(f"{d}:{store_id}:{e}")
+                continue
+            data.append(
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "count": int(df.loc[store_id][0]),
+                    "rate": float(df.loc[store_id][1]),
+                }
+            )
+        return data
 
     def performance_process(self, cmid):
         obj = sorted(

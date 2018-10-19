@@ -1,6 +1,12 @@
 from . import forecast_api
 from .. import APIError, jsonify_with_data, jsonify_with_error
-from etl.service.forecast import ForecastService, ForecastError
+from etl.service.forecast import (
+    ForecastService,
+    ForecastError,
+    store_hash,
+    r_store_hash,
+    enterprise_hash,
+)
 from flask import request
 
 forecast_service = ForecastService()
@@ -13,7 +19,8 @@ def lacking():
         store_info = forecast_service.login(command)
     except ForecastError as e:
         return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
-    # return jsonify_with_data(APIError.OK, data={})
+    data = forecast_service.lacking_rate(store_info["cmid"], store_info["store_id"])
+    return jsonify_with_data(APIError.OK, data=data)
 
 
 @forecast_api.route("/graph/best_lacking", methods=["GET"])
