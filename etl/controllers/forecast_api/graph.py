@@ -16,6 +16,17 @@ def lacking():
     # return jsonify_with_data(APIError.OK, data={})
 
 
+@forecast_api.route("/graph/best_lacking", methods=["GET"])
+def best_lacking():
+    command = request.args.get("command")
+    try:
+        store_info = forecast_service.login(command)
+    except ForecastError as e:
+        return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
+    data = forecast_service.best_lacking(store_info["cmid"], store_info["store_id"])
+    return jsonify_with_data(APIError.OK, data=data)
+
+
 @forecast_api.route("/graph/performance_process", methods=["GET"])
 def performance_process():
     command = request.args.get("command")
