@@ -127,14 +127,37 @@ class ForecastService:
                 continue
             if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
                 continue
-            date = d.strftime("%Y-%m-%d")
             data.append(
                 {
-                    "date": date,
+                    "date": d.strftime("%Y-%m-%d"),
                     "suggest_order": percent_to_float(so),
                     "order_match": percent_to_float(om),
                     "unsuggest": percent_to_float(us),
                 }
             )
 
+        return data
+
+    def best_lacking(self, cmid, store_id):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                df = pd.read_excel(
+                    f"s3://{BUCKET}/best_selling_and_best_lacking/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
+                    sheet_name=0,
+                    dtype={"门店ID": str},
+                    usecols=[0, 3],
+                )
+                df.set_index("门店ID", inplace=True)
+                if store_id not in df.index:
+                    continue
+            except Exception as e:
+                print(f"{d}:{store_id}:{e}")
+                continue
+            data.append(
+                {"date": d.strftime("%Y-%m-%d"), "count": int(df.loc[store_id][0])}
+            )
         return data
