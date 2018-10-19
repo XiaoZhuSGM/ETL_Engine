@@ -5,6 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from config.config import config
 import os
+from etl.controllers.api import etl_api as api
+from etl.controllers.admin_api import etl_admin_api as admin_api
+from etl.controllers.forecast_api import forecast_api
 
 __all__ = ['create_app']
 
@@ -27,9 +30,9 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
 
-    CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
-    CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
-    CORS(app, resources={r"/forecast/api/*", {"origins": "*"}})
+    CORS(api)
+    CORS(admin_api)
+    CORS(forecast_api)
 
     return app
 
@@ -59,10 +62,6 @@ def configure_path_converter(app):
 
 
 def configure_blueprints(app):
-    from etl.controllers.api import etl_api as api
-    from etl.controllers.admin_api import etl_admin_api as admin_api
-    from etl.controllers.forecast_api import forecast_api
-
     app.register_blueprint(api, url_prefix='/etl/api')
     app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
     app.register_blueprint(forecast_api, url_prefix="/forecast/api")
