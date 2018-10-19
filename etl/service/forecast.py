@@ -124,7 +124,7 @@ class ForecastService:
                     "target": row["target"],
                 }
             )
-        achieved.sort(lambda x: x["achieved"], reverse=True)
+        achieved.sort(key=lambda x: x["achieved"], reverse=True)
         return {"achieved": achieved, "should_achieve": should_achieve}
 
     def order_rate(self, cmid, store_id):
