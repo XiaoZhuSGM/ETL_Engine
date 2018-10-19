@@ -29,6 +29,7 @@ def create_app(config=None):
 
     CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
     CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/forecast/api/*", {"origins": "*"}})
 
     return app
 
