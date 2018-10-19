@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import boto3
 
-# import calendar
+import calendar
 
 s3 = boto3.resource("s3")
 BUCKET = "replenish"
@@ -71,11 +71,11 @@ class ForecastService:
             reverse=True,
         )[0]
 
-        # date = datetime.strptime(
-        #     obj.key.rsplit("/", 1)[-1].split(".", 1)[0], "%Y-%m-%d"
-        # )
-        # month_days = calendar.monthrange(date.year, date.month)[1]
-        # should_achieve = date.day / month_days
+        date = datetime.strptime(
+            obj.key.rsplit("/", 1)[-1].split(".", 1)[0], "%Y-%m-%d"
+        )
+        month_days = calendar.monthrange(date.year, date.month)[1]
+        should_achieve = date.day / month_days
         data = pd.read_csv(
             f"s3://replenish/{obj.key}", dtype={"foreign_store_id": "str"}
         )
@@ -91,7 +91,7 @@ class ForecastService:
                 }
             )
 
-        return achieved
+        return {"achieved": achieved, "should_achieve": should_achieve}
 
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
