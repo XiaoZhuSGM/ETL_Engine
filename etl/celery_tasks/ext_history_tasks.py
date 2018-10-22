@@ -311,7 +311,9 @@ def check_ext_result(source_id, extract_date, filename, extract_data):
     for key, values in sqls.items():
         if not extract_data:
             flag = False
-        if len(extract_data[key]) != len(values):
+        elif extract_data.get(key) is None:
+            flag = False
+        elif len(extract_data[key]) != len(values):
             flag = False
     return flag
 
@@ -332,4 +334,4 @@ def two_date_total(start_date, end_date):
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
     end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
-    return (end_date - start_date).days
+    return (end_date - start_date).days + 1
