@@ -1,6 +1,6 @@
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from . import etl_admin_api
-from etl.service.ext_history import ExtHistoryServices
+from etl.service.ext_history import ExtHistoryServices, ExtHistoryParameterMiss, ExtHistoryDateError
 service = ExtHistoryServices()
 
 
@@ -20,13 +20,13 @@ def get_table():
 @etl_admin_api.route("/ext/history/task/start", methods=["POST"])
 def start_task():
     """
-    开始任务，任务有四种类型：抓数，清洗，入库，全做
+    开始任务，任务有三种类型：抓数，清洗和入库，全做
     :return:
     """
     try:
         service.start_task()
-    except Exception as e:
-        return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))
+    except (ExtHistoryParameterMiss, ExtHistoryDateError) as e:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
     return jsonify_with_data(APIError.OK, data={})
 
 
