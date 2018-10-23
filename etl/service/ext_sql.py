@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
-
+from sqlalchemy import or_
 
 from common.common import (
     PAGE_SQL,
@@ -12,7 +12,7 @@ from common.common import (
     S3_BUCKET,
 )
 from etl import db
-from ..models import ExtDatasource, ExtTableInfo
+from ..models import ExtDatasource, ExtTableInfo, ExtCleanInfo
 
 
 class DatasourceSqlService(object):
@@ -171,3 +171,50 @@ class DatasourceSqlService(object):
         )
 
         return self._generate_by_correct_mould(tables, extract_date)
+
+    def generate_target_sql(self, source_id, extract_date, target_table):
+        """
+        根据目标表生产sql,用于只抓取特定的目标表的数据
+        """
+        ext_clean_info_models = (
+            db.session.query(ExtCleanInfo)
+            .filter(
+                ExtCleanInfo.source_id == source_id,
+                ExtCleanInfo.target_table.in_(target_table))
+            .all()
+        )
+
+        origin_table = set()
+        for model in ext_clean_info_models:
+            if model.origin_table:
+                origin_table.update(model.origin_table.keys())
+
+        total_table = []
+        for table_name in origin_table:
+            tables = (
+                db.session.query(ExtTableInfo)
+                .filter(
+                    ExtTableInfo.source_id == source_id,
+                    ExtTableInfo.weight == 1)
+                .filter(
+                    or_(
+                        ExtTableInfo.table_name.like(f"%.{table_name}"),
+                        ExtTableInfo.alias_table_name == table_name
+                    )
+                )
+                .options(joinedload(ExtTableInfo.datasource))
+                .all()
+            )
+            total_table.extend(tables)
+
+        tables_sqls = {
+            "type": "tables",
+            "query_date": extract_date,
+            "source_id": source_id,
+            "sqls": self._generate_by_correct_mould(total_table, extract_date),
+        }
+
+        file_name = str(now_timestamp()) + ".json"
+        key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
+        upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
+        return file_name
