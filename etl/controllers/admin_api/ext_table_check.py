@@ -1,3 +1,5 @@
+from flask import request
+
 from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.ext_table_check import ExtCheckTable
 
@@ -11,7 +13,10 @@ ext_check_table = ExtCheckTable()
 
 @etl_admin_api.route("/ext/check/<source_id>")
 def get_ext_check(source_id):
-    date = arrow.now().shift(days=-1).format('YYYY-MM-DD')
+    date = request.args.get("date")
+    if date is None:
+        date = arrow.now().shift(days=-1).format('YYYY-MM-DD')
+
     source_id = source_id.upper()
 
     # 查看本地数据库是否有数
