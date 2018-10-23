@@ -40,3 +40,17 @@ def display_full_sql():
     if result:
         return jsonify_with_data(APIError.OK, data=result)
     return jsonify_with_error(APIError.SERVER_ERROR)
+
+
+@etl_admin_api.route("/sql/target_table", methods=["POST"])
+def generate_target_table_sql():
+    date = request.get_json()
+    source_id = date["source_id"]
+    extract_date = date["date"]
+    target_table = date["target_table"]
+    if not all([source_id, extract_date, target_table]):
+        return jsonify_with_error(APIError.VALIDATE_ERROR)
+    result = service.generate_target_sql(source_id, extract_date, target_table)
+    if result:
+        return jsonify_with_data(APIError.OK, data=result)
+    return jsonify_with_error(APIError.SERVER_ERROR)

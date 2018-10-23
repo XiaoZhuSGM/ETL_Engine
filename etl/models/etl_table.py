@@ -84,6 +84,7 @@ class ExtHistoryTask(CRUDMixin, db.Model):
     source_id = Column(String(15))
     task_id = Column(String(50))
     task_type = Column(Integer)
+    target_table = Column(String(500))
     ext_start = Column(String(50))
     ext_end = Column(String(50))
     task_start = Column(DateTime)

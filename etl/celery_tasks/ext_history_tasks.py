@@ -30,7 +30,7 @@ def start_tasks(self, data):
 
     task_id = start_tasks.request.id
     # 将任务信息记录到数据库中
-    create_task_status(data, task_id, task_type)
+    create_task_status(data, task_id, task_type, target_tables)
 
     # 获取抓数休息时间，防止对数据库造成压力, 默认100s
     datasource_con = ExtDatasourceCon.query.filter_by(source_id=source_id).first()
@@ -43,7 +43,7 @@ def start_tasks(self, data):
     elif task_type == "2":
         # 只抓数
         print("任务类型：抓数")
-        start_ext(self, source_id, start_date, end_date, task_id, period)
+        start_ext(self, source_id, start_date, end_date, target_tables, task_id, period)
     elif task_type == "3":
         # 清洗，入库
         print("任务类型：入库")
@@ -60,7 +60,7 @@ def start_all(self, source_id, start_date, end_date, target_tables, task_id, per
     while start_date <= end_date:
         print(end_date)
         # 开始抓数
-        flag, remark = ext(source_id, end_date)
+        flag, remark = ext(source_id, end_date, target_tables)
         if not flag:
             record_log(source_id, task_id, end_date, result=2,
                        remark=f"抓数失败，失败原因:{remark}")
@@ -74,18 +74,17 @@ def start_all(self, source_id, start_date, end_date, target_tables, task_id, per
         # 记录当天抓数入库日志
         record_log(source_id, task_id, end_date, success_list=success_list, fail_list=fail_list)
 
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        end_date -= timedelta(days=1)
-        end_date = end_date.strftime("%Y-%m-%d")
+        end_date = date_reduce_one_data(end_date)
+
+        if end_date >= start_date:
+            # 休息一段时间再抓数
+            print(f"休息{period}秒")
+            time.sleep(period)
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
 
-        # 休息一段时间再抓数
-        print(f"休息{period}秒")
-        time.sleep(period)
 
-
-def start_ext(self, source_id, start_date, end_date, task_id, period):
+def start_ext(self, source_id, start_date, end_date, target_tables, task_id, period):
     """
     只抓数任务
     """
@@ -95,7 +94,7 @@ def start_ext(self, source_id, start_date, end_date, task_id, period):
     while start_date <= end_date:
         print(end_date)
         # 开始抓数
-        flag, remark = ext(source_id, end_date)
+        flag, remark = ext(source_id, end_date, target_tables)
         if not flag:
             record_log(source_id, task_id, end_date, result=2,
                        remark=f"抓数失败，失败原因:{remark}")
@@ -106,15 +105,14 @@ def start_ext(self, source_id, start_date, end_date, task_id, period):
             continue
         record_log(source_id, task_id, end_date, result=1)
 
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        end_date -= timedelta(days=1)
-        end_date = end_date.strftime("%Y-%m-%d")
+        end_date = date_reduce_one_data(end_date)
+
+        if end_date >= start_date:
+            # 休息一段时间再抓数
+            print(f"休息{period}秒")
+            time.sleep(period)
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
-
-        # 休息一段时间再抓数
-        print(f"休息{period}秒")
-        time.sleep(period)
 
 
 def start_load(self, source_id, start_date, end_date, target_tables, task_id):
@@ -131,14 +129,12 @@ def start_load(self, source_id, start_date, end_date, target_tables, task_id):
         # 记录日志
         record_log(source_id, task_id, end_date, success_list=success_list, fail_list=fail_list)
 
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        end_date -= timedelta(days=1)
-        end_date = end_date.strftime("%Y-%m-%d")
+        end_date = date_reduce_one_data(end_date)
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
 
 
-def ext(source_id, end_date):
+def ext(source_id, end_date, target_tables):
     """
     完成抓数任务
     :param source_id:
@@ -148,7 +144,7 @@ def ext(source_id, end_date):
     # 每一步出错就跳过，记录信息到ext_history_log中
 
     # 调用接口，生成sql
-    filename = DatasourceSqlService().generate_full_sql(source_id, end_date)
+    filename = DatasourceSqlService().generate_target_sql(source_id, end_date, target_tables)
     # 根据sql，调用抓数lambda
     event = DatasourceService().generator_extract_event(source_id)
     event["query_date"] = end_date
@@ -172,7 +168,7 @@ def ext(source_id, end_date):
 
     flag = check_ext_result(source_id, end_date, filename, extract_data)
 
-    return flag, base64.b64decode(invoke_response['LogResult'])
+    return flag, None
 
 
 def load(source_id, end_date, target_tables):
@@ -275,14 +271,14 @@ def record_log(source_id, task_id, ext_date, result=None, success_list=None, fai
 
 
 @session_scope
-def create_task_status(data, task_id, task_type):
+def create_task_status(data, task_id, task_type, target_table):
 
     source_id = data.get("source_id")
     start_date = data.get("start_date")
     end_date = data.get("end_date")
-
-    info = dict(source_id=source_id, task_id=task_id, task_type=task_type, ext_start=start_date,
-                ext_end=end_date, task_start=datetime.now(), status=3)
+    target_table = ",".join(target_table)
+    info = dict(source_id=source_id, task_id=task_id, task_type=task_type, target_table=target_table,
+                ext_start=start_date, ext_end=end_date, task_start=datetime.now(), status=3)
 
     ext_history_task = ExtHistoryTask(**info)
     ext_history_task.save()
@@ -311,7 +307,9 @@ def check_ext_result(source_id, extract_date, filename, extract_data):
     for key, values in sqls.items():
         if not extract_data:
             flag = False
-        if len(extract_data[key]) != len(values):
+        elif extract_data.get(key) is None:
+            flag = False
+        elif len(extract_data[key]) != len(values):
             flag = False
     return flag
 
@@ -332,4 +330,11 @@ def two_date_total(start_date, end_date):
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
     end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
-    return (end_date - start_date).days
+    return (end_date - start_date).days + 1
+
+
+def date_reduce_one_data(date):
+    date = datetime.strptime(date, "%Y-%m-%d")
+    date -= timedelta(days=1)
+    date = date.strftime("%Y-%m-%d")
+    return date
