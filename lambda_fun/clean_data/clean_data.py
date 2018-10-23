@@ -168,6 +168,7 @@ def handler(event, context):
 
     elif erp_name == "易客来":
         from yikelai import HongYeCleaner
+
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
 
@@ -179,35 +180,38 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "source_id": "86YYYYYYYYYYYYY",
-        "erp_name": "中山及时中间库",
-        "date": "2018-10-08",
-        "target_table": "goods",
+        "source_id": "72YYYYYYYYYYYYY",
+        "erp_name": "思迅",
+        "date": "2018-10-21",
+        "target_table": "goodsflow",
         "origin_table_columns": {
-            "tcatcategory": [
-                "clscode",
-                "clsid"
+            "t_bd_branch_info": ["branch_no", "branch_name"],
+            "t_bd_item_cls": ["item_clsno", "item_clsname"],
+            "t_bd_item_info": ["item_no", "item_clsno", "item_name", "unit_no"],
+            "t_rm_saleflow": [
+                "branch_no",
+                "item_no",
+                "sale_price",
+                "sale_qnty",
+                "sell_way",
+                "sale_money",
+                "flow_no",
+                "oper_date",
             ],
-            "tskuplu": [
-                "barcode",
-                "pluid",
-                "pluname",
-                "hjprice",
-                "price",
-                "unit",
-                "ywstatus",
-                "lrdate",
-                "plucode",
-                "clsid"
-            ]
         },
         "converts": {
-            "tcatcategory": {
-                "clscode": "str"
+            "t_bd_branch_info": {"branch_no": "str"},
+            "t_bd_item_cls": {"item_clsno": "str"},
+            "t_bd_item_info": {"item_clsno": "str", "item_no": "str"},
+            "t_rm_saleflow": {
+                "branch_no": "str",
+                "flow_no": "str",
+                "item_no": "str",
+                "sale_money": "float",
+                "sale_price": "float",
+                "sale_qnty": "float",
+                "sell_way": "str",
             },
-            "tskuplu": {
-                "ywstatus": "str"
-            }
         },
     }
 

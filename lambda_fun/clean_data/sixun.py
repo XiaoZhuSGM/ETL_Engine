@@ -446,6 +446,38 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     goods_frame = data_frames['t_bd_item_info']
     item_cls_frame = data_frames['t_bd_item_cls']
 
+    columns = [
+        'source_id',
+        'cmid',
+        'foreign_store_id',
+        'store_name',
+        'receipt_id',
+        'consumer_id',
+        'saletime',
+        'last_updated',
+        'foreign_item_id',
+        'barcode',
+        'item_name',
+        'item_unit',
+        'saleprice',
+        'quantity',
+        'subtotal',
+        'foreign_category_lv1',
+        'foreign_category_lv1_name',
+        'foreign_category_lv2',
+        'foreign_category_lv2_name',
+        'foreign_category_lv3',
+        'foreign_category_lv3_name',
+        'foreign_category_lv4',
+        'foreign_category_lv4_name',
+        'foreign_category_lv5',
+        'foreign_category_lv5_name',
+        'pos_id'
+    ]
+
+    if not len(sale_flow_frame):
+        return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
+
     # 分类
 
     # 商品
