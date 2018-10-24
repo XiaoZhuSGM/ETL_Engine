@@ -250,7 +250,7 @@ class ForecastService:
                                  ])
                 cost_data = df.compute()
                 cost_data = cost_data[cost_data["foreign_store_id"] == store_id]
-                data.append({"date": d.date(), "total_sale": cost_data["total_sale"].sum()})
+                data.append({"date": d.strftime("%Y-%m-%d"), "total_sale": cost_data["total_sale"].sum()})
             except Exception as e:
                 print(e)
             finally:
