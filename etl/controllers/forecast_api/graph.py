@@ -78,3 +78,14 @@ def order_rate():
         return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
     data = forecast_service.order_rate(store_info["cmid"], store_info["store_id"])
     return jsonify_with_data(APIError.OK, data=data)
+
+
+@forecast_api.route("/graph/sale_amount", methods=["GET"])
+def sale_amount():
+    command = request.args.get("command")
+    try:
+        store_info = forecast_service.login(command)
+    except ForecastError as e:
+        return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
+    data = forecast_service.sale_amount(store_info["cmid"], store_info["store_id"])
+    return jsonify_with_data(APIError.OK, data=data)
