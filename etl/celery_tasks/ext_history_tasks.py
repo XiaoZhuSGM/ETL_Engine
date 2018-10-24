@@ -229,10 +229,10 @@ def load_one_table(source_id, end_date, table, app):
     # 调用入库lambda
     event = dict(
         redshift_url=config[os.getenv("ETL_ENVIREMENT", "dev")].REDSHIFT_URL,
-        target_table=table if table in ['chain_store', 'chain_goods', 'chain_category'] else f"{table}_{source_id}",
+        target_table=table if table in ["chain_store", "chain_goods", "chain_category"] else f"{table}_{source_id}",
         data_key=f"ext-etl-data/{clean_data_file_path}",
         data_date=end_date,
-        warehouse_type="upsert" if table in ['chain_store', 'chain_goods', 'chain_category'] else "copy",
+        warehouse_type="upsert" if table in ["chain_store", "chain_goods", "chain_category", "chain_verdor"] else "copy",
         source_id=source_id,
         cmid=cmid
     )
