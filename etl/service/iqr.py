@@ -52,6 +52,9 @@ class IQRService(object):
         IQR = Q3 - Q1
         return Q1 - 1.5 * IQR
 
+    def median(self, frame):
+        return frame["count"].median()
+
     def pipeline(self) -> dict:
         result: Dict[str, dict] = {"goodsflow": dict(), "cost": dict()}
         goodsflow_frame = self.load_frame(self.goodflow_sql)
@@ -59,9 +62,11 @@ class IQRService(object):
 
         result["goodsflow"]["std"] = self.std(goodsflow_frame)
         result["goodsflow"]["quantile"] = self.quadrature(goodsflow_frame)
+        result["goodsflow"]["median"] = self.median(goodsflow_frame)
 
         result["cost"]["std"] = self.std(cost_frame)
         result["cost"]["quantile"] = self.quadrature(cost_frame)
+        result["cost"]["median"] = self.median(goodsflow_frame)
 
         return result
 
