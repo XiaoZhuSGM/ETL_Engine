@@ -2,8 +2,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from collections import defaultdict
 import boto3
-
 import calendar
+import dask.dataframe as dd
 
 s3 = boto3.resource("s3")
 BUCKET = "replenish"
@@ -194,4 +194,66 @@ class ForecastService:
             data.append(
                 {"date": d.strftime("%Y-%m-%d"), "count": int(df.loc[store_id][0])}
             )
+        return data
+
+    def sale_amount(self, cmid, store_id):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                year, month, day = str(d.date()).split('-')
+                df = dd.read_csv(f"s3://standard-data/{year}/{month}/{day}/{cmid.ljust(15, 'Y')}/cost/*.gz",
+                                 compression="gzip",
+                                 blocksize=None,
+                                 names=[
+                                     'source_id',
+                                     'foreign_store_id',
+                                     'foreign_item_id',
+                                     'date',
+                                     'cost_type',
+                                     'total_quantity',
+                                     'total_sale',
+                                     'total_cost',
+                                     'foreign_category_lv1',
+                                     'foreign_category_lv2',
+                                     'foreign_category_lv3',
+                                     'foreign_category_lv4',
+                                     'foreign_category_lv5',
+                                     'cmid'
+                                 ],
+                                 dtype={
+                                     'source_id': str,
+                                     'foreign_store_id': str,
+                                     'foreign_item_id': str,
+                                     'date': str,
+                                     'cost_type': str,
+                                     'total_quantity': float,
+                                     'total_sale': float,
+                                     'total_cost': float,
+                                     'foreign_category_lv1': str,
+                                     'foreign_category_lv2': str,
+                                     'foreign_category_lv3': str,
+                                     'foreign_category_lv4': str,
+                                     'foreign_category_lv5': str,
+                                     'cmid': str
+                                 },
+                                 usecols=[
+                                     'foreign_store_id',
+                                     'foreign_item_id',
+                                     'date',
+                                     'total_quantity',
+                                     'total_sale',
+                                     'total_cost',
+                                     'foreign_category_lv1'
+                                 ])
+                cost_data = df.compute()
+                cost_data = cost_data[cost_data["foreign_store_id"] == store_id]
+                data.append({"date": d.date(), "total_sale": cost_data["total_sale"].sum()})
+            except Exception as e:
+                print(e)
+            finally:
+                pass
+
         return data

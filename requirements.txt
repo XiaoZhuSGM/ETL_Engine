@@ -74,3 +74,4 @@ s3fs==0.1.6
 pymysql==0.9.2
 xlrd==1.1.0
 arrow==0.12.1
+dask[complete]
