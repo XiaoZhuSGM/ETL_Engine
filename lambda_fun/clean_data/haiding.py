@@ -2363,9 +2363,9 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
+        part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
         if not len(part):
             return pd.DataFrame(columns=columns)
-        part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
