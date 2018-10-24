@@ -18,6 +18,7 @@ import os
 import time
 
 ERP_DICT = {"48": "商海导航", "55": "晋中田森", "58": "美食林", "89": "易客来"}
+UPSERT_TABLE = ["chain_store", "chain_goods", "chain_category", "chain_verdor"]
 
 
 @celery.task(bind=True)
@@ -229,10 +230,10 @@ def load_one_table(source_id, end_date, table, app):
     # 调用入库lambda
     event = dict(
         redshift_url=config[os.getenv("ETL_ENVIREMENT", "dev")].REDSHIFT_URL,
-        target_table=table if table in ["chain_store", "chain_goods", "chain_category"] else f"{table}_{source_id}",
+        target_table=table if table in UPSERT_TABLE else f"{table}_{source_id}",
         data_key=f"ext-etl-data/{clean_data_file_path}",
         data_date=end_date,
-        warehouse_type="upsert" if table in ["chain_store", "chain_goods", "chain_category", "chain_verdor"] else "copy",
+        warehouse_type="upsert" if table in UPSERT_TABLE else "copy",
         source_id=source_id,
         cmid=cmid
     )
