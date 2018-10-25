@@ -1,10 +1,11 @@
-from sqlalchemy import create_engine, inspect, func, select, table
+from sqlalchemy import create_engine, inspect
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
 from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
 from sqlalchemy.exc import SQLAlchemyError
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+import arrow
 
 
 class ExtTableService(object):
@@ -102,8 +103,7 @@ class ExtTableService(object):
     def _create_ext_table(self, **kwargs):
         ExtTableInfo.create(**kwargs)
 
-    @staticmethod
-    def get_datasource_by_source_id(source_id):
+    def get_datasource_by_source_id(self, source_id):
         datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
         if datasource is None:
             return None
@@ -284,3 +284,72 @@ class ExtTableService(object):
                     )
                 except SQLAlchemyError as e:
                     print(e)
+
+    def download_about_date_table(self, app):
+        """
+        获取和时间相关的表，并存储到ext_table_info里
+        :return:
+        """
+        DATE_TABLE = [
+            ["1015YYYYYYYYYYY", "dbusrsdms", ["sale_j{date}", "salecost{date}", "pay_j{date}"]],
+            ["48YYYYYYYYYYYYY", "dbo", ["GoodsSale{date}", "Item{date}"]],
+            ["52YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
+            ["55YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
+            ["64YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
+        ]
+        current_month = arrow.now().format("YYYYMM")
+        last_one_month = arrow.now().shift(months=-1).format("YYYYMM")
+        last_two_month = arrow.now().shift(months=-2).format("YYYYMM")
+        with app.app_context():
+            for table_list in DATE_TABLE:
+                self.insert_one_source_id(table_list, current_month, last_one_month, last_two_month)
+
+    @session_scope
+    def insert_one_source_id(self, table_list, current_month, last_one_month, last_two_month):
+        # 查询对方是否存在对应的表
+
+        source_id, schema, tables = table_list
+        data = self.get_datasource_by_source_id(source_id)
+        if not data:
+            print(f"服务器没有{source_id}")
+            return
+        data['database'] = data["db_name"]["database"]
+        if self.connect_test(data):
+            return
+        ext_table = self._get_tables(schema)
+        self.conn.close()
+        for table in tables:
+            current_table_name = table.format(date=current_month)
+            print(source_id, schema, current_table_name)
+
+            current_table = (
+                ExtTableInfo.query
+                .filter_by(source_id=source_id, weight=1, table_name=f"{schema}.{current_table_name}")
+                .first()
+            )
+            if current_table:
+                print(f"服务器已存在{current_table.table_name}，跳过")
+                continue
+
+            if current_table_name in ext_table:
+                print(f"客户数据库已生成{current_table_name}，准备插入")
+                # 获取相似表的配置，存储到ext_table_info里，并将2月前的表配置为不抓
+                last_one_table = (
+                    ExtTableInfo.query
+                    .filter_by(source_id=source_id, weight=1,
+                               table_name=f"{schema}.{table.format(date=last_one_month)}")
+                    .first()
+                )
+                if last_one_table:
+                    info = last_one_table.to_dict()
+                    del info["id"], info["created_at"], info["updated_at"]
+
+                    info["table_name"] = f"{schema}.{current_table_name}"
+                    ExtTableInfo.create(**info)
+                    print(f"{current_table_name}插入完成")
+
+                ExtTableInfo.query\
+                    .filter_by(source_id=source_id,
+                               weight=1,
+                               table_name=f"{schema}.{table.format(date=last_two_month)}")\
+                    .update({"weight": 2})

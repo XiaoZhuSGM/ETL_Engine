@@ -87,3 +87,17 @@ def download_special_table():
     ext_table_service.download_special_tables(source_id, schema, tables, data)
 
     return jsonify_with_data(APIError.OK)
+
+
+@etl_admin_api.route("/tables/download/date_table", methods=["GET"])
+def download_date_table():
+    """
+    抓取和时间相关的表，在每个月1，2，3号运行
+    """
+    ext_table_service = ExtTableService()
+
+    task = Thread(target=ext_table_service.download_about_date_table,
+                  args=(current_app._get_current_object(),))
+
+    task.start()
+    return jsonify_with_data(APIError.OK, data={})
