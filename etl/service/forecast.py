@@ -184,7 +184,6 @@ class ForecastService:
                     sheet_name=0,
                     dtype={"门店ID": str},
                 )
-                print(df)
                 df.set_index("门店ID", inplace=True)
                 if store_id not in df.index:
                     continue
