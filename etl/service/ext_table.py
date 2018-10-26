@@ -295,7 +295,6 @@ class ExtTableService(object):
             ["48YYYYYYYYYYYYY", "dbo", ["GoodsSale{date}", "Item{date}"]],
             ["52YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
             ["55YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
-            ["64YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
         ]
         current_month = arrow.now().format("YYYYMM")
         last_one_month = arrow.now().shift(months=-1).format("YYYYMM")
@@ -311,7 +310,7 @@ class ExtTableService(object):
         source_id, schema, tables = table_list
         data = self.get_datasource_by_source_id(source_id)
         if not data:
-            print(f"服务器没有{source_id}")
+            print(f"etl db not exist {source_id}")
             return
         data['database'] = data["db_name"]["database"]
         if self.connect_test(data):
@@ -328,11 +327,11 @@ class ExtTableService(object):
                 .first()
             )
             if current_table:
-                print(f"服务器已存在{current_table.table_name}，跳过")
+                print(f"etl db exist {current_table.table_name}, break")
                 continue
 
             if current_table_name in ext_table:
-                print(f"客户数据库已生成{current_table_name}，准备插入")
+                print(f"source_id db exist {current_table_name}，insert to etl db")
                 # 获取相似表的配置，存储到ext_table_info里，并将2月前的表配置为不抓
                 last_one_table = (
                     ExtTableInfo.query
@@ -346,7 +345,7 @@ class ExtTableService(object):
 
                     info["table_name"] = f"{schema}.{current_table_name}"
                     ExtTableInfo.create(**info)
-                    print(f"{current_table_name}插入完成")
+                    print(f"{current_table_name} insert etl db success")
 
                 ExtTableInfo.query\
                     .filter_by(source_id=source_id,
