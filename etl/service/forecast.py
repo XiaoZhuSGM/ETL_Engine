@@ -183,7 +183,6 @@ class ForecastService:
                     f"s3://{BUCKET}/best_selling_and_best_lacking/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
                     sheet_name=0,
                     dtype={"门店ID": str},
-                    usecols=[0, 3],
                 )
                 df.set_index("门店ID", inplace=True)
                 if store_id not in df.index:
@@ -192,7 +191,10 @@ class ForecastService:
                 print(f"{d}:{store_id}:{e}")
                 continue
             data.append(
-                {"date": d.strftime("%Y-%m-%d"), "count": int(df.loc[store_id][0])}
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "count": int(df.loc[store_id]["门店畅缺品 SKU 数（过滤非统配）"]),
+                }
             )
         return data
 
