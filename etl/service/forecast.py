@@ -174,7 +174,7 @@ class ForecastService:
 
     def best_lacking(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=60)
         dates = pd.date_range(start, end, closed="right")
         data = []
         for d in dates:
