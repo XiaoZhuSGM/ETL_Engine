@@ -89,3 +89,14 @@ def sale_amount():
         return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
     data = forecast_service.sale_amount(store_info["cmid"], store_info["store_id"])
     return jsonify_with_data(APIError.OK, data=data)
+
+
+@forecast_api.route("/graph/lost_sales", methods=["GET"])
+def lost_sales():
+    command = request.args.get("command")
+    try:
+        store_info = forecast_service.login(command)
+    except ForecastError as e:
+        return jsonify_with_error(APIError.UNAUTHORIZED, reason=e)
+    data = forecast_service.lost_sales(store_info["cmid"], store_info["store_id"])
+    return jsonify_with_data(APIError.OK, data=data)
