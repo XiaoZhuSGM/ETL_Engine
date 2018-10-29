@@ -72,7 +72,7 @@ class ForecastService:
 
     def lacking_rate(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=60)
         dates = pd.date_range(start, end, closed="right")
         data = []
         for d in dates:
@@ -81,7 +81,6 @@ class ForecastService:
                     f"s3://{BUCKET}/lacking_rate/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
                     sheet_name=0,
                     dtype={"门店ID": str},
-                    usecols=[1, 3, 5],
                 )
                 df.set_index("门店ID", inplace=True)
                 if store_id not in df.index:
@@ -92,8 +91,8 @@ class ForecastService:
             data.append(
                 {
                     "date": d.strftime("%Y-%m-%d"),
-                    "count": int(df.loc[store_id][0]),
-                    "rate": float(df.loc[store_id][1]),
+                    "count": int(df.loc[store_id]["现门店已缺货 SKU 数"]),
+                    "rate": float(df.loc[store_id]["门店缺货率"]),
                 }
             )
         return data
@@ -130,7 +129,7 @@ class ForecastService:
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
         end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=60)
         dates = pd.date_range(start, end, closed="right")
 
         def percent_to_float(x):
@@ -141,7 +140,7 @@ class ForecastService:
             try:
                 df = pd.read_excel(
                     f"s3://{BUCKET}/everyday_delivery_{cmid}/{d.strftime('%Y-%m-%d')}.xlsx",
-                    sheet_name=1,
+                    sheet_name="补货监控",
                     dtype={"门店编码": str},
                     usecols=[0, 10, 11, 12],
                 )
@@ -174,7 +173,7 @@ class ForecastService:
 
     def best_lacking(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=60)
         dates = pd.date_range(start, end, closed="right")
         data = []
         for d in dates:
