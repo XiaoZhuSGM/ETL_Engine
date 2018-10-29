@@ -129,7 +129,7 @@ class ForecastService:
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
         end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=30)
+        start = end - timedelta(days=60)
         dates = pd.date_range(start, end, closed="right")
 
         def percent_to_float(x):
@@ -140,7 +140,7 @@ class ForecastService:
             try:
                 df = pd.read_excel(
                     f"s3://{BUCKET}/everyday_delivery_{cmid}/{d.strftime('%Y-%m-%d')}.xlsx",
-                    sheet_name=1,
+                    sheet_name="补货监控",
                     dtype={"门店编码": str},
                     usecols=[0, 10, 11, 12],
                 )
