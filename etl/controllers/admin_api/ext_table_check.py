@@ -4,7 +4,7 @@ from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.ext_table_check import ExtCheckTable
 
 from . import etl_admin_api
-from etl.models.etl_table import ExtCheckNum
+from etl.models.etl_table import ExtCheckNum, ExtTestQuery
 
 import arrow
 
@@ -29,12 +29,12 @@ def get_ext_check(source_id):
     if data_source is None:
         return jsonify_with_error(APIError.NOTFOUND, "source_id 有误, 请检查source_id是否正确")
     db_name = data_source.get('db_name')
-    if db_name is None:
-        return jsonify_with_error(APIError.BAD_REQUEST, "db_name is missing")
     database = db_name.get('database')
-    if database is None:
-        return jsonify_with_error(APIError.BAD_REQUEST, "database is missing")
+    if not all([db_name, database]):
+        return jsonify_with_error(APIError.BAD_REQUEST, "数据库信息不全，请检查")
+
     data_source['database'] = database
+
     error = ext_check_table.connect_test(**data_source)
     if error:
         return jsonify_with_error(APIError.BAD_REQUEST, "对方数据库连接失败！")
@@ -45,3 +45,44 @@ def get_ext_check(source_id):
     ext_check_table.create_check_num(source_id, num, date)
 
     return jsonify_with_data(APIError.OK, data={'num': num})
+
+
+@etl_admin_api.route("/ext/sql/<source_id>", methods=['POST'])
+def create_sql(source_id):
+    data = request.json
+    sql = data.get('sql')
+    if not sql.startswith("select"):
+        return jsonify_with_error(APIError.VALIDATE_ERROR, "只能执行select")
+
+    data_source = ext_check_table.get_datasource_by_source_id(source_id)
+    if data_source is None:
+        return jsonify_with_error(APIError.NOTFOUND, "source_id 有误, 请检查source_id是否正确")
+    db_name = data_source.get('db_name')
+    database = db_name.get('database')
+    if not all([db_name, database]):
+        return jsonify_with_error(APIError.BAD_REQUEST, "数据库信息不全，请检查")
+
+    data_source['database'] = database
+    error = ext_check_table.connect_test(**data_source)
+    if error:
+        return jsonify_with_error(APIError.BAD_REQUEST, "对方数据库连接失败！")
+
+    result = ext_check_table.execute_sql(sql)
+    if result == "error":
+        return jsonify_with_error(APIError.VALIDATE_ERROR, 'sql错误！')
+    for i in result:
+        table_head = [k for k in i.keys()]
+        return jsonify_with_data(APIError.OK, data={'table_head': table_head, 'result': result})
+
+
+@etl_admin_api.route("/save/sql/<source_id>", methods=['POST'])
+def ext_save_sql(source_id):
+    data = request.json
+    if not data:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, "请输入 sql 语句")
+
+    sql = data.get('sql')
+    print(sql)
+
+    ext_check_table.create_test_query(source_id, sql)
+    return jsonify_with_data(APIError.OK, data={'result': '{}保存成功'.format(source_id)})
