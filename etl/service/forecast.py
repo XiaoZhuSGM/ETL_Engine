@@ -81,7 +81,6 @@ class ForecastService:
                     f"s3://{BUCKET}/lacking_rate/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
                     sheet_name=0,
                     dtype={"门店ID": str},
-                    usecols=[1, 3, 5],
                 )
                 df.set_index("门店ID", inplace=True)
                 if store_id not in df.index:
@@ -92,8 +91,8 @@ class ForecastService:
             data.append(
                 {
                     "date": d.strftime("%Y-%m-%d"),
-                    "count": int(df.loc[store_id][0]),
-                    "rate": float(df.loc[store_id][1]),
+                    "count": int(df.loc[store_id]["现门店已缺货 SKU 数"]),
+                    "rate": float(df.loc[store_id]["门店缺货率"]),
                 }
             )
         return data
