@@ -1395,7 +1395,6 @@ class HongYeCleaner:
         bil_senddtl= self.data["bil_senddtl"].rename(columns=lambda x: f"bil_senddtl.{x}")
         store = self.data["inf_shop_message"].rename(columns=lambda x: f"store.{x}")
         item = self.data["inf_goods"].rename(columns=lambda x: f"item.{x}")
-        bil_send.to_csv("bil_send.csv", index=False)
         bil_send["bil_send.deptcode"] = bil_send["bil_send.deptcode"].str.strip()
         bil_send["bil_send.otherdeptcode"] = bil_send["bil_send.otherdeptcode"].str.strip()
         bil_send["store.deptcode"] = bil_send["bil_send.otherdeptcode"].apply(lambda x: x[:3])
