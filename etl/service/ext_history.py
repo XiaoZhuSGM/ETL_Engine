@@ -13,9 +13,19 @@ class ExtCleanInfoParameterError(Exception):
         return "parameter error"
 
 
-class TaskNotFound(Exception):
+class ExtHistoryTaskNotFound(Exception):
     def __str__(self):
         return "task is not exist"
+
+
+class ExtHistoryParameterMiss(Exception):
+    def __str__(self):
+        return "数据库id,任务类型和表名称是必选项，请重新选择"
+
+
+class ExtHistoryDateError(Exception):
+    def __str__(self):
+        return "数据开始日期或数据结束日期选择错误，请重新选择"
 
 
 class ExtHistoryServices:
@@ -35,6 +45,12 @@ class ExtHistoryServices:
         end_date = data.get("end_date") if data.get("end_date") \
             else (datetime.now() + timedelta(days=-1)).strftime('%Y-%m-%d')
         target_tables = data.get("target_tables")
+
+        if not all([source_id, task_type, target_tables]):
+            raise ExtHistoryParameterMiss()
+
+        if not(start_date <= end_date) or not(end_date <= datetime.now().strftime('%Y-%m-%d')):
+            raise ExtHistoryDateError()
 
         start_tasks.delay(dict(source_id=source_id, task_type=task_type, start_date=start_date,
                                end_date=end_date, target_tables=target_tables))

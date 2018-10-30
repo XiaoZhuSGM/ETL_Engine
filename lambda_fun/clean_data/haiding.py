@@ -2106,7 +2106,6 @@ class HaiDingCleaner:
         part = part[columns]
 
         part['warranty'] = part.apply(lambda row: int(row['warranty']), axis=1)
-        print(part['warranty'])
 
         return part
 
@@ -2364,9 +2363,9 @@ class HaiDingCleaner:
                 suffixes=("", ".sort3"),
             )
         )
+        part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
         if not len(part):
             return pd.DataFrame(columns=columns)
-        part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
@@ -2492,4 +2491,84 @@ class HaiDingCleaner:
             }
         )
         part = part[columns]
+        return part
+
+    def vendor(self):
+        if self.source_id == "43YYYYYYYYYYYYY":
+            return self.vendor_43()
+        else:
+            return self.vendor_67_79_80()
+
+    def vendor_67_79_80(self):
+        columns = [
+            "cmid",
+            "vendor_id",
+            "vendor_show_code",
+            "vendor_name",
+            "vendor_address",
+            "contacts",
+            "phone_number",
+            "vendor_status",
+            "vendor_type",
+            "source_id",
+            "last_updated"
+        ]
+        vendor = self.data.get("vendor")
+        if len(vendor) == 0:
+            return pd.DataFrame(columns=columns)
+
+        vendor["cmid"] = self.cmid
+        vendor["source_id"] = self.source_id
+        vendor["last_updated"] = str(datetime.now(_TZINFO))
+
+        vendor = vendor.rename(
+            columns={
+                "gid": "vendor_id",
+                "code": "vendor_show_code",
+                "name": "vendor_name",
+                "address": "vendor_address",
+                "contactor": "contacts",
+                "ctrphone": "phone_number",
+                "vdrstat": "vendor_status",
+                "vdrtype": "vendor_type"
+            }
+        )
+        part = vendor[columns]
+        return part
+
+    def vendor_43(self):
+        columns = [
+            "cmid",
+            "vendor_id",
+            "vendor_show_code",
+            "vendor_name",
+            "vendor_address",
+            "contacts",
+            "phone_number",
+            "vendor_status",
+            "vendor_type",
+            "source_id",
+            "last_updated"
+        ]
+        vendor = self.data.get("vendor")
+        if len(vendor) == 0:
+            return pd.DataFrame(columns=columns)
+
+        vendor["cmid"] = self.cmid
+        vendor["source_id"] = self.source_id
+        vendor["last_updated"] = str(datetime.now(_TZINFO))
+
+        vendor = vendor.rename(
+            columns={
+                "gid": "vendor_id",
+                "code": "vendor_show_code",
+                "name": "vendor_name",
+                "address": "vendor_address",
+                "contactor": "contacts",
+                "tele": "phone_number",
+                "vendorstat": "vendor_status",
+                "vdrtype": "vendor_type"
+            }
+        )
+        part = vendor[columns]
         return part

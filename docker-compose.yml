@@ -34,7 +34,7 @@ services:
     depends_on:
       - redis
     stop_signal:
-      SIGINT
+      SIGTERM
   redis:
     image: redis:4
   nginx-proxy:

@@ -168,64 +168,49 @@ def handler(event, context):
 
     elif erp_name == "易客来":
         from yikelai import HongYeCleaner
+
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
+
+    elif erp_name == "中山及时中间库":
+        from zhongshanjishi import clean_jishi
+
+        return clean_jishi(source_id, date, target_table, data_frames)
 
 
 if __name__ == "__main__":
     event = {
-        "source_id": "56YYYYYYYYYYYYY",
+        "source_id": "72YYYYYYYYYYYYY",
         "erp_name": "思迅",
-        "date": "2018-10-08",
-        "target_table": "goods_loss",
+        "date": "2018-10-21",
+        "target_table": "goodsflow",
         "origin_table_columns": {
             "t_bd_branch_info": ["branch_no", "branch_name"],
-            "t_bd_item_cls": ["item_clsno"],
-            "t_bd_item_info": [
-                "item_no",
-                "item_subno",
-                "item_name",
-                "unit_no",
-                "item_clsno",
-            ],
-            "t_im_check_master": [
-                "check_no",
+            "t_bd_item_cls": ["item_clsno", "item_clsname"],
+            "t_bd_item_info": ["item_no", "item_clsno", "item_name", "unit_no"],
+            "t_rm_saleflow": [
                 "branch_no",
-                "sheet_no",
-                "oper_date",
-                "approve_flag",
-            ],
-            "t_im_check_sum": [
                 "item_no",
-                "sheet_no",
-                "branch_no",
-                "balance_qty",
                 "sale_price",
+                "sale_qnty",
+                "sell_way",
+                "sale_money",
+                "flow_no",
+                "oper_date",
             ],
         },
         "converts": {
             "t_bd_branch_info": {"branch_no": "str"},
             "t_bd_item_cls": {"item_clsno": "str"},
-            "t_bd_item_info": {
-                "item_clsno": "str",
-                "item_name": "str",
-                "item_no": "str",
-                "item_subno": "str",
-                "unit_no": "str",
-            },
-            "t_im_check_master": {
-                "approve_flag": "str",
+            "t_bd_item_info": {"item_clsno": "str", "item_no": "str"},
+            "t_rm_saleflow": {
                 "branch_no": "str",
-                "check_no": "str",
-                "oper_date": "str",
-                "sheet_no": "str",
-            },
-            "t_im_check_sum": {
-                "balance_qty": "str",
-                "branch_no": "str",
+                "flow_no": "str",
                 "item_no": "str",
+                "sale_money": "float",
                 "sale_price": "float",
-                "sheet_no": "str",
+                "sale_qnty": "float",
+                "sell_way": "str",
             },
         },
     }

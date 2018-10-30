@@ -9,17 +9,12 @@ from datetime import datetime, timedelta
 import os
 
 
-Base = automap_base()
-
-engine = create_engine(config[os.getenv("ETL_ENVIREMENT", "dev")].AIRFLOW_DB_URL)
-
-Base.prepare(engine, reflect=True)
-
-Session = db.create_scoped_session(options={"bind": engine})
-
-
 @etl_admin_api.route("/ext/airflow/tasks/status", methods=["GET"])
 def get_airflow_tasks_status():
+    Base = automap_base()
+    engine = create_engine(config[os.getenv("ETL_ENVIREMENT", "dev")].AIRFLOW_DB_URL)
+    Base.prepare(engine, reflect=True)
+    Session = db.create_scoped_session(options={"bind": engine})
     session = Session()
     TaskInstance = Base.classes.task_instance
     start_date = request.args.get("start_date", "1970-01-01")
