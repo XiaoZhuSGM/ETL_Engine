@@ -1,3 +1,7 @@
+import datetime
+import decimal
+import json
+
 from sqlalchemy import create_engine, inspect
 
 from etl.models import session_scope
@@ -49,9 +53,22 @@ class ExtCheckTable(object):
         except Exception as e:
             return repr(e)
 
-    def execute_sql(self, sql, date, source_id):
-        rows = self.conn.execute(sql).fetchall()
-        record_num = rows[0][0]
+    def alchemyencoder(self, obj):
+        """JSON encoder function for SQLAlchemy special classes."""
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+        elif isinstance(obj, decimal.Decimal):
+            return float(obj)
+
+    def execute_sql(self, sql):
+        try:
+            rows = self.conn.execute(sql)
+        except Exception:
+            return "error"
+        rows = rows.fetchall()
+        record_num = json.dumps([dict(r) for r in rows], default=self.alchemyencoder)
+        record_num = json.loads(record_num)
+
         self.conn.close()
         return record_num
 
@@ -77,7 +94,7 @@ class ExtCheckTable(object):
         ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table="cost").first()
         if ext_test_query:
             sql = ext_test_query.query_sql.format(date=date)
-            num = self.execute_sql(sql, date, source_id)
+            num = self.execute_sql(sql)
             return num
         else:
             return None
@@ -89,3 +106,11 @@ class ExtCheckTable(object):
             ext_check_num.update(num=num)
         else:
             ExtCheckNum(source_id=source_id, num=num, date=date).save()
+
+    @session_scope
+    def create_test_query(self, source_id, sql):
+        ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table='cost').first()
+        if ext_test_query:
+            ext_test_query.update(query_sql=sql)
+        else:
+            ExtTestQuery(source_id=source_id, target_table='cost', query_sql=sql).save()
