@@ -42,19 +42,21 @@ def get_ext_check(source_id):
     if num is None:
         return jsonify_with_error(APIError.NOTFOUND, "sql not found")
 
+    num = num[0].get('')
     ext_check_table.create_check_num(source_id, num, date)
 
     return jsonify_with_data(APIError.OK, data={'num': num})
 
 
-@etl_admin_api.route("/ext/sql/<source_id>", methods=['POST'])
-def create_sql(source_id):
+@etl_admin_api.route("/ext/sql", methods=['POST'])
+def create_sql():
     data = request.json
     sql = data.get('sql')
-    if not sql.startswith("select"):
-        return jsonify_with_error(APIError.VALIDATE_ERROR, "只能执行select")
+    source_id = data.get('source_id')
+    if not all([source_id, sql]):
+        return jsonify_with_error(APIError.VALIDATE_ERROR, '参数不全')
 
-    data_source = ext_check_table.get_datasource_by_source_id(source_id)
+    data_source = ext_check_table.get_datasource_by_source_id(source_id.upper())
     if data_source is None:
         return jsonify_with_error(APIError.NOTFOUND, "source_id 有误, 请检查source_id是否正确")
     db_name = data_source.get('db_name')
@@ -75,14 +77,13 @@ def create_sql(source_id):
         return jsonify_with_data(APIError.OK, data={'table_head': table_head, 'result': result})
 
 
-@etl_admin_api.route("/save/sql/<source_id>", methods=['POST'])
-def ext_save_sql(source_id):
+@etl_admin_api.route("/save/sql", methods=['POST'])
+def ext_save_sql():
     data = request.json
-    if not data:
-        return jsonify_with_error(APIError.VALIDATE_ERROR, "请输入 sql 语句")
-
     sql = data.get('sql')
-    print(sql)
+    source_id = data.get('source_id')
+    if not all([sql, source_id]):
+        return jsonify_with_error(APIError.VALIDATE_ERROR, '参数有误')
 
     ext_check_table.create_test_query(source_id, sql)
     return jsonify_with_data(APIError.OK, data={'result': '{}保存成功'.format(source_id)})

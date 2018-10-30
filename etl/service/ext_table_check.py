@@ -61,7 +61,10 @@ class ExtCheckTable(object):
             return float(obj)
 
     def execute_sql(self, sql):
-        rows = self.conn.execute(sql)
+        try:
+            rows = self.conn.execute(sql)
+        except Exception:
+            return "error"
         rows = rows.fetchall()
         record_num = json.dumps([dict(r) for r in rows], default=self.alchemyencoder)
         record_num = json.loads(record_num)
