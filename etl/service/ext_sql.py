@@ -180,15 +180,15 @@ class DatasourceSqlService(object):
             db.session.query(ExtCleanInfo)
             .filter(
                 ExtCleanInfo.source_id == source_id,
-                ExtCleanInfo.target_table.in_(target_table))
+                ExtCleanInfo.deleted == False,
+                ExtCleanInfo.target_table.in_(target_table)
+            )
             .all()
         )
-
         origin_table = set()
         for model in ext_clean_info_models:
             if model.origin_table:
                 origin_table.update(model.origin_table.keys())
-
         total_table = []
         for table_name in origin_table:
             tables = (
@@ -199,6 +199,7 @@ class DatasourceSqlService(object):
                 .filter(
                     or_(
                         ExtTableInfo.table_name.like(f"%.{table_name}"),
+                        ExtTableInfo.table_name == f"{table_name}",
                         ExtTableInfo.alias_table_name == table_name
                     )
                 )
@@ -213,7 +214,6 @@ class DatasourceSqlService(object):
             "source_id": source_id,
             "sqls": self._generate_by_correct_mould(total_table, extract_date),
         }
-
         file_name = str(now_timestamp()) + ".json"
         key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
