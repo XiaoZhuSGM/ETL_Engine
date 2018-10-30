@@ -200,7 +200,7 @@ class ForecastService:
     def lost_sales(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
-        dates = pd.date_range(start, end, closed="right")
+        dates = pd.date_range(start.replace(day=1), end, closed="right")
         data = []
         month_data = defaultdict(dict)
         for d in dates:
@@ -227,7 +227,7 @@ class ForecastService:
             info["month_lost_sales"] = month_data[info["date"].month]["sales"]
             info["month_lost_gross"] = month_data[info["date"].month]["gross"]
             info["date"] = info["date"].strftime("%Y-%m-%d")
-        return data
+        return data[-60:]
 
     def sale_amount(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
