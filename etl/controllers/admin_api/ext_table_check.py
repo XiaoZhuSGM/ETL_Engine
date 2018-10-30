@@ -39,10 +39,10 @@ def get_ext_check(source_id):
     if error:
         return jsonify_with_error(APIError.BAD_REQUEST, "对方数据库连接失败！")
     num = ext_check_table.get_target_num(source_id, date)
-    if num is None:
+    if not num:
         return jsonify_with_error(APIError.NOTFOUND, "sql not found")
 
-    num = num[0].get('')
+    num = list(num[0].values())[0]
     ext_check_table.create_check_num(source_id, num, date)
 
     return jsonify_with_data(APIError.OK, data={'num': num})

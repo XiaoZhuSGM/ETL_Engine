@@ -18,7 +18,7 @@ class TestExtTableCheck:
         }
         res = client.post(
             url_for("admin_api.create_sql"),
-            data=(json.dumps(data)),
+            data=json.dumps(data),
             headers={"token": token},
             content_type="application/json",
         )
@@ -32,7 +32,7 @@ class TestExtTableCheck:
         }
         res = client.post(
             url_for("admin_api.ext_save_sql"),
-            data=(json.dumps(data)),
+            data=json.dumps(data),
             headers={"token": token},
             content_type="application/json",
         )
