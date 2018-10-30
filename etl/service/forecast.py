@@ -197,6 +197,38 @@ class ForecastService:
             )
         return data
 
+    def lost_sales(self, cmid, store_id):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start.replace(day=1), end, closed="right")
+        data = []
+        month_data = defaultdict(dict)
+        for d in dates:
+            try:
+                df = pd.read_csv(
+                    f"s3://replenish/lost_sales/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.csv",
+                    dtype={"foreign_store_id": "str"},
+                )
+                df.set_index("foreign_store_id", inplace=True)
+            except Exception as e:
+                print(e)
+                continue
+            _lost_sales = df.loc[store_id]["lost_sales"]
+            _lost_gross = df.loc[store_id]["lost_gross"]
+            month_data[d.month].setdefault("sales", 0)
+            month_data[d.month].setdefault("gross", 0)
+            month_data[d.month]["sales"] += _lost_sales
+            month_data[d.month]["gross"] += _lost_gross
+            data.append(
+                {"date": d, "lost_sales": _lost_sales, "lost_gross": _lost_gross}
+            )
+
+        for info in data:
+            info["month_lost_sales"] = month_data[info["date"].month]["sales"]
+            info["month_lost_gross"] = month_data[info["date"].month]["gross"]
+            info["date"] = info["date"].strftime("%Y-%m-%d")
+        return data[-60:]
+
     def sale_amount(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -204,54 +236,61 @@ class ForecastService:
         data = []
         for d in dates:
             try:
-                year, month, day = str(d.date()).split('-')
-                df = dd.read_csv(f"s3://standard-data/{year}/{month}/{day}/{cmid.ljust(15, 'Y')}/cost/*.gz",
-                                 compression="gzip",
-                                 blocksize=None,
-                                 names=[
-                                     'source_id',
-                                     'foreign_store_id',
-                                     'foreign_item_id',
-                                     'date',
-                                     'cost_type',
-                                     'total_quantity',
-                                     'total_sale',
-                                     'total_cost',
-                                     'foreign_category_lv1',
-                                     'foreign_category_lv2',
-                                     'foreign_category_lv3',
-                                     'foreign_category_lv4',
-                                     'foreign_category_lv5',
-                                     'cmid'
-                                 ],
-                                 dtype={
-                                     'source_id': str,
-                                     'foreign_store_id': str,
-                                     'foreign_item_id': str,
-                                     'date': str,
-                                     'cost_type': str,
-                                     'total_quantity': float,
-                                     'total_sale': float,
-                                     'total_cost': float,
-                                     'foreign_category_lv1': str,
-                                     'foreign_category_lv2': str,
-                                     'foreign_category_lv3': str,
-                                     'foreign_category_lv4': str,
-                                     'foreign_category_lv5': str,
-                                     'cmid': str
-                                 },
-                                 usecols=[
-                                     'foreign_store_id',
-                                     'foreign_item_id',
-                                     'date',
-                                     'total_quantity',
-                                     'total_sale',
-                                     'total_cost',
-                                     'foreign_category_lv1'
-                                 ])
+                year, month, day = str(d.date()).split("-")
+                df = dd.read_csv(
+                    f"s3://standard-data/{year}/{month}/{day}/{cmid.ljust(15, 'Y')}/cost/*.gz",
+                    compression="gzip",
+                    blocksize=None,
+                    names=[
+                        "source_id",
+                        "foreign_store_id",
+                        "foreign_item_id",
+                        "date",
+                        "cost_type",
+                        "total_quantity",
+                        "total_sale",
+                        "total_cost",
+                        "foreign_category_lv1",
+                        "foreign_category_lv2",
+                        "foreign_category_lv3",
+                        "foreign_category_lv4",
+                        "foreign_category_lv5",
+                        "cmid",
+                    ],
+                    dtype={
+                        "source_id": str,
+                        "foreign_store_id": str,
+                        "foreign_item_id": str,
+                        "date": str,
+                        "cost_type": str,
+                        "total_quantity": float,
+                        "total_sale": float,
+                        "total_cost": float,
+                        "foreign_category_lv1": str,
+                        "foreign_category_lv2": str,
+                        "foreign_category_lv3": str,
+                        "foreign_category_lv4": str,
+                        "foreign_category_lv5": str,
+                        "cmid": str,
+                    },
+                    usecols=[
+                        "foreign_store_id",
+                        "foreign_item_id",
+                        "date",
+                        "total_quantity",
+                        "total_sale",
+                        "total_cost",
+                        "foreign_category_lv1",
+                    ],
+                )
                 cost_data = df.compute()
                 cost_data = cost_data[cost_data["foreign_store_id"] == store_id]
-                data.append({"date": d.strftime("%Y-%m-%d"), "total_sale": cost_data["total_sale"].sum()})
+                data.append(
+                    {
+                        "date": d.strftime("%Y-%m-%d"),
+                        "total_sale": cost_data["total_sale"].sum(),
+                    }
+                )
             except Exception as e:
                 print(e)
             finally:
