@@ -289,14 +289,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv3"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv2"],
@@ -409,14 +409,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(
+            .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-                .merge(
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -431,7 +431,7 @@ class HongYeCleaner:
                 (~part1["flowno"].str.contains("NNN", regex=False))
                 & (part1["deptcode"].notnull())
                 & (part1["gdsincode"].notnull())
-                ]
+            ]
             part1["cmid"] = self.cmid
             part1["source_id"] = self.source_id
             part1["consumer_id"] = ""
@@ -483,14 +483,14 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(
+            .merge(
                 inf_goods,
                 how="left",
                 left_on=["gdsincode"],
                 right_on=["gdsincode"],
                 suffixes=("", ".inf_goods"),
             )
-                .merge(
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -506,7 +506,7 @@ class HongYeCleaner:
                 (~part2["flowno"].str.contains("NNN", regex=False))
                 & (part2["deptcode"].notnull())
                 & (part2["gdsincode"].notnull())
-                ]
+            ]
             part2["cmid"] = self.cmid
             part2["source_id"] = self.source_id
             part2["consumer_id"] = ""
@@ -732,21 +732,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-                .merge(
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier"],
                 right_on=["unitcode"],
                 suffixes=("", ".inf_tradeunit"),
             )
-                .merge(
+            .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-                .merge(
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -803,21 +803,21 @@ class HongYeCleaner:
                 right_on=["circlevalue"],
                 suffixes=("", ".inf_goods_salecircle"),
             )
-                .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
-                .merge(
+            .merge(inf_brand, how="left", on=["brandcode"], suffixes=("", ".inf_brand"))
+            .merge(
                 inf_tradeunit,
                 how="left",
                 left_on=["lastsupplier"],
                 right_on=["unitcode"],
                 suffixes=("", ".inf_tradeunit"),
             )
-                .merge(
+            .merge(
                 sys_sendmode,
                 how="left",
                 on=["sendmode"],
                 suffixes=("", ".sys_sendmode"),
             )
-                .merge(
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -863,7 +863,7 @@ class HongYeCleaner:
 
         result = pd.concat([part1, part2])
 
-        result['supplier_code'] = result['supplier_code'].str.strip()
+        result["supplier_code"] = result["supplier_code"].str.strip()
 
         return pd.concat([part1, part2])
 
@@ -871,21 +871,35 @@ class HongYeCleaner:
         spec = self.data["inf_goods_more"]
         goods = self.data["inf_goods"]
         cmid = self.cmid
-        frames = spec.merge(goods, how='left', on='gdsincode')
-        frames['cmid'] = cmid
-        frames['specs'] = ""
-        frames = frames.rename(columns={
-            "stripecode": "barcode",
-            "gdsincode": "foreign_item_id",
-            "gdsname": "item_name",
-            "single_length": "length",
-            "single_width": "width",
-            "single_high": "high",
-            "single_weight": "weight",
-            "single_volume": "volume"
-        })
-        frames = frames[['cmid', 'barcode', 'foreign_item_id', 'item_name', 'length', 'width', 'high', 'weight',
-                         'volume', 'specs']]
+        frames = spec.merge(goods, how="left", on="gdsincode")
+        frames["cmid"] = cmid
+        frames["specs"] = ""
+        frames = frames.rename(
+            columns={
+                "stripecode": "barcode",
+                "gdsincode": "foreign_item_id",
+                "gdsname": "item_name",
+                "single_length": "length",
+                "single_width": "width",
+                "single_high": "high",
+                "single_weight": "weight",
+                "single_volume": "volume",
+            }
+        )
+        frames = frames[
+            [
+                "cmid",
+                "barcode",
+                "foreign_item_id",
+                "item_name",
+                "length",
+                "width",
+                "high",
+                "weight",
+                "volume",
+                "specs",
+            ]
+        ]
         return frames
 
     def category(self):
@@ -1009,14 +1023,14 @@ class HongYeCleaner:
                 right_on=["classcode"],
                 suffixes=("", ".lv3"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv3"],
                 right_on=["classcode"],
                 suffixes=("", ".lv2"),
             )
-                .merge(
+            .merge(
                 inf_goodsclass,
                 how="left",
                 left_on=["fatherclass.lv2"],
@@ -1190,8 +1204,8 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-                .merge(
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
                 subquery1,
                 how="inner",
                 left_on=["classcode"],
@@ -1246,8 +1260,8 @@ class HongYeCleaner:
                 right_on=["deptcode"],
                 suffixes=("", ".inf_shop_message"),
             )
-                .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
-                .merge(
+            .merge(inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods"))
+            .merge(
                 subquery2,
                 how="inner",
                 left_on=["classcode"],
@@ -1348,8 +1362,8 @@ class HongYeCleaner:
         )
         part = part[columns]
 
-        part['foreign_store_id'] = part['foreign_store_id'].str.strip()
-        part['show_code'] = part['show_code'].str.strip()
-        part['area_code'] = part['area_code'].str.strip()
+        part["foreign_store_id"] = part["foreign_store_id"].str.strip()
+        part["show_code"] = part["show_code"].str.strip()
+        part["area_code"] = part["area_code"].str.strip()
 
         return part
