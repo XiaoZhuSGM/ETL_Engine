@@ -93,7 +93,6 @@ def start_ext(self, source_id, start_date, end_date, target_tables, task_id, per
 
     # 正式开始执行任务
     while start_date <= end_date:
-        print(end_date)
         # 开始抓数
         flag, remark = ext(source_id, end_date, target_tables)
         if not flag:
@@ -157,19 +156,31 @@ def ext(source_id, end_date, target_tables):
     payload_str = payload_body.read()
     response = json.loads(payload_str)
 
+    errmsg = None
     if 'FunctionError' in invoke_response:
-        print(f"lambda抓数失败，开始调用接口")
+        print(f"{source_id}lambda抓数失败，开始调用接口")
         try:
             response = json.loads(worker.handler(event, None))
+            extract_data = response.get("extract_data")
+            flag = check_ext_result(source_id, end_date, filename, extract_data)
         except Exception as e:
-            print(f"调用接口抓数失败，errmsg:{str(e)}")
-            return False, str(e)
-    # 核对抓数结果
-    extract_data = response.get("extract_data")
+            print(f"{source_id}调用接口抓数失败，errmsg:{str(e)}")
+            flag, errmsg = False, str(e)
+    else:
+        # 核对抓数结果
+        extract_data = response.get("extract_data")
+        flag = check_ext_result(source_id, end_date, filename, extract_data)
+        if not flag:
+            print(f"{source_id}lambda抓数核对失败，开始调用抓数接口")
+            try:
+                response = json.loads(worker.handler(event, None))
+                extract_data = response.get("extract_data")
+                flag = check_ext_result(source_id, end_date, filename, extract_data)
+            except Exception as e:
+                print(f"调用接口抓数失败，errmsg:{str(e)}")
+                flag, errmsg = False, str(e)
 
-    flag = check_ext_result(source_id, end_date, filename, extract_data)
-
-    return flag, None
+    return flag, errmsg
 
 
 def load(source_id, end_date, target_tables):
@@ -339,3 +350,4 @@ def date_reduce_one_data(date):
     date -= timedelta(days=1)
     date = date.strftime("%Y-%m-%d")
     return date
+
