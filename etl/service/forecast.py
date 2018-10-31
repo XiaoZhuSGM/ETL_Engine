@@ -92,7 +92,7 @@ class ForecastService:
                 {
                     "date": d.strftime("%Y-%m-%d"),
                     "count": int(df.loc[store_id]["现门店已缺货 SKU 数"]),
-                    "rate": float(df.loc[store_id]["门店缺货率"]),
+                    "rate": round(float(df.loc[store_id]["门店缺货率"]), 3),
                 }
             )
         return data
@@ -118,13 +118,13 @@ class ForecastService:
             achieved.append(
                 {
                     "store": store_name,
-                    "achieved": row["total_sale"] / row["target"],
-                    "sales": row["total_sale"],
-                    "target": row["target"],
+                    "achieved": round(row["total_sale"] / row["target"], 3),
+                    "sales": round(row["total_sale"], 3),
+                    "target": round(row["target"], 3),
                 }
             )
         achieved.sort(key=lambda x: x["achieved"])
-        return {"achieved": achieved, "should_achieve": should_achieve}
+        return {"achieved": achieved, "should_achieve": round(should_achieve, 3)}
 
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
@@ -133,7 +133,7 @@ class ForecastService:
         dates = pd.date_range(start, end, closed="right")
 
         def percent_to_float(x):
-            return float(x[:-1]) / 100
+            return round(float(x[:-1]) / 100, 3)
 
         data = []
         for d in dates:
@@ -145,19 +145,14 @@ class ForecastService:
                     usecols=[0, 10, 11, 12],
                 )
                 df.set_index("门店编码", inplace=True)
-                if show_code not in df.index:
-                    print(f"{d}:{show_code}:no show_code")
-                    continue
             except Exception as e:
                 print(f"{d}:{show_code}:{e}")
                 continue
-            try:
-                so = df.loc[show_code][0]
-                om = df.loc[show_code][1]
-                us = df.loc[show_code][2]
-            except Exception as e:
-                print(f"{d}:{show_code}:{e}")
+            if show_code not in df.index:
                 continue
+            so = df.loc[show_code][0]
+            om = df.loc[show_code][1]
+            us = df.loc[show_code][2]
             if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
                 continue
             data.append(
@@ -220,12 +215,16 @@ class ForecastService:
             month_data[d.month]["sales"] += _lost_sales
             month_data[d.month]["gross"] += _lost_gross
             data.append(
-                {"date": d, "lost_sales": _lost_sales, "lost_gross": _lost_gross}
+                {
+                    "date": d,
+                    "lost_sales": round(_lost_sales, 3),
+                    "lost_gross": round(_lost_gross, 3),
+                }
             )
 
         for info in data:
-            info["month_lost_sales"] = month_data[info["date"].month]["sales"]
-            info["month_lost_gross"] = month_data[info["date"].month]["gross"]
+            info["month_lost_sales"] = round(month_data[info["date"].month]["sales"], 3)
+            info["month_lost_gross"] = round(month_data[info["date"].month]["gross"], 3)
             info["date"] = info["date"].strftime("%Y-%m-%d")
         return data[-60:]
 
@@ -288,7 +287,7 @@ class ForecastService:
                 data.append(
                     {
                         "date": d.strftime("%Y-%m-%d"),
-                        "total_sale": cost_data["total_sale"].sum(),
+                        "total_sale": round(cost_data["total_sale"].sum(), 3),
                     }
                 )
             except Exception as e:
