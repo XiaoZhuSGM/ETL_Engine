@@ -75,6 +75,7 @@ class ExtHistoryServices:
             total = len(items)
         return dict(items=[task.to_dict() for task in items], total=total)
 
+    @session_scope
     def stop_stak(self):
         """停止任务"""
         task_id = request.args.get("task_id")
@@ -105,7 +106,6 @@ class ExtHistoryServices:
 
         return data
 
-    @session_scope
     def set_task_status(self, task_id, status):
         """设置任务状态"""
         ext_history_task = ExtHistoryTask.query.filter_by(task_id=task_id).first()
