@@ -159,7 +159,7 @@ class ExtCleanInfoService:
             if ext_table.alias_table_name:
                 ext_table_column_dict[ext_table.alias_table_name] = ext_table.ext_column
             else:
-                ext_table_column_dict[ext_table.table_name.split(".")[-1]] = ext_table.ext_column
+                ext_table_column_dict[ext_table.table_name.split(".")[-1].lower()] = ext_table.ext_column
 
         for data in data_list:
             table_name = data.get("origin_table")
@@ -194,7 +194,7 @@ class ExtCleanInfoService:
             raise ExtTableInfoNotFound(source_id)
         for ext_table in ext_table_infos:
             table_name = ext_table.alias_table_name if ext_table.alias_table_name \
-                else ext_table.table_name.split(".")[-1]
+                else ext_table.table_name.split(".")[-1].lower()
             if table_name not in tables:
                 tables.append(table_name)
         return tables
