@@ -46,6 +46,7 @@ def lacking_view_best_lacking():
     data = boss_service.best_lacking(boss_info["cmid"])
     return jsonify_with_data(APIError.OK, data=data)
 
+
 @forecast_api.route("/lacking_view/stores")
 def lacking_view_stores():
     command = request.args.get("command")

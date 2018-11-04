@@ -139,7 +139,7 @@ class ForecastService:
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
         end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=60)
+        start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
 
         data = []
@@ -237,7 +237,7 @@ class ForecastService:
 
     def sale_amount(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=60)
+        start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
         data = []
         for d in dates:
