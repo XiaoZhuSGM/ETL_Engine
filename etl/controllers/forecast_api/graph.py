@@ -5,6 +5,7 @@ from etl.service.forecast import (
     store_hash,
     r_store_hash,
     enterprise_hash,
+    boss_hash,
 )
 from flask import request
 
@@ -25,6 +26,16 @@ def authorize():
         stores = r_store_hash[enterprise_hash[command]]
         data = {
             "type": "enterprise",
+            "info": [
+                {"store": v["store_name"], "command": v["command"]}
+                for v in stores.values()
+            ],
+        }
+        return jsonify_with_data(APIError.OK, data=data)
+    elif command in boss_hash:
+        stores = r_store_hash[boss_hash[command]]
+        data = {
+            "type": "boss",
             "info": [
                 {"store": v["store_name"], "command": v["command"]}
                 for v in stores.values()
