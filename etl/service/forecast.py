@@ -544,7 +544,7 @@ class BossService:
         for _, row in suggest_times_and_same_times.iterrows():
             foreign_item_id = row["foreign_item_id"]
             if item_id and foreign_item_id != item_id:
-                    continue
+                continue
             if any(
                 foreign_item_id not in df.index
                 for df in (avg_voc, before_suggest, all_goods)
