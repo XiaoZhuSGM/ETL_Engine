@@ -89,7 +89,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             "dh": "receipt_id",
             "id_hyk": "consumer_id",
             "rq": "saletime",
-            "bm_item": "foreign_item_id",
+            "id_item": "foreign_item_id",
             "barcode": "barcode",
             "mc_item": "item_name",
             "jldw": "item_unit",
@@ -141,7 +141,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames["cmid"] = cmid
         frames = frames.rename(columns={
             "store.id": "foreign_store_id",
-            "item.bm": "foreign_item_id",
+            "item.id": "foreign_item_id",
             "cost.sl_ls": "total_quantity",
             "cost.je_hs_ls": "total_sale",
             "cost.je_cb_hs_ls": "total_cost",
