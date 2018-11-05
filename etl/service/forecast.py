@@ -48,11 +48,21 @@ enterprise_hash = {
     "8cae": "58",
     "7e88": "79",
 }
+
+boss_hash = {
+    "46a4": "43",
+    "4f23": "58",
+    "1b4d": "79",
+}
 # fmt: on
 
 r_store_hash: dict = defaultdict(dict)
 for command, info in store_hash.items():
     r_store_hash[info["cmid"]][info["store_id"]] = {"command": command, **info}
+
+
+def percent_to_float(x):
+    return round(float(x[:-1]) / 100, 3)
 
 
 class ForecastError(Exception):
@@ -129,11 +139,8 @@ class ForecastService:
     def order_rate(self, cmid, store_id):
         show_code = r_store_hash[cmid][store_id]["show_code"]
         end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=60)
+        start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
-
-        def percent_to_float(x):
-            return round(float(x[:-1]) / 100, 3)
 
         data = []
         for d in dates:
@@ -230,7 +237,7 @@ class ForecastService:
 
     def sale_amount(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=60)
+        start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
         data = []
         for d in dates:
@@ -295,4 +302,173 @@ class ForecastService:
             finally:
                 pass
 
+        return data
+
+
+class BossService:
+    start_at = {"79": "2018-10-09", "43": "2018-09-10", "58": "2018-09-10"}
+
+    def login(self, command):
+        cmid = boss_hash.get(command)
+        if not cmid:
+            raise ForecastError("command not found")
+        return {"cmid": cmid}
+
+    def lacking_rate(self, cmid):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                df = pd.read_excel(
+                    f"s3://{BUCKET}/lacking_rate/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
+                    sheet_name=0,
+                    dtype={"门店ID": str},
+                )
+            except Exception as e:
+                print(f"{d}:{cmid}:{e}")
+                continue
+            less_than_5 = df[df["门店缺货率"] <= 0.05].shape[0]
+            between_5_and_7 = df[(0.05 < df["门店缺货率"]) & (df["门店缺货率"] <= 0.07)].shape[0]
+            between_7_and_10 = df[(0.07 < df["门店缺货率"]) & (df["门店缺货率"] <= 0.10)].shape[0]
+            more_than_10 = df[0.10 < df["门店缺货率"]].shape[0]
+            data.append(
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "less_than_5": less_than_5,
+                    "between_5_and_7": between_5_and_7,
+                    "between_7_and_10": between_7_and_10,
+                    "more_than_10": more_than_10,
+                }
+            )
+        return {"data": data, "start_at": self.start_at[cmid]}
+
+    def lost_sales(self, cmid):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                df = pd.read_csv(
+                    f"s3://{BUCKET}/lost_sales/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.csv",
+                    dtype={"foreign_store_id": str},
+                )
+            except Exception as e:
+                print(f"{d}:{cmid}:{e}")
+                continue
+            lost_sales_ = df["lost_sales"].sum()
+            lost_gross = df["lost_gross"].sum()
+            data.append(
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "lost_sales": lost_sales_,
+                    "lost_gross": lost_gross,
+                }
+            )
+        return {"data": data, "start_at": self.start_at[cmid]}
+
+    def best_lacking(self, cmid):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            print(d)
+            try:
+                df = pd.read_excel(
+                    f"s3://{BUCKET}/best_selling_and_best_lacking/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
+                    sheet_name=0,
+                    dtype={"门店ID": str},
+                )
+            except Exception as e:
+                print(f"{d}:{cmid}:{e}")
+                continue
+            less_than_0 = df[df["门店畅缺品 SKU 数（过滤非统配）"] <= 0].shape[0]
+            between_1_and_3 = df[
+                (1 <= df["门店畅缺品 SKU 数（过滤非统配）"]) & (df["门店畅缺品 SKU 数（过滤非统配）"] <= 3)
+            ].shape[0]
+            between_4_and_7 = df[
+                (4 <= df["门店畅缺品 SKU 数（过滤非统配）"]) & (df["门店畅缺品 SKU 数（过滤非统配）"] <= 7)
+            ].shape[0]
+            more_than_7 = df[7 < df["门店畅缺品 SKU 数（过滤非统配）"]].shape[0]
+            data.append(
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "less_than_0": less_than_0,
+                    "between_1_and_3": between_1_and_3,
+                    "between_4_and_7": between_4_and_7,
+                    "more_than_7": more_than_7,
+                }
+            )
+        return {"data": data, "start_at": self.start_at[cmid]}
+
+    def stores(self, cmid):
+        store_infos = r_store_hash[cmid]
+        data = []
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        order_matchs = defaultdict(lambda: defaultdict(float))
+        for d in dates:
+            try:
+                df = pd.read_excel(
+                    f"s3://{BUCKET}/everyday_delivery_{cmid}/{d.strftime('%Y-%m-%d')}.xlsx",
+                    sheet_name="补货监控",
+                    dtype={"门店编码": str},
+                    usecols=[0, 10, 11, 12],
+                )
+                df.set_index("门店编码", inplace=True)
+            except Exception as e:
+                print(f"{d}:{cmid}:{e}")
+                continue
+            for code in df.index:
+                om = df.loc[code][0]
+                if not isinstance(om, str):
+                    continue
+                order_matchs[code]["amount"] += percent_to_float(om)
+                order_matchs[code]["count"] += 1
+        lack_rates = {}
+        objs = sorted(
+            s3.Bucket(BUCKET).objects.filter(
+                Prefix=f"lacking_rate/{cmid.ljust(15, 'Y')}/"
+            ),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[:2]
+        for obj in objs:
+            df = pd.read_excel(
+                f"s3://{BUCKET}/{obj.key}", sheet_name=0, dtype={"门店ID": str}
+            )
+            df.set_index("门店ID", inplace=True)
+            for store_id in df.index:
+                if store_id not in lack_rates:
+                    lack_rates[store_id] = float(df.loc[store_id]["门店缺货率"])
+        best_lacking = {}
+        objs = sorted(
+            s3.Bucket(BUCKET).objects.filter(
+                Prefix=f"best_selling_and_best_lacking/{cmid.ljust(15, 'Y')}/"
+            ),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[:2]
+        for obj in objs:
+            df = pd.read_excel(
+                f"s3://{BUCKET}/{obj.key}", sheet_name=0, dtype={"门店ID": str}
+            )
+            df.set_index("门店ID", inplace=True)
+            for store_id in df.index:
+                if store_id not in best_lacking:
+                    best_lacking[store_id] = int(df.loc[store_id]["门店畅缺品 SKU 数（过滤非统配）"])
+        for store_id, info in store_infos.items():
+            match = order_matchs[info["show_code"]]
+            data.append(
+                {
+                    "store_name": info["store_name"],
+                    "lack_rate": lack_rates[store_id],
+                    "best_lacking": best_lacking[store_id],
+                    "match_rate": match["amount"] / match["count"],
+                }
+            )
         return data

@@ -2,6 +2,7 @@ import datetime
 import decimal
 import json
 
+import arrow
 from sqlalchemy import create_engine, inspect
 
 from etl.models import session_scope
@@ -93,7 +94,19 @@ class ExtCheckTable(object):
     def get_target_num(self, source_id, date):
         ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table="cost").first()
         if ext_test_query:
-            sql = ext_test_query.query_sql.format(date=date)
+            sql = ext_test_query.query_sql
+            if "{yyyymm}" in sql:
+                yyyy = arrow.now().format('YYYY')
+                mm = arrow.now().format('MM')
+                dd = arrow.now().format('DD')
+                if dd == '01':
+                    mm = arrow.now().shift(months=-1).format('MM')
+                    if mm == '12':
+                        yyyy = arrow.now().shift(years=-1).format('YYYY')
+                yyyymm = yyyy + mm
+                sql = sql.format(yyyymm=yyyymm, date=date)
+            else:
+                sql = sql.format(date=date)
             num = self.execute_sql(sql)
             return num
         else:
