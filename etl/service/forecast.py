@@ -474,7 +474,7 @@ class BossService:
             )
         return data
 
-    def goods(self, cmid):
+    def goods(self, cmid, item_id):
         end = datetime.now() - timedelta(days=2)
         start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
@@ -542,32 +542,38 @@ class BossService:
         before_suggest.set_index("商品ID", inplace=True)
         data = []
         for _, row in suggest_times_and_same_times.iterrows():
-            item_id = row["foreign_item_id"]
+            foreign_item_id = row["foreign_item_id"]
+            if item_id and foreign_item_id != item_id:
+                    continue
             if any(
-                item_id not in df.index for df in (avg_voc, before_suggest, all_goods)
+                foreign_item_id not in df.index
+                for df in (avg_voc, before_suggest, all_goods)
             ):
                 continue
-            avg_turnover = avg_voc.loc[item_id]["商品周转周期"]
-            before_turnover = before_suggest.loc[item_id]["商品周转周期"]
+            avg_turnover = avg_voc.loc[foreign_item_id]["商品周转周期"]
+            before_turnover = before_suggest.loc[foreign_item_id]["商品周转周期"]
             turnover_contrast = (before_turnover - avg_turnover) / before_turnover
             same_times = row["same_times"]
             suggest_times = row["suggest_times"]
             data.append(
                 {
-                    "show_code": all_goods.loc[item_id]["show_code"],
-                    "foreign_item_id": item_id,
-                    "item_name": all_goods.loc[item_id]["item_name"],
+                    "show_code": all_goods.loc[foreign_item_id]["show_code"],
+                    "foreign_item_id": foreign_item_id,
+                    "item_name": all_goods.loc[foreign_item_id]["item_name"],
                     "avg_turnover": avg_turnover,
                     "turnover_contrast": turnover_contrast,
                     "same_times": same_times,
                     "suggest_times": suggest_times,
                 }
             )
-        top_50 = data[:50]
-        middle_50 = data[len(data) // 2 - 25 : len(data) // 2 + 25]
-        empty_50 = random.choices([d for d in data if d["same_times"] == 0], k=50)
-        all_150 = [*top_50, *middle_50, *empty_50]
-        return all_150
+        if item_id:
+            return data
+        else:
+            top_50 = data[:50]
+            middle_50 = data[len(data) // 2 - 25 : len(data) // 2 + 25]
+            empty_50 = random.choices([d for d in data if d["same_times"] == 0], k=50)
+            all_150 = [*top_50, *middle_50, *empty_50]
+            return all_150
 
     def goods_detail(self, cmid, item_id):
         end = datetime.now() - timedelta(days=2)
