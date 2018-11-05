@@ -85,7 +85,7 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         frames["pos_id"] = ""
 
         frames = frames.rename(columns={
-            "bm_store": "foreign_store_id",
+            "id_store": "foreign_store_id",
             "mc_store": "store_name",
             "dh": "receipt_id",
             "id_hyk": "consumer_id",
@@ -140,7 +140,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames["foreign_category_lv5"] = ""
         frames["cmid"] = cmid
         frames = frames.rename(columns={
-            "store.bm": "foreign_store_id",
+            "store.id": "foreign_store_id",
             "item.bm": "foreign_item_id",
             "cost.sl_ls": "total_quantity",
             "cost.je_hs_ls": "total_sale",
@@ -212,8 +212,8 @@ def clean_goods(source_id, date, target_table, data_frames):
             return "配送"
 
     frames["item_status"] = frames["attr.flag_state"].apply(generate_item_status)
-    frames["foreign_category_lv1"] = frames["lv1.bm"]
-    frames["foreign_category_lv2"] = frames["lv2.bm"]
+    frames["foreign_category_lv1"] = frames["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
+    frames["foreign_category_lv2"] = frames["lv2.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
     frames["foreign_category_lv3"] = ""
     frames["foreign_category_lv4"] = ""
     frames["foreign_category_lv5"] = ""
