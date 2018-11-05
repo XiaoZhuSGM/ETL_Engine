@@ -9,8 +9,9 @@ boss_service = BossService()
 @forecast_api.route("/store_view/goods")
 def store_view_goods():
     command = request.args.get("command")
+    item_id = request.args.get("item_id")
     boss_info = boss_service.login(command)
-    data = boss_service.goods(boss_info["cmid"])
+    data = boss_service.goods(boss_info["cmid"], item_id)
     return jsonify_with_data(APIError.OK, data=data)
 
 
