@@ -177,41 +177,62 @@ def handler(event, context):
 
         return clean_jishi(source_id, date, target_table, data_frames)
 
+    elif erp_name == "超赢":
+        from chaoying import clean_chaoying
+
+        return clean_chaoying(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
     event = {
-        "source_id": "72YYYYYYYYYYYYY",
-        "erp_name": "思迅",
-        "date": "2018-10-21",
-        "target_table": "goodsflow",
+        "source_id": "88YYYYYYYYYYYYY",
+        "erp_name": "超赢",
+        "date": "2018-10-28",
+        "target_table": "cost",
         "origin_table_columns": {
-            "t_bd_branch_info": ["branch_no", "branch_name"],
-            "t_bd_item_cls": ["item_clsno", "item_clsname"],
-            "t_bd_item_info": ["item_no", "item_clsno", "item_name", "unit_no"],
-            "t_rm_saleflow": [
-                "branch_no",
-                "item_no",
-                "sale_price",
-                "sale_qnty",
-                "sell_way",
-                "sale_money",
-                "flow_no",
-                "oper_date",
+            "tb_gsjg": [
+                "id",
+                "bm"
             ],
+            "tb_sp": [
+                "id",
+                "bm",
+                "id_spfl"
+            ],
+            "tb_spfl": [
+                "id",
+                "id_1",
+                "bm"
+            ],
+            "v_tz_rj_sp_gys_jxc": [
+                "sl_ls",
+                "je_hs_ls",
+                "je_cb_hs_ls",
+                "id_gsjg",
+                "id_sp",
+                "ymd"
+            ]
         },
         "converts": {
-            "t_bd_branch_info": {"branch_no": "str"},
-            "t_bd_item_cls": {"item_clsno": "str"},
-            "t_bd_item_info": {"item_clsno": "str", "item_no": "str"},
-            "t_rm_saleflow": {
-                "branch_no": "str",
-                "flow_no": "str",
-                "item_no": "str",
-                "sale_money": "float",
-                "sale_price": "float",
-                "sale_qnty": "float",
-                "sell_way": "str",
+            "v_tz_rj_sp_gys_jxc": {
+                "id_gsjg": "str",
+                "id_sp": "str",
+                "ymd": "str"
             },
+            "tb_gsjg": {
+                "bm": "str",
+                "id": "str"
+            },
+            "tb_sp": {
+                "bm": "str",
+                "id": "str",
+                "id_spfl": "str"
+            },
+            "tb_spfl": {
+                "bm": "str",
+                "id": "str",
+                "id_1": "str"
+            }
         },
     }
 

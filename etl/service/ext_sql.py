@@ -199,7 +199,7 @@ class DatasourceSqlService(object):
                 .filter(
                     or_(
                         ExtTableInfo.table_name.like(f"%.{table_name}"),
-                        ExtTableInfo.table_name == f"{table_name}",
+                        ExtTableInfo.table_name == table_name,
                         ExtTableInfo.alias_table_name == table_name
                     )
                 )
