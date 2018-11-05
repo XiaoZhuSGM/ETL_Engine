@@ -9,10 +9,7 @@ boss_service = BossService()
 
 @forecast_api.before_request
 def before_request():
-    if request.endpoint in {
-        "forecast_api.authorize",
-        "forecast_api.lacking_view_authorize",
-    }:
+    if request.endpoint in {"forecast_api.authorize"}:
         return
     command = request.args.get("command")
     try:

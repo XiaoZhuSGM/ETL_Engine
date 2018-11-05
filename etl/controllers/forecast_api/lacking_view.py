@@ -1,26 +1,9 @@
 from . import forecast_api
-from .. import APIError, jsonify_with_data, jsonify_with_error
-from etl.service.forecast import boss_hash, r_store_hash, BossService
+from .. import APIError, jsonify_with_data
+from etl.service.forecast import BossService
 from flask import request
 
 boss_service = BossService()
-
-
-@forecast_api.route("/lacking_view/authorize", methods=["POST"])
-def lacking_view_authorize():
-    command = request.json.get("command")
-    if command in boss_hash:
-        stores = r_store_hash[boss_hash[command]]
-        data = {
-            "type": "boss",
-            "info": [
-                {"store": v["store_name"], "command": v["command"]}
-                for v in stores.values()
-            ],
-        }
-        return jsonify_with_data(APIError.OK, data=data)
-    else:
-        return jsonify_with_error(APIError.UNAUTHORIZED)
 
 
 @forecast_api.route("/lacking_view/lack_rate")
