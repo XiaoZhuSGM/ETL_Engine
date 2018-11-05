@@ -4,6 +4,7 @@ from collections import defaultdict
 import boto3
 import calendar
 import dask.dataframe as dd
+import random
 
 s3 = boto3.resource("s3")
 BUCKET = "replenish"
@@ -306,7 +307,7 @@ class ForecastService:
 
 
 class BossService:
-    start_at = {"79": "2018-10-09", "43": "2018-09-10", "58": "2018-09-10"}
+    start_at = {"79": "2018-09-25", "43": "2018-09-25", "58": "2018-09-25"}
 
     def login(self, command):
         cmid = boss_hash.get(command)
@@ -472,3 +473,217 @@ class BossService:
                 }
             )
         return data
+
+    def goods(self, cmid):
+        end = datetime.now() - timedelta(days=2)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        all_goods = pd.read_csv(
+            f"s3://standard-data/{end.strftime('%Y/%m/%d')}/{cmid.ljust(15, 'Y')}/chain_goods/chain_goods000.gz",
+            names=[
+                "cmid",
+                "barcode",
+                "foreign_item_id",
+                "item_name",
+                "lastin_price",
+                "sale_price",
+                "item_unit",
+                "item_status",
+                "foreign_category_lv1",
+                "foreign_category_lv2",
+                "foreign_category_lv3",
+                "foreign_category_lv4",
+                "storage_time",
+                "last_updated",
+                "isvalid",
+                "warranty",
+                "show_code",
+                "foreign_category_lv5",
+                "allot_method",
+                "supplier_name",
+                "supplier_code",
+                "brand_name",
+            ],
+            dtype={"foreign_item_id": str, "show_code": str},
+            usecols=["foreign_item_id", "show_code", "item_name"],
+        )
+        all_goods.set_index("foreign_item_id", inplace=True)
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(
+                Prefix=f"suggest_times_and_same_times/{cmid}/"
+            ),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        suggest_times_and_same_times = pd.read_csv(
+            f"s3://{BUCKET}/{obj.key}",
+            dtype={"foreign_item_id": str, "foreign_store_id": str},
+        )
+        suggest_times_and_same_times = (
+            suggest_times_and_same_times.groupby("foreign_item_id")
+            .agg({"same_times": "sum", "suggest_times": "sum"})
+            .reset_index()
+        )
+        suggest_times_and_same_times.sort_values(
+            "same_times", ascending=False, inplace=True
+        )
+        urls = []
+        for d in dates:
+            urls.append(
+                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/{d.strftime('%Y-%m-%d')}.csv"
+            )
+        _voc = [dd.read_csv(url, dtype={"商品ID": str}, blocksize=None) for url in urls]
+        voc = dd.concat(_voc).compute()
+        avg_voc = voc.groupby("商品ID").agg({"商品周转周期": "mean"})
+        before_suggest = pd.read_csv(
+            f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/2018-09-25.csv",
+            dtype={"商品ID": str},
+        )
+        before_suggest.set_index("商品ID", inplace=True)
+        data = []
+        for _, row in suggest_times_and_same_times.iterrows():
+            item_id = row["foreign_item_id"]
+            if any(
+                item_id not in df.index for df in (avg_voc, before_suggest, all_goods)
+            ):
+                continue
+            avg_turnover = avg_voc.loc[item_id]["商品周转周期"]
+            before_turnover = before_suggest.loc[item_id]["商品周转周期"]
+            turnover_contrast = (before_turnover - avg_turnover) / before_turnover
+            same_times = row["same_times"]
+            suggest_times = row["suggest_times"]
+            data.append(
+                {
+                    "show_code": all_goods.loc[item_id]["show_code"],
+                    "foreign_item_id": item_id,
+                    "item_name": all_goods.loc[item_id]["item_name"],
+                    "avg_turnover": avg_turnover,
+                    "turnover_contrast": turnover_contrast,
+                    "same_times": same_times,
+                    "suggest_times": suggest_times,
+                }
+            )
+        top_50 = data[:50]
+        middle_50 = data[len(data) // 2 - 25 : len(data) // 2 + 25]
+        empty_50 = random.choices([d for d in data if d["same_times"] == 0], k=50)
+        all_150 = [*top_50, *middle_50, *empty_50]
+        return all_150
+
+    def goods_detail(self, cmid, item_id):
+        end = datetime.now() - timedelta(days=2)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        urls = []
+        for d in dates:
+            urls.append(
+                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/{d.strftime('%Y-%m-%d')}.csv"
+            )
+        _item_voc = [
+            dd.read_csv(url, dtype={"商品ID": str}, blocksize=None) for url in urls
+        ]
+        _item_voc = dd.concat(_item_voc)
+        _item_voc = _item_voc[_item_voc["商品ID"] == item_id]
+        item_voc = _item_voc.compute()
+
+        turnover = []
+        inventory_sales = []
+        for _, row in item_voc.iterrows():
+            turnover.append({"days": row["商品周转周期"], "date": row["时间"]})
+            inventory_sales.append(
+                {"inventory": row["商品平均库存量"], "sales": row["日均销量"], "date": row["时间"]}
+            )
+
+        urls = []
+        for d in dates:
+            urls.append(
+                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/store_item_view/{d.strftime('%Y-%m-%d')}.csv"
+            )
+        _voc = [
+            dd.read_csv(url, dtype={"商品ID": str, "门店ID": str}, blocksize=None)
+            for url in urls
+        ]
+        _voc = dd.concat(_voc)
+        _voc = _voc[_voc["商品ID"] == item_id]
+        voc = _voc.compute()
+        avg_voc = voc.groupby("门店ID").agg({"商品周转周期": "mean", "门店名称": "first"})
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(
+                Prefix=f"suggest_times_and_same_times/{cmid}/"
+            ),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        suggest_times_and_same_times = pd.read_csv(
+            f"s3://{BUCKET}/{obj.key}",
+            dtype={"foreign_item_id": str, "foreign_store_id": str},
+        )
+        suggest_times_and_same_times = suggest_times_and_same_times[
+            suggest_times_and_same_times["foreign_item_id"] == item_id
+        ]
+        suggest_times_and_same_times = suggest_times_and_same_times.groupby(
+            "foreign_store_id"
+        ).agg({"same_times": "sum", "suggest_times": "sum"})
+        before_suggest = pd.read_csv(
+            f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/store_item_view/2018-09-25.csv",
+            dtype={"商品ID": str, "门店ID": str},
+        )
+        before_suggest = before_suggest[before_suggest["商品ID"] == item_id]
+        before_suggest.set_index(["门店ID"], inplace=True)
+        stores = []
+        for store_id in voc["门店ID"].drop_duplicates().tolist():
+            if any(
+                store_id not in df.index
+                for df in (avg_voc, before_suggest, suggest_times_and_same_times)
+            ):
+                continue
+            avg_turnover = avg_voc.loc[store_id]["商品周转周期"]
+            before_turnover = before_suggest.loc[store_id]["商品周转周期"]
+            turnover_contrast = (before_turnover - avg_turnover) / before_turnover
+            same_times = suggest_times_and_same_times.loc[store_id]["same_times"]
+            suggest_times = suggest_times_and_same_times.loc[store_id]["suggest_times"]
+            stores.append(
+                {
+                    "store_id": store_id,
+                    "store_name": avg_voc.loc[store_id]["门店名称"],
+                    "avg_turnover": avg_turnover,
+                    "turnover_contrast": turnover_contrast,
+                    "same_times": same_times,
+                    "suggest_times": suggest_times,
+                }
+            )
+        return {
+            "start_at": self.start_at[cmid],
+            "turnover": turnover,
+            "inventory_sales": inventory_sales,
+            "stores": stores,
+        }
+
+    def store_goods_detail(self, cmid, item_id, store_id):
+        end = datetime.now() - timedelta(days=2)
+        start = end - timedelta(days=30)
+        dates = pd.date_range(start, end, closed="right")
+        urls = []
+        for d in dates:
+            urls.append(
+                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/store_item_view/{d.strftime('%Y-%m-%d')}.csv"
+            )
+        _voc = [
+            dd.read_csv(url, dtype={"商品ID": str, "门店ID": str}, blocksize=None)
+            for url in urls
+        ]
+        _voc = dd.concat(_voc)
+        _voc = _voc[(_voc["商品ID"] == item_id) & (_voc["门店ID"] == store_id)]
+        voc = _voc.compute()
+        turnover = []
+        inventory_sales = []
+        for _, row in voc.iterrows():
+            turnover.append({"days": row["商品周转周期"], "date": row["时间"]})
+            inventory_sales.append(
+                {"inventory": row["商品平均库存量"], "sales": row["日均销量"], "date": row["时间"]}
+            )
+
+        return {
+            "start_at": self.start_at[cmid],
+            "turnover": turnover,
+            "inventory_sales": inventory_sales,
+        }
