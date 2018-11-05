@@ -72,6 +72,10 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         frames["saleprice"] = frames.apply(lambda row: row["dj_hs"] / row["zhl"], axis=1)
         frames["quantity"] = frames.apply(lambda row: row["sl"] * row["zhl"], axis=1)
         frames["subtotal"] = frames.apply(lambda row: row["je_hs"] - row["je_yh"] - row["je_zr"] - row["je_zk"], axis=1)
+
+        frames["foreign_category_lv1"] = frames["bm_lv1"].apply(lambda x: x if not pd.isnull(x) else "0")
+        frames["foreign_category_lv1_name"] = frames["mc_lv1"].apply(lambda x: x if not pd.isnull(x) else "未定义")
+
         frames["foreign_category_lv3"] = ""
         frames["foreign_category_lv3_name"] = None
         frames["foreign_category_lv4"] = ""
@@ -90,8 +94,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             "barcode": "barcode",
             "mc_item": "item_name",
             "jldw": "item_unit",
-            "bm_lv1": "foreign_category_lv1",
-            "mc_lv1": "foreign_category_lv1_name",
             "bm_lv2": "foreign_category_lv2",
             "mc_lv2": "foreign_category_lv2_name"
         })
@@ -132,6 +134,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames["source_id"] = source_id
         frames["date"] = frames["cost.ymd"].apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"))
         frames["cost_type"] = ""
+        frames["foreign_category_lv1"] = frames["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else "0")
         frames["foreign_category_lv3"] = ""
         frames["foreign_category_lv4"] = ""
         frames["foreign_category_lv5"] = ""

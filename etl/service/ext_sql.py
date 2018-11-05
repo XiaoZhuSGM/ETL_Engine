@@ -198,8 +198,8 @@ class DatasourceSqlService(object):
                     ExtTableInfo.weight == 1)
                 .filter(
                     or_(
-                        ExtTableInfo.table_name.like(f"%.{table_name}"),
-                        ExtTableInfo.table_name == table_name,
+                        ExtTableInfo.table_name.ilike(f"%.{table_name}"),
+                        ExtTableInfo.table_name.ilike(table_name),
                         ExtTableInfo.alias_table_name == table_name
                     )
                 )
