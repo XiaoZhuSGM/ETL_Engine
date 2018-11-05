@@ -405,6 +405,31 @@ class BossService:
             )
         return {"data": data, "start_at": self.start_at[cmid]}
 
+    def lost_sales_of_best_lacking(self, cmid):
+        end = datetime.now() - timedelta(days=1)
+        start = end - timedelta(days=60)
+        dates = pd.date_range(start, end, closed="right")
+        data = []
+        for d in dates:
+            try:
+                df = pd.read_csv(
+                    f"s3://{BUCKET}/lost_sales_of_best_lacking/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.csv",
+                    dtype={"foreign_store_id": str},
+                )
+            except Exception as e:
+                print(f"{d}:{cmid}:{e}")
+                continue
+            lost_sales_ = df["lost_sales"].sum()
+            lost_gross = df["lost_gross"].sum()
+            data.append(
+                {
+                    "date": d.strftime("%Y-%m-%d"),
+                    "lost_sales": lost_sales_,
+                    "lost_gross": lost_gross,
+                }
+            )
+        return {"data": data, "start_at": self.start_at[cmid]}
+
     def stores(self, cmid):
         store_infos = r_store_hash[cmid]
         data = []

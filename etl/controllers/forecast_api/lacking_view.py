@@ -36,3 +36,11 @@ def lacking_view_stores():
     boss_info = boss_service.login(command)
     data = boss_service.stores(boss_info["cmid"])
     return jsonify_with_data(APIError.OK, data=data)
+
+
+@forecast_api.route("/lacking_view/lost_sales_of_best_lacking")
+def lacking_view_lost_sales_of_best_lacking():
+    command = request.args.get("command")
+    boss_info = boss_service.login(command)
+    data = boss_service.lost_sales_of_best_lacking(boss_info["cmid"])
+    return jsonify_with_data(APIError.OK, data=data)
