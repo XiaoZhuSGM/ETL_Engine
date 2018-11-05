@@ -17,7 +17,7 @@ class CRUDMixin(object):
         table_name = class_name_str[0].lower()
 
         for character in class_name_str[1:]:
-            table_name += character if character.islower() else '_' + character.lower()
+            table_name += character if character.islower() else "_" + character.lower()
 
         return table_name
 

@@ -1,6 +1,7 @@
 from .dao import Dao
 from ..etl import db
 from ..models.datasource import ExtDatasource
+from ..models.etl_table import ExtCleanInfo
 
 
 class DatasourceDao(Dao):
@@ -10,6 +11,8 @@ class DatasourceDao(Dao):
     def add_datasource(self, datasource_json):
         datasource = ExtDatasource(**datasource_json)
         datasource.save()
+
+    
 
     def find_all(self):
         datasource_list = (

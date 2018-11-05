@@ -33,6 +33,13 @@ class ExtDatasource(CRUDMixin, db.Model):
         back_populates="datasource",
     )
 
+    ext_clean_infos = relationship(
+        "ExtCleanInfo",
+        primaryjoin="foreign(ExtDatasource.source_id) == remote(ExtCleanInfo.source_id)",
+        back_populates="datasource",
+        uselist=True,
+    )
+
     def to_dict_and_config(self):
         data = {}
         data["datasource"] = {
@@ -47,3 +54,14 @@ class ExtDatasource(CRUDMixin, db.Model):
             data["datasource_config"] = {}
 
         return data
+
+    def to_clean_info_dict(self):
+        data = {}
+        data["erp_name"] = self.erp_vendor
+        data["target_list"] = [
+            clean_info.target_table
+            for clean_info in self.ext_clean_infos
+            if not clean_info.deleted
+        ]
+        return data
+
