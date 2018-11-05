@@ -550,9 +550,13 @@ class BossService:
                 for df in (avg_voc, before_suggest, all_goods)
             ):
                 continue
-            avg_turnover = avg_voc.loc[foreign_item_id]["商品周转周期"]
-            before_turnover = before_suggest.loc[foreign_item_id]["商品周转周期"]
-            turnover_contrast = (before_turnover - avg_turnover) / before_turnover
+            avg_turnover = float(avg_voc.loc[foreign_item_id]["商品周转周期"])
+            before_turnover = float(before_suggest.loc[foreign_item_id]["商品周转周期"])
+            turnover_contrast = (
+                (before_turnover - avg_turnover) / before_turnover
+                if before_turnover
+                else 0
+            )
             same_times = row["same_times"]
             suggest_times = row["suggest_times"]
             data.append(
@@ -560,10 +564,10 @@ class BossService:
                     "show_code": all_goods.loc[foreign_item_id]["show_code"],
                     "foreign_item_id": foreign_item_id,
                     "item_name": all_goods.loc[foreign_item_id]["item_name"],
-                    "avg_turnover": avg_turnover,
-                    "turnover_contrast": turnover_contrast,
-                    "same_times": same_times,
-                    "suggest_times": suggest_times,
+                    "avg_turnover": round(avg_turnover, 3),
+                    "turnover_contrast": round(turnover_contrast, 3),
+                    "same_times": int(same_times),
+                    "suggest_times": int(suggest_times),
                 }
             )
         if item_id:
@@ -594,9 +598,13 @@ class BossService:
         turnover = []
         inventory_sales = []
         for _, row in item_voc.iterrows():
-            turnover.append({"days": row["商品周转周期"], "date": row["时间"]})
+            turnover.append({"days": round(row["商品周转周期"], 3), "date": row["时间"]})
             inventory_sales.append(
-                {"inventory": row["商品平均库存量"], "sales": row["日均销量"], "date": row["时间"]}
+                {
+                    "inventory": round(row["商品平均库存量"], 3),
+                    "sales": round(row["日均销量"], 3),
+                    "date": row["时间"],
+                }
             )
 
         urls = []
@@ -642,19 +650,23 @@ class BossService:
                 for df in (avg_voc, before_suggest, suggest_times_and_same_times)
             ):
                 continue
-            avg_turnover = avg_voc.loc[store_id]["商品周转周期"]
-            before_turnover = before_suggest.loc[store_id]["商品周转周期"]
-            turnover_contrast = (before_turnover - avg_turnover) / before_turnover
+            avg_turnover = float(avg_voc.loc[store_id]["商品周转周期"])
+            before_turnover = float(before_suggest.loc[store_id]["商品周转周期"])
+            turnover_contrast = (
+                (before_turnover - avg_turnover) / before_turnover
+                if before_turnover
+                else 0
+            )
             same_times = suggest_times_and_same_times.loc[store_id]["same_times"]
             suggest_times = suggest_times_and_same_times.loc[store_id]["suggest_times"]
             stores.append(
                 {
                     "store_id": store_id,
                     "store_name": avg_voc.loc[store_id]["门店名称"],
-                    "avg_turnover": avg_turnover,
-                    "turnover_contrast": turnover_contrast,
-                    "same_times": same_times,
-                    "suggest_times": suggest_times,
+                    "avg_turnover": round(avg_turnover, 3),
+                    "turnover_contrast": round(turnover_contrast, 3),
+                    "same_times": int(same_times),
+                    "suggest_times": int(suggest_times),
                 }
             )
         return {
@@ -683,9 +695,13 @@ class BossService:
         turnover = []
         inventory_sales = []
         for _, row in voc.iterrows():
-            turnover.append({"days": row["商品周转周期"], "date": row["时间"]})
+            turnover.append({"days": round(row["商品周转周期"], 3), "date": row["时间"]})
             inventory_sales.append(
-                {"inventory": row["商品平均库存量"], "sales": row["日均销量"], "date": row["时间"]}
+                {
+                    "inventory": round(row["商品平均库存量"], 3),
+                    "sales": round(row["日均销量"], 3),
+                    "date": row["时间"],
+                }
             )
 
         return {
