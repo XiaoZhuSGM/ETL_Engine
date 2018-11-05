@@ -15,7 +15,7 @@ class ExtDatasourceCon(CRUDMixin, db.Model):
     datasource = relationship(
         "ExtDatasource",
         primaryjoin="remote(ExtDatasourceCon.source_id) == foreign(ExtDatasource.source_id)",
-        uselist=False
+        uselist=False,
     )
 
     ext_tables = relationship(
