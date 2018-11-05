@@ -82,7 +82,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         frames["foreign_category_lv4_name"] = None
         frames["foreign_category_lv5"] = ""
         frames["foreign_category_lv5_name"] = None
-        frames["pos_id"] = ""
 
         frames = frames.rename(columns={
             "id_store": "foreign_store_id",
@@ -95,7 +94,8 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             "mc_item": "item_name",
             "jldw": "item_unit",
             "bm_lv2": "foreign_category_lv2",
-            "mc_lv2": "foreign_category_lv2_name"
+            "mc_lv2": "foreign_category_lv2_name",
+            "id_pos": "pos_id"
         })
 
         frames = frames[columns]
