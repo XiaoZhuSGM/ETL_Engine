@@ -13,7 +13,6 @@ _TZINFO = pytz.timezone("Asia/Shanghai")
 
 
 class MeiShiLinCleaner(Base):
-
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         Base.__init__(self, source_id, date, data)
 
@@ -64,7 +63,7 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4_name",
             "foreign_category_lv5",
             "foreign_category_lv5_name",
-            "pos_id"
+            "pos_id",
         ]
         flow_frame = self.data["skstoresellingwater"]
 
@@ -74,19 +73,24 @@ class MeiShiLinCleaner(Base):
         store_frame = self.data["skstore"]
         goods_frame = self.data["skgoods"]
         gsort_frame = self.data["skgoodssort"]
-        result_frame = pd.merge(flow_frame,
-                                store_frame,
-                                left_on="sgid",
-                                right_on="gid",
-                                how="left",
-                                suffixes=("_flow", "_store")).merge(goods_frame,
-                                                                    left_on="gid_flow",
-                                                                    right_on="gid",
-                                                                    how="left",
-                                                                    suffixes=("_store", "_goods")).merge(gsort_frame,
-                                                                                                         left_on="gid",
-                                                                                                         right_on="gid",
-                                                                                                         how="left")
+        result_frame = (
+            pd.merge(
+                flow_frame,
+                store_frame,
+                left_on="sgid",
+                right_on="gid",
+                how="left",
+                suffixes=("_flow", "_store"),
+            )
+            .merge(
+                goods_frame,
+                left_on="gid_flow",
+                right_on="gid",
+                how="left",
+                suffixes=("_store", "_goods"),
+            )
+            .merge(gsort_frame, left_on="gid", right_on="gid", how="left")
+        )
 
         result_frame["source_id"] = self.source_id
         result_frame["cmid"] = self.cmid
@@ -98,26 +102,27 @@ class MeiShiLinCleaner(Base):
         result_frame["pos_id"] = ""
         result_frame["consumer_id"] = None
 
-        result_frame = result_frame.rename(columns={
-            "gid_store": "foreign_store_id",
-            "name_store": "store_name",
-            "flowno": "receipt_id",
-            "fildate": "saletime",
-            "gid": "foreign_item_id",
-            "code2": "barcode",
-            "name_goods": "item_name",
-            "munit": "item_unit",
-            "rtlprc": "saleprice",
-            "qty": "quantity",
-            "realamt": "subtotal",
-            "ascode": "foreign_category_lv1",
-            "asname": "foreign_category_lv1_name",
-            "bscode": "foreign_category_lv2",
-            "bsname": "foreign_category_lv2_name",
-            "cscode": "foreign_category_lv3",
-            "csname": "foreign_category_lv3_name"
-
-        })
+        result_frame = result_frame.rename(
+            columns={
+                "gid_store": "foreign_store_id",
+                "name_store": "store_name",
+                "flowno": "receipt_id",
+                "fildate": "saletime",
+                "gid": "foreign_item_id",
+                "code2": "barcode",
+                "name_goods": "item_name",
+                "munit": "item_unit",
+                "rtlprc": "saleprice",
+                "qty": "quantity",
+                "realamt": "subtotal",
+                "ascode": "foreign_category_lv1",
+                "asname": "foreign_category_lv1_name",
+                "bscode": "foreign_category_lv2",
+                "bsname": "foreign_category_lv2_name",
+                "cscode": "foreign_category_lv3",
+                "csname": "foreign_category_lv3_name",
+            }
+        )
 
         result_frame = result_frame[columns]
 
@@ -174,25 +179,33 @@ class MeiShiLinCleaner(Base):
 
         gsort_frame = self.data["skgoodssort"]
 
-        result_frame = pd.merge(cost_frame, gsort_frame, left_on="pdkey", right_on="gid", how="left")
+        result_frame = pd.merge(
+            cost_frame, gsort_frame, left_on="pdkey", right_on="gid", how="left"
+        )
         result_frame["source_id"] = self.source_id
         result_frame["cost_type"] = ""
         result_frame["foreign_category_lv4"] = ""
         result_frame["foreign_category_lv5"] = ""
         result_frame["cmid"] = self.cmid
 
-        result_frame["total_sale"] = result_frame.apply(lambda row: row["saleamt"] + row["saletax"], axis=1)
-        result_frame["total_cost"] = result_frame.apply(lambda row: row["salecamt"] + row["salectax"], axis=1)
+        result_frame["total_sale"] = result_frame.apply(
+            lambda row: row["saleamt"] + row["saletax"], axis=1
+        )
+        result_frame["total_cost"] = result_frame.apply(
+            lambda row: row["salecamt"] + row["salectax"], axis=1
+        )
 
-        result_frame = result_frame.rename(columns={
-            "orgkey": "foreign_store_id",
-            "pdkey": "foreign_item_id",
-            "fildate": "date",
-            "saleqty": "total_quantity",
-            "ascode": "foreign_category_lv1",
-            "bscode": "foreign_category_lv2",
-            "cscode": "foreign_category_lv3",
-        })
+        result_frame = result_frame.rename(
+            columns={
+                "orgkey": "foreign_store_id",
+                "pdkey": "foreign_item_id",
+                "fildate": "date",
+                "saleqty": "total_quantity",
+                "ascode": "foreign_category_lv1",
+                "bscode": "foreign_category_lv2",
+                "cscode": "foreign_category_lv3",
+            }
+        )
 
         result_frame = result_frame[columns]
 
@@ -428,9 +441,9 @@ class MeiShiLinCleaner(Base):
         )
         part = part[columns]
 
-        part['supplier_name'] = part['supplier_name'].str.strip()
-        part['supplier_code'] = part['supplier_code'].str.strip()
-        part['brand_name'] = part['brand_name'].str.strip()
+        part["supplier_name"] = part["supplier_name"].str.strip()
+        part["supplier_code"] = part["supplier_code"].str.strip()
+        part["brand_name"] = part["brand_name"].str.strip()
 
         return part
 
@@ -653,49 +666,49 @@ class MeiShiLinCleaner(Base):
                 right_on=["bill"],
                 suffixes=("", ".otrequireorderline"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["buyercode"],
                 right_on=["code"],
                 suffixes=("", ".sotre"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["product"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
                 right_on=["code"],
                 suffixes=("", ".sort3"),
             )
-                .merge(
+            .merge(
                 vendor,
                 how="left",
                 left_on=["vdrgid"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-                .merge(
+            .merge(
                 employee,
                 how="left",
                 left_on=["psr"],
@@ -837,11 +850,11 @@ class MeiShiLinCleaner(Base):
         stkout: pd.DataFrame = stkout[
             (stkout["cls"] == "统配出")
             & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
+        ]
         stkoutbck: pd.DataFrame = stkoutbck[
             (stkoutbck["cls"] == "统配出退")
             & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
+        ]
 
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
@@ -869,42 +882,42 @@ class MeiShiLinCleaner(Base):
             stkout.merge(
                 stkoutdtl, how="inner", on=["num", "cls"], suffixes=("", ".stkoutdtl")
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -955,7 +968,7 @@ class MeiShiLinCleaner(Base):
         stkoutbck: pd.DataFrame = stkoutbck[
             (stkoutbck["cls"] == "统配出退")
             & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
+        ]
         part2 = (
             stkoutbck.merge(
                 stkoutbckdtl,
@@ -963,42 +976,42 @@ class MeiShiLinCleaner(Base):
                 on=["num", "cls"],
                 suffixes=("", ".stkoutbckdtl"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -1242,35 +1255,35 @@ class MeiShiLinCleaner(Base):
                 on=["num", "cls"],
                 suffixes=("", ".stkinbckdtl"),
             )
-                .merge(
+            .merge(
                 vendorh,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendorh"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
                 right_on=["code"],
                 suffixes=("", ".brand"),
             )
-                .merge(
+            .merge(
                 warehouseh,
                 how="left",
                 left_on=["wrh"],
@@ -1396,35 +1409,35 @@ class MeiShiLinCleaner(Base):
             diralc.merge(
                 diralcdtl, how="left", on=["num", "cls"], suffixes=("", ".diralcdtl")
             )
-                .merge(
+            .merge(
                 vendor,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-                .merge(
+            .merge(
                 store,
                 how="left",
                 left_on=["receiver"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
@@ -1546,28 +1559,28 @@ class MeiShiLinCleaner(Base):
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["fromstore"],
                 right_on=["gid"],
                 suffixes=("", ".from_store"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["tostore"],
                 right_on=["gid"],
                 suffixes=("", ".to_store"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1682,28 +1695,28 @@ class MeiShiLinCleaner(Base):
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["fromwrh"],
                 right_on=["gid"],
                 suffixes=("", ".from_warehouse"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["towrh"],
                 right_on=["gid"],
                 suffixes=("", ".to_warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1821,28 +1834,28 @@ class MeiShiLinCleaner(Base):
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -1851,6 +1864,10 @@ class MeiShiLinCleaner(Base):
             )
         )
         part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
+
+        if not len(part):
+            return pd.DataFrame(columns=columns)
+
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
@@ -1953,28 +1970,28 @@ class MeiShiLinCleaner(Base):
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
