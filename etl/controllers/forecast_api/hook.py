@@ -13,7 +13,9 @@ def before_request():
         return
     command = request.args.get("command")
     try:
-        if request.endpoint.startswith("forecast_api.lacking_view"):
+        if request.endpoint.startswith(
+            "forecast_api.lacking_view"
+        ) or request.endpoint.startswith("forecast_api.store_view"):
             boss_service.login(command)
         else:
             forecast_service.login(command)
