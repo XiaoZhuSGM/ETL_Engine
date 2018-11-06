@@ -499,7 +499,7 @@ class BossService:
             )
         return data
 
-    def goods(self, cmid, show_code, item_name):
+    def goods(self, cmid, query):
         end = datetime.now() - timedelta(days=2)
         start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
@@ -574,9 +574,9 @@ class BossService:
                 continue
             item_show_code = all_goods.loc[item_id]["show_code"]
             name = all_goods.loc[item_id]["item_name"]
-            if show_code and show_code not in item_show_code:
+            if query and query not in item_show_code:
                 continue
-            if item_name and item_name not in name:
+            if query and query not in name:
                 continue
             avg_turnover = float(avg_voc.loc[item_id]["商品周转周期"])
             before_turnover = float(before_suggest.loc[item_id]["商品周转周期"])
