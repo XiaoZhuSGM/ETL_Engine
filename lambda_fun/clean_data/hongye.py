@@ -1628,4 +1628,619 @@ class HongYeCleaner:
 
         return pd.concat([part1, part2, part3, part4])
 
+    def purchase_warehouse(self):
+        columns = [
+            "source_id", "cmid", "purchase_num", "purchase_date", "purchase_type", "foreign_item_id", "item_show_code",
+            "barcode", "item_name", "item_unit", "purchase_qty", "purchase_price", "purchase_total", "vendor_id",
+            "vendor_show_code", "vendor_name", "brand_code", "brand_name", "warehouse_code", "warehouse_name",
+            "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5", "bill_status"
+        ]
+        header = self.data["bil_inorder"].rename(columns=lambda x: f"header.{x}")
+        detail = self.data["bil_inorderdtl"].rename(columns=lambda x: f"detail.{x}")
+        warehouse = self.data["inf_department"].rename(columns=lambda x: f"warehouse.{x}")
+        item = self.data["inf_goods"].rename(columns=lambda x: f"item.{x}")
+        brand = self.data["inf_brand"].rename(columns=lambda x: f"brand.{x}")
+        vendor = self.data["inf_tradeunit"].rename(columns=lambda x: f"vendor.{x}")
+        store = self.data["inf_department"].rename(columns=lambda x: f"store.{x}")
 
+        item["item.gdsincode"] = item["item.gdsincode"].str.strip()
+        vendor["vendor.unitcode"] = vendor["vendor.unitcode"].str.strip()
+        warehouse["warehouse.deptcode"] = warehouse["warehouse.deptcode"].str.strip()
+        warehouse["warehouse.deptname"] = warehouse["warehouse.deptname"].str.strip()
+        store["store.deptcode"] = store["store.deptcode"].str.strip()
+        store["store.deptname"] = store["store.deptname"].str.strip()
+        header["header.deptcode"] = header["header.deptcode"].str.strip()
+        detail["detail.gdscode"] = detail["detail.gdscode"].str.strip()
+        detail["detail.suppliercode"] = detail["detail.suppliercode"].str.strip()
+
+        lv = self._sub_query_category_lv4().rename(columns=lambda x: f"lv.{x}")
+        part1 = (
+            header
+            .merge(detail, left_on="header.orderno", right_on="detail.orderno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(store, left_on="detail.deptcode", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdscode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+
+        part1 = part1[(part1["warehouse.type"] == 5) & (part1["store.type"] == 4)]
+
+        if len(part1) == 0:
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["source_id"] = self.source_id
+            part1["cmid"] = self.cmid
+
+            def generate_purchase_type(row):
+                if row == 1:
+                    return "普通订单"
+                elif row == 2:
+                    return "赠品订单"
+                elif row == 3:
+                    return "特价订单"
+                elif row == 4:
+                    return "首次订单"
+                elif row == 5:
+                    return "永续订单"
+                else:
+                    return "大订单"
+            part1["purchase_type"] = part1["header.ordertype"].apply(generate_purchase_type)
+            part1["item_show_code"] = part1["item.gdsincode"]
+            part1["vendor_show_code"] = part1["vendor.unitcode"]
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row["lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+            )
+            part1["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "尚未到货"
+                elif row == 2:
+                    return "已经到货"
+                elif row == 11:
+                    return "作废"
+            part1["bill_status"] = part1["header.orderflag"].apply(generate_bill_status)
+            part1 = part1.rename(columns={
+                "header.orderno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.amount": "purchase_qty",
+                "detail.inprice": "purchase_price",
+                "detail.inmoneyio": "purchase_total",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "store.deptcode": "warehouse_code",
+                "store.deptname": "warehouse_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part1 = part1[columns]
+
+        lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
+        part2 = (
+            header
+            .merge(detail, left_on="header.orderno", right_on="detail.orderno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(store, left_on="detail.deptcode", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdscode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+
+        part2 = part2[(part2["warehouse.type"] == 5) & (part2["store.type"] == 4)]
+
+        if len(part2) == 0:
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["source_id"] = self.source_id
+            part2["cmid"] = self.cmid
+
+            def generate_purchase_type(row):
+                if row == 1:
+                    return "普通订单"
+                elif row == 2:
+                    return "赠品订单"
+                elif row == 3:
+                    return "特价订单"
+                elif row == 4:
+                    return "首次订单"
+                elif row == 5:
+                    return "永续订单"
+                else:
+                    return "大订单"
+
+            part2["purchase_type"] = part2["header.ordertype"].apply(generate_purchase_type)
+            part2["item_show_code"] = part2["item.gdsincode"]
+            part2["vendor_show_code"] = part2["vendor.unitcode"]
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row["lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "尚未到货"
+                elif row == 2:
+                    return "已经到货"
+                elif row == 11:
+                    return "作废"
+
+            part2["bill_status"] = part2["header.orderflag"].apply(generate_bill_status)
+            part2 = part2.rename(columns={
+                "header.orderno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.amount": "purchase_qty",
+                "detail.inprice": "purchase_price",
+                "detail.inmoneyio": "purchase_total",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "store.deptcode": "warehouse_code",
+                "store.deptname": "warehouse_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part2 = part2[columns]
+
+        header = self.data["bil_returnfac"].rename(columns=lambda x: f"header.{x}")
+        detail = self.data["bil_returnfacdtl"].rename(columns=lambda x: f"detail.{x}")
+        detail["detail.gdsincode"] = detail["detail.gdsincode"].str.strip()
+        detail["detail.suppliercode"] = detail["detail.suppliercode"].str.strip()
+        lv = self._sub_query_category_lv4().rename(columns=lambda x: f"lv.{x}")
+        part3 = (
+            header
+            .merge(detail, left_on="header.billno", right_on="detail.billno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(item, how="left", left_on="detail.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part3 = part3[part3["warehouse.type"] == 4]
+        if len(part3) == 0:
+            part3 = pd.DataFrame(columns=columns)
+        else:
+            part3["source_id"] = self.source_id
+            part3["cmid"] = self.cmid
+            part3["purchase_type"] = "大仓退货单"
+            part3["item_show_code"] = part3["item.gdsincode"]
+            part3["purchase_qty"] = part3["detail.returnamount"].apply(lambda x: -1 * x)
+            part3["purchase_total"] = part3["detail.actualreturnmoney"].apply(lambda x: -1 * x)
+            part3["vendor_show_code"] = part3["vendor.unitcode"]
+
+            part3["foreign_category_lv2"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part3["foreign_category_lv3"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row["lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part3["foreign_category_lv4"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+            )
+            part3["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "未审核"
+                elif row == 1:
+                    return "已审核"
+                elif row == 11:
+                    return "作废"
+
+            part3["bill_status"] = part3["header.dealflag"].apply(generate_bill_status)
+            part3 = part3.rename(columns={
+                "header.billno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.actualinprice": "purchase_price",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "warehouse.deptcode": "warehouse_code",
+                "warehouse.deptname": "warehouse_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part3 = part3[columns]
+
+        lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
+        part4 = (
+            header
+            .merge(detail, left_on="header.billno", right_on="detail.billno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(item, how="left", left_on="detail.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part4 = part4[part4["warehouse.type"] == 4]
+        if len(part4) == 0:
+            part4 = pd.DataFrame(columns=columns)
+        else:
+            part4["source_id"] = self.source_id
+            part4["cmid"] = self.cmid
+            part4["purchase_type"] = "大仓退货单"
+            part4["item_show_code"] = part4["item.gdsincode"]
+            part4["purchase_qty"] = part4["detail.returnamount"].apply(lambda x: -1 * x)
+            part4["purchase_total"] = part4["detail.actualreturnmoney"].apply(lambda x: -1 * x)
+            part4["vendor_show_code"] = part4["vendor.unitcode"]
+
+            part4["foreign_category_lv2"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part4["foreign_category_lv3"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row["lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part4["foreign_category_lv4"] = ""
+            part4["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "未审核"
+                elif row == 1:
+                    return "已审核"
+                elif row == 11:
+                    return "作废"
+
+            part4["bill_status"] = part4["header.dealflag"].apply(generate_bill_status)
+            part4 = part4.rename(columns={
+                "header.billno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.actualinprice": "purchase_price",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "warehouse.deptcode": "warehouse_code",
+                "warehouse.deptname": "warehouse_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part4 = part4[columns]
+
+        return pd.concat([part1, part2, part3, part4])
+
+    def purchase_store(self):
+        columns = [
+            "source_id", "cmid", "purchase_num", "purchase_date", "purchase_type", "foreign_store_id", "store_show_code"
+            , "store_name", "foreign_item_id", "item_show_code", "barcode", "item_name", "item_unit", "purchase_qty",
+            "purchase_price", "purchase_total", "vendor_id", "vendor_show_code", "vendor_name", "brand_code",
+            "brand_name", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+            "foreign_category_lv4", "foreign_category_lv5", "bill_status"
+        ]
+        header = self.data["bil_inorder"].rename(columns=lambda x: f"header.{x}")
+        detail = self.data["bil_inorderdtl"].rename(columns=lambda x: f"detail.{x}")
+        store = self.data["inf_department"].rename(columns=lambda x: f"store.{x}")
+        item = self.data["inf_goods"].rename(columns=lambda x: f"item.{x}")
+        brand = self.data["inf_brand"].rename(columns=lambda x: f"brand.{x}")
+        vendor = self.data["inf_tradeunit"].rename(columns=lambda x: f"vendor.{x}")
+        item["item.gdsincode"] = item["item.gdsincode"].str.strip()
+        vendor["vendor.unitcode"] = vendor["vendor.unitcode"].str.strip()
+        store["store.deptcode"] = store["store.deptcode"].str.strip()
+        store["store.deptname"] = store["store.deptname"].str.strip()
+        header["header.deptcode"] = header["header.deptcode"].str.strip()
+        header["header.orderno"] = header["header.orderno"].str.strip()
+        detail["detail.gdscode"] = detail["detail.gdscode"].str.strip()
+        detail["detail.suppliercode"] = detail["detail.suppliercode"].str.strip()
+        detail["detail.orderno"] = detail["detail.orderno"].str.strip()
+        lv = self._sub_query_category_lv4().rename(columns=lambda x: f"lv.{x}")
+        part1 = (
+            header
+            .merge(detail, left_on="header.orderno", right_on="detail.orderno")
+            .merge(store, left_on="header.deptcode", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdscode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part1 = part1[part1["store.type"] == 1]
+
+        if len(part1) == 0:
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["source_id"] = self.source_id
+            part1["cmid"] = self.cmid
+
+            def generate_purchase_type(row):
+                if row == 1:
+                    return "普通订单"
+                elif row == 2:
+                    return "赠品订单"
+                elif row == 3:
+                    return "特价订单"
+                elif row == 4:
+                    return "首次订单"
+                elif row == 5:
+                    return "永续订单"
+                else:
+                    return "大订单"
+
+            part1["purchase_type"] = part1["header.ordertype"].apply(generate_purchase_type)
+
+            part1["foreign_category_lv2"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part1["foreign_category_lv3"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row[
+                    "lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part1["foreign_category_lv4"] = part1.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+            )
+            part1["foreign_category_lv5"] = ""
+            part1["store_show_code"] = part1["store.deptcode"]
+            part1["item_show_code"] = part1["item.gdsincode"]
+            part1["vendor_show_code"] = part1["vendor.unitcode"]
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "尚未到货"
+                elif row == 2:
+                    return "已经到货"
+                elif row == 11:
+                    return "作废"
+
+            part1["bill_status"] = part1["header.orderflag"].apply(generate_bill_status)
+            part1 = part1.rename(columns={
+                "header.orderno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "store.deptcode": "foreign_store_id",
+                "store.deptname": "store_name",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.amount": "purchase_qty",
+                "detail.inprice": "purchase_price",
+                "detail.inmoneyio": "purchase_total",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part1 = part1[columns]
+
+        lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
+        part2 = (
+            header
+            .merge(detail, left_on="header.orderno", right_on="detail.orderno")
+            .merge(store, left_on="header.deptcode", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdscode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part2 = part2[part2["store.type"] == 1]
+        if len(part2) == 0:
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["source_id"] = self.source_id
+            part2["cmid"] = self.cmid
+
+            def generate_purchase_type(row):
+                if row == 1:
+                    return "普通订单"
+                elif row == 2:
+                    return "赠品订单"
+                elif row == 3:
+                    return "特价订单"
+                elif row == 4:
+                    return "首次订单"
+                elif row == 5:
+                    return "永续订单"
+                else:
+                    return "大订单"
+
+            part2["purchase_type"] = part2["header.ordertype"].apply(generate_purchase_type)
+            part2["store_show_code"] = part2["store.deptcode"]
+            part2["item_show_code"] = part2["item.gdsincode"]
+            part2["vendor_show_code"] = part2["vendor.unitcode"]
+
+            part2["foreign_category_lv2"] = part2.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part2["foreign_category_lv3"] = part2.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row[
+                    "lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "尚未到货"
+                elif row == 2:
+                    return "已经到货"
+                elif row == 11:
+                    return "作废"
+
+            part2["bill_status"] = part2["header.orderflag"].apply(generate_bill_status)
+            part2 = part2.rename(columns={
+                "header.orderno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "store.deptcode": "foreign_store_id",
+                "store.deptname": "store_name",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.amount": "purchase_qty",
+                "detail.inprice": "purchase_price",
+                "detail.inmoneyio": "purchase_total",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part2 = part2[columns]
+
+        header = self.data["bil_returnfac"].rename(columns=lambda x: f"header.{x}")
+        detail = self.data["bil_returnfacdtl"].rename(columns=lambda x: f"detail.{x}")
+        warehouse = self.data["inf_department"].rename(columns=lambda x: f"warehouse.{x}")
+
+        header["header.deptcode"] = header["header.deptcode"].str.strip()
+        warehouse["warehouse.deptcode"] = warehouse["warehouse.deptcode"].str.strip()
+        warehouse["warehouse.fatherdept"] = warehouse["warehouse.fatherdept"].str.strip()
+        detail["detail.gdsincode"] = detail["detail.gdsincode"].str.strip()
+        detail["detail.suppliercode"] = detail["detail.suppliercode"].str.strip()
+
+        lv = self._sub_query_category_lv4().rename(columns=lambda x: f"lv.{x}")
+        part3 = (
+            header
+            .merge(detail, left_on="header.billno", right_on="detail.billno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(store, how="left", left_on="warehouse.fatherdept", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part3 = part3[part3["warehouse.type"] == 3]
+        if len(part3) == 0:
+            part3 = pd.DataFrame(columns=columns)
+        else:
+            part3["source_id"] = self.source_id
+            part3["cmid"] = self.cmid
+            part3["purchase_type"] = "门店退货"
+            part3["store_show_code"] = part3["store.deptcode"]
+            part3["item_show_code"] = part3["item.gdsincode"]
+            part3["purchase_qty"] = part3["detail.returnamount"].apply(lambda x: -1 * x)
+            part3["purchase_total"] = part3["detail.actualreturnmoney"].apply(lambda x: -1 * x)
+            part3["vendor_show_code"] = part3["vendor.unitcode"]
+            part3["foreign_category_lv2"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part3["foreign_category_lv3"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row[
+                    "lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part3["foreign_category_lv4"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+            )
+            part3["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "未审核"
+                elif row == 1:
+                    return "已审核"
+                elif row == 11:
+                    return "作废"
+
+            part3["bill_status"] = part3["header.dealflag"].apply(generate_bill_status)
+            part3 = part3.rename(columns={
+                "header.billno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "store.deptcode": "foreign_store_id",
+                "store.deptname": "store_name",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.actualinprice": "purchase_price",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part3 = part3[columns]
+
+        lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
+        part4 = (
+            header
+            .merge(detail, left_on="header.billno", right_on="detail.billno")
+            .merge(warehouse, left_on="header.deptcode", right_on="warehouse.deptcode")
+            .merge(store, how="left", left_on="warehouse.fatherdept", right_on="store.deptcode")
+            .merge(item, how="left", left_on="detail.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
+            .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
+            .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
+        )
+        part4 = part4[part4["warehouse.type"] == 3]
+        if len(part4) == 0:
+            part4 = pd.DataFrame(columns=columns)
+        else:
+            part4["source_id"] = self.source_id
+            part4["cmid"] = self.cmid
+            part4["purchase_type"] = "门店退货"
+            part4["store_show_code"] = part4["store.deptcode"]
+            part4["item_show_code"] = part4["item.gdsincode"]
+            part4["purchase_qty"] = part4["detail.returnamount"].apply(lambda x: -1 * x)
+            part4["purchase_total"] = part4["detail.actualreturnmoney"].apply(lambda x: -1 * x)
+            part4["vendor_show_code"] = part4["vendor.unitcode"]
+
+            part4["foreign_category_lv2"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1)
+            part4["foreign_category_lv3"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] + row[
+                    "lv.foreign_category_lv3"]
+                , axis=1
+            )
+            part4["foreign_category_lv4"] = ""
+            part4["foreign_category_lv5"] = ""
+
+            def generate_bill_status(row):
+                if row == 0:
+                    return "未审核"
+                elif row == 1:
+                    return "已审核"
+                elif row == 11:
+                    return "作废"
+
+            part4["bill_status"] = part4["header.dealflag"].apply(generate_bill_status)
+            part4 = part4.rename(columns={
+                "header.billno": "purchase_num",
+                "header.recorddate": "purchase_date",
+                "store.deptcode": "foreign_store_id",
+                "store.deptname": "store_name",
+                "item.gdsincode": "foreign_item_id",
+                "item.stripecode": "barcode",
+                "item.gdsname": "item_name",
+                "item.baseunit": "item_unit",
+                "detail.actualinprice": "purchase_price",
+                "vendor.unitcode": "vendor_id",
+                "vendor.unitname": "vendor_name",
+                "brand.brandcode": "brand_code",
+                "brand.brand": "brand_name",
+                "lv.foreign_category_lv1": "foreign_category_lv1"
+            })
+            part4 = part4[columns]
+        part = pd.concat([part1, part2, part3, part4])
+        part["store_show_code"] = part["store_show_code"].apply(lambda x: x.zfill(self.store_id_len))
+        part["foreign_store_id"] = part["foreign_store_id"].apply(lambda x: x.zfill(self.store_id_len))
+        return part
