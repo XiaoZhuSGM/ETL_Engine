@@ -5,6 +5,7 @@ import boto3
 import calendar
 import dask.dataframe as dd
 import random
+from etl.extensions import cache
 
 s3 = boto3.resource("s3")
 BUCKET = "replenish"
@@ -81,6 +82,7 @@ class ForecastService:
             raise ForecastError("command not found")
         return store_info
 
+    @cache.memoize(timeout=300)
     def lacking_rate(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -108,6 +110,7 @@ class ForecastService:
             )
         return data
 
+    @cache.memoize(timeout=300)
     def performance_process(self, cmid):
         obj = sorted(
             s3.Bucket(BUCKET).objects.filter(Prefix=f"graph/sales_process/{cmid}/"),
@@ -137,69 +140,45 @@ class ForecastService:
         achieved.sort(key=lambda x: x["achieved"])
         return {"achieved": achieved, "should_achieve": round(should_achieve, 3)}
 
+    @cache.memoize(timeout=300)
     def order_rate(self, cmid, store_id):
-        show_code = r_store_hash[cmid][store_id]["show_code"]
-        end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=30)
-        dates = pd.date_range(start, end, closed="right")
-
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(Prefix=f"order_coincidence_rate/{cmid}/"),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        order_coincidence_rate = pd.read_csv(
+            f"s3://{BUCKET}/{obj.key}", dtype={"门店编码": str, "store_id": str}
+        )
+        order_coincidence_rate.set_index("store_id", inplace=True)
+        stores = order_coincidence_rate.loc[store_id]
         data = []
-        for d in dates:
-            try:
-                df = pd.read_excel(
-                    f"s3://{BUCKET}/everyday_delivery_{cmid}/{d.strftime('%Y-%m-%d')}.xlsx",
-                    sheet_name="补货监控",
-                    dtype={"门店编码": str},
-                    usecols=[0, 10, 11, 12],
-                )
-                df.set_index("门店编码", inplace=True)
-            except Exception as e:
-                print(f"{d}:{show_code}:{e}")
-                continue
-            if show_code not in df.index:
-                continue
-            so = df.loc[show_code][0]
-            om = df.loc[show_code][1]
-            us = df.loc[show_code][2]
-            if any([pd.isna(so), pd.isna(om), pd.isna(us)]):
-                continue
+        for _, row in stores.iterrows():
             data.append(
                 {
-                    "date": d.strftime("%Y-%m-%d"),
-                    "suggest_order": percent_to_float(so),
-                    "order_match": percent_to_float(om),
-                    "unsuggest": percent_to_float(us),
+                    "date": row["date"],
+                    "suggest_order": row["订货sku建议成功率"],
+                    "order_match": row["订货sku及数量建议成功率"],
+                    "unsuggest": row["未建议sku订货比率"],
                 }
             )
-
         return data
 
+    @cache.memoize(timeout=300)
     def best_lacking(self, cmid, store_id):
-        end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=60)
-        dates = pd.date_range(start, end, closed="right")
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(Prefix=f"best_lacking/{cmid}/"),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        lacking = pd.read_csv(f"s3://{BUCKET}/{obj.key}", dtype={"门店ID": str})
+        lacking.set_index("门店ID", inplace=True)
         data = []
-        for d in dates:
-            try:
-                df = pd.read_excel(
-                    f"s3://{BUCKET}/best_selling_and_best_lacking/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
-                    sheet_name=0,
-                    dtype={"门店ID": str},
-                )
-                df.set_index("门店ID", inplace=True)
-                if store_id not in df.index:
-                    continue
-            except Exception as e:
-                print(f"{d}:{store_id}:{e}")
-                continue
-            data.append(
-                {
-                    "date": d.strftime("%Y-%m-%d"),
-                    "count": int(df.loc[store_id]["门店畅缺品 SKU 数（过滤非统配）"]),
-                }
-            )
+        for _, row in lacking.iterrows():
+            data.append({"date": row["date"], "count": row["门店畅缺品 SKU 数（过滤非统配）"]})
         return data
 
+    @cache.memoize(timeout=300)
     def lost_sales(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -236,6 +215,7 @@ class ForecastService:
             info["date"] = info["date"].strftime("%Y-%m-%d")
         return data[-60:]
 
+    @cache.memoize(timeout=300)
     def sale_amount(self, cmid, store_id):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=30)
@@ -307,7 +287,7 @@ class ForecastService:
 
 
 class BossService:
-    start_at = {"79": "2018-09-25", "43": "2018-09-25", "58": "2018-09-25"}
+    start_at = {"79": "2018-10-07", "43": "2018-09-25", "58": "2018-09-25"}
 
     def login(self, command):
         cmid = boss_hash.get(command)
@@ -315,6 +295,7 @@ class BossService:
             raise ForecastError("command not found")
         return {"cmid": cmid}
 
+    @cache.memoize(timeout=300)
     def lacking_rate(self, cmid):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -345,6 +326,7 @@ class BossService:
             )
         return {"data": data, "start_at": self.start_at[cmid]}
 
+    @cache.memoize(timeout=300)
     def lost_sales(self, cmid):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -370,6 +352,7 @@ class BossService:
             )
         return {"data": data, "start_at": self.start_at[cmid]}
 
+    @cache.memoize(timeout=300)
     def best_lacking(self, cmid):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -405,6 +388,7 @@ class BossService:
             )
         return {"data": data, "start_at": self.start_at[cmid]}
 
+    @cache.memoize(timeout=300)
     def lost_sales_of_best_lacking(self, cmid):
         end = datetime.now() - timedelta(days=1)
         start = end - timedelta(days=60)
@@ -430,6 +414,7 @@ class BossService:
             )
         return {"data": data, "start_at": self.start_at[cmid]}
 
+    @cache.memoize(timeout=300)
     def stores(self, cmid):
         store_infos = r_store_hash[cmid]
         data = []
@@ -499,12 +484,14 @@ class BossService:
             )
         return data
 
+    @cache.memoize(timeout=300)
     def goods(self, cmid, query):
         end = datetime.now() - timedelta(days=2)
         start = end - timedelta(days=30)
         dates = pd.date_range(start, end, closed="right")
         all_goods = pd.read_csv(
             f"s3://standard-data/{end.strftime('%Y/%m/%d')}/{cmid.ljust(15, 'Y')}/chain_goods/chain_goods000.gz",
+            compression="gzip",
             names=[
                 "cmid",
                 "barcode",
@@ -609,6 +596,7 @@ class BossService:
         all_150 = [*top_50, *middle_50, *empty_50]
         return all_150
 
+    @cache.memoize(timeout=300)
     def goods_detail(self, cmid, item_id):
         end = datetime.now() - timedelta(days=2)
         start = end - timedelta(days=30)
@@ -652,6 +640,7 @@ class BossService:
             "stores": goods_detail.to_dict("records"),
         }
 
+    @cache.memoize(timeout=300)
     def store_goods_detail(self, cmid, item_id, store_id):
         end = datetime.now() - timedelta(days=2)
         start = end - timedelta(days=30)

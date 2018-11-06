@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from config.config import config
 import os
+from etl.extensions import cache
 
 __all__ = ['create_app']
 
@@ -26,6 +27,7 @@ def create_app(config=None):
     configure_path_converter(app)
     configure_blueprints(app)
     configure_sentry(app)
+    configure_extensions(app)
 
     CORS(
         app,
@@ -71,3 +73,7 @@ def configure_blueprints(app):
     app.register_blueprint(api, url_prefix='/etl/api')
     app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
     app.register_blueprint(forecast_api, url_prefix="/forecast/api")
+
+
+def configure_extensions(app):
+    cache.init_app(app)

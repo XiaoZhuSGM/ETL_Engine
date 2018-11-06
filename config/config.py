@@ -52,6 +52,12 @@ class ProductionConfig(Config):
 ***REMOVED***
 ***REMOVED***
 
+    CACHE_TYPE = "redis"
+    CACHE_REDIS_HOST = REDIS_HOST
+    CACHE_REDIS_PORT = REDIS_PORT
+    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
+    CACHE_REDIS_DB = REDIS_DB
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -82,6 +88,12 @@ class DevelopmentConfig(Config):
 
 ***REMOVED***
 ***REMOVED***
+
+    CACHE_TYPE = "null"  # debug, disable cache
+    CACHE_REDIS_HOST = REDIS_HOST
+    CACHE_REDIS_PORT = REDIS_PORT
+    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
+    CACHE_REDIS_DB = REDIS_DB
 
 
 class LocalConfig(Config):
