@@ -572,11 +572,11 @@ class BossService:
                 item_id not in df.index for df in (avg_voc, before_suggest, all_goods)
             ):
                 continue
-            item_show_code = all_goods.loc[item_id]["show_code"]
-            name = all_goods.loc[item_id]["item_name"]
-            if query and query not in item_show_code:
+            show_code = all_goods.loc[item_id]["show_code"]
+            item_name = all_goods.loc[item_id]["item_name"]
+            if query and query not in show_code:
                 continue
-            if query and query not in name:
+            if query and query not in item_name:
                 continue
             avg_turnover = float(avg_voc.loc[item_id]["商品周转周期"])
             before_turnover = float(before_suggest.loc[item_id]["商品周转周期"])
@@ -589,9 +589,9 @@ class BossService:
             suggest_times = row["suggest_times"]
             data.append(
                 {
-                    "show_code": item_show_code,
+                    "show_code": show_code,
                     "foreign_item_id": item_id,
-                    "item_name": name,
+                    "item_name": item_name,
                     "avg_turnover": round(avg_turnover, 3),
                     "turnover_contrast": round(turnover_contrast, 3),
                     "same_times": int(same_times),
@@ -636,74 +636,20 @@ class BossService:
                     "date": row["时间"],
                 }
             )
-
-        urls = []
-        for d in dates:
-            urls.append(
-                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/store_item_view/{d.strftime('%Y-%m-%d')}.csv"
-            )
-        _voc = [
-            dd.read_csv(url, dtype={"商品ID": str, "门店ID": str}, blocksize=None)
-            for url in urls
-        ]
-        _voc = dd.concat(_voc)
-        _voc = _voc[_voc["商品ID"] == item_id]
-        voc = _voc.compute()
-        avg_voc = voc.groupby("门店ID").agg({"商品周转周期": "mean", "门店名称": "first"})
         obj = sorted(
-            s3.Bucket(BUCKET).objects.filter(
-                Prefix=f"suggest_times_and_same_times/{cmid}/"
-            ),
+            s3.Bucket(BUCKET).objects.filter(Prefix=f"goods_turnover_detail/{cmid}/"),
             key=lambda obj: int(obj.last_modified.strftime("%s")),
             reverse=True,
         )[0]
-        suggest_times_and_same_times = pd.read_csv(
-            f"s3://{BUCKET}/{obj.key}",
-            dtype={"foreign_item_id": str, "foreign_store_id": str},
+        turnover_detail = pd.read_csv(
+            f"s3://{BUCKET}/{obj.key}", dtype={"item_id": str, "store_id": str}
         )
-        suggest_times_and_same_times = suggest_times_and_same_times[
-            suggest_times_and_same_times["foreign_item_id"] == item_id
-        ]
-        suggest_times_and_same_times = suggest_times_and_same_times.groupby(
-            "foreign_store_id"
-        ).agg({"same_times": "sum", "suggest_times": "sum"})
-        before_suggest = pd.read_csv(
-            f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/store_item_view/2018-09-25.csv",
-            dtype={"商品ID": str, "门店ID": str},
-        )
-        before_suggest = before_suggest[before_suggest["商品ID"] == item_id]
-        before_suggest.set_index(["门店ID"], inplace=True)
-        stores = []
-        for store_id in voc["门店ID"].drop_duplicates().tolist():
-            if any(
-                store_id not in df.index
-                for df in (avg_voc, before_suggest, suggest_times_and_same_times)
-            ):
-                continue
-            avg_turnover = float(avg_voc.loc[store_id]["商品周转周期"])
-            before_turnover = float(before_suggest.loc[store_id]["商品周转周期"])
-            turnover_contrast = (
-                (before_turnover - avg_turnover) / before_turnover
-                if before_turnover
-                else 0
-            )
-            same_times = suggest_times_and_same_times.loc[store_id]["same_times"]
-            suggest_times = suggest_times_and_same_times.loc[store_id]["suggest_times"]
-            stores.append(
-                {
-                    "store_id": store_id,
-                    "store_name": avg_voc.loc[store_id]["门店名称"],
-                    "avg_turnover": round(avg_turnover, 3),
-                    "turnover_contrast": round(turnover_contrast, 3),
-                    "same_times": int(same_times),
-                    "suggest_times": int(suggest_times),
-                }
-            )
+        goods_detail = turnover_detail[turnover_detail["item_id"] == item_id]
         return {
             "start_at": self.start_at[cmid],
             "turnover": turnover,
             "inventory_sales": inventory_sales,
-            "stores": stores,
+            "stores": goods_detail.to_dict("records"),
         }
 
     def store_goods_detail(self, cmid, item_id, store_id):
