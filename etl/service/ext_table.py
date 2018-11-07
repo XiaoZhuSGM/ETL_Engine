@@ -128,20 +128,23 @@ class ExtTableService(object):
         special_schema = None
         if schema and (erp_vendor == "百年创纪云" or erp_vendor == "百年新世纪"):
             special_schema = f"[{schema}]"
-
         tables = self._get_tables(schema)
         views = self._get_views(schema)
         tables.extend(views)
         for table in tables:
             print(table)
-            table_name = f'{special_schema}.{table}' if special_schema else f'{schema}.{table}' if schema else table
 
             try:
                 if table.startswith('v_'):
                     table = table.replace('v_', '', 1)
                     ext_pri_key = ''
                     record_num = 0
+                    table_name = f'{special_schema}.{table}' if special_schema else f'{schema}.{table}' if schema else table
+
                 else:
+
+                    table_name = f'{special_schema}.{table}' if special_schema else f'{schema}.{table}' if schema else table
+
                     ext_pri_key = self._get_ext_pri_key(table, schema)
 
                     executor = ThreadPoolExecutor()

@@ -68,8 +68,12 @@ class ExtCleanInfoService:
         if not datasource:
             raise ExtDatasourceNotExist(source_id)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
-            paginate(page, per_page=per_page, error_out=False)
+        pagination = (
+            ExtCleanInfo.query
+            .filter_by(source_id=source_id, deleted=False)
+            .order_by(ExtCleanInfo.target_table)
+            .paginate(page, per_page=per_page, error_out=False)
+        )
 
         items = pagination.items
         total = pagination.total
@@ -93,8 +97,12 @@ class ExtCleanInfoService:
         for item in items:
             ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, deleted=False)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
-            paginate(page, per_page=per_page, error_out=False)
+        pagination = (
+            ExtCleanInfo.query
+            .filter_by(source_id=source_id, deleted=False)
+            .order_by(ExtCleanInfo.target_table)
+            .paginate(page, per_page=per_page, error_out=False)
+        )
         items = pagination.items
         total = pagination.total
         return total, [item.to_dict() for item in items]
