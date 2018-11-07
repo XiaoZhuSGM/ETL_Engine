@@ -1,5 +1,3 @@
-from flask import request
-from etl.constant import PER_PAGE
 from etl.models.etl_table import ExtCleanInfo
 from etl.models.etl_table import ExtTargetInfo
 from etl.models.ext_table_info import ExtTableInfo
@@ -62,10 +60,7 @@ class TableNotExist(Exception):
 
 class ExtCleanInfoService:
     @session_scope
-    def get_ext_clean_infos(self):
-        source_id = request.args.get("source_id")
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", PER_PAGE))
+    def get_ext_clean_infos(self, source_id, page, per_page):
         if page < 0 or per_page < 0:
             raise ExtCleanInfoParameterError()
 
@@ -73,8 +68,8 @@ class ExtCleanInfoService:
         if not datasource:
             raise ExtDatasourceNotExist(source_id)
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).\
-                                        paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
+            paginate(page, per_page=per_page, error_out=False)
 
         items = pagination.items
         total = pagination.total
@@ -82,7 +77,8 @@ class ExtCleanInfoService:
         if total != 0:
             return total, [item.to_dict() for item in items]
 
-        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtCleanInfo.query.filter_by(source_id=source_id).paginate(page, per_page=per_page,
+                                                                                error_out=False)
 
         total = pagination.total
 
@@ -98,7 +94,7 @@ class ExtCleanInfoService:
             ExtCleanInfo.create(source_id=source_id, target_table=item.target_table, deleted=False)
 
         pagination = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False). \
-                                        paginate(page, per_page=per_page, error_out=False)
+            paginate(page, per_page=per_page, error_out=False)
         items = pagination.items
         total = pagination.total
         return total, [item.to_dict() for item in items]
@@ -163,7 +159,7 @@ class ExtCleanInfoService:
             if ext_table.alias_table_name:
                 ext_table_column_dict[ext_table.alias_table_name] = ext_table.ext_column
             else:
-                ext_table_column_dict[ext_table.table_name.split(".")[-1]] = ext_table.ext_column
+                ext_table_column_dict[ext_table.table_name.split(".")[-1].lower()] = ext_table.ext_column
 
         for data in data_list:
             table_name = data.get("origin_table")
@@ -190,7 +186,7 @@ class ExtCleanInfoService:
 
         ext_clean_info.update(origin_table=origin_table, covert_str=covert_str)
 
-    def  get_ext_clean_info_table(self, source_id):
+    def get_ext_clean_info_table(self, source_id):
         tables = []
 
         ext_table_infos = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
@@ -198,16 +194,14 @@ class ExtCleanInfoService:
             raise ExtTableInfoNotFound(source_id)
         for ext_table in ext_table_infos:
             table_name = ext_table.alias_table_name if ext_table.alias_table_name \
-                                                else ext_table.table_name.split(".")[-1]
+                else ext_table.table_name.split(".")[-1].lower()
             if table_name not in tables:
                 tables.append(table_name)
-
         return tables
 
     def get_ext_clean_info_target_table(self, source_id):
         ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
         ext_clean_tables = [model.target_table for model in ext_clean_info_models]
-        print(f"source_id:{source_id}, {ext_clean_tables}")
         ext_target_info_models = ExtTargetInfo.query.filter(ExtTargetInfo.target_table.notin_(ext_clean_tables)).all()
         tables = [model.target_table for model in ext_target_info_models]
         return tables
@@ -256,3 +250,11 @@ class ExtCleanInfoService:
             }
             target_table.update(**info)
 
+    def get_ext_clean_info_target(self, source_id, target):
+        if not all([source_id, target]):
+            raise ExtCleanInfoParameterError()
+        target_table = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=target, deleted=False).first()
+        if not target_table:
+            raise ExtCleanInfoNotFound()
+        data = target_table.to_dict()
+        return data

@@ -3,12 +3,15 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
+from config.config import config
+import os
+from etl.extensions import cache
 
 __all__ = ['create_app']
 
 DEFAULT_APP_NAME = 'etl'
 db = SQLAlchemy()
-celery = Celery(DEFAULT_APP_NAME)
+celery = Celery(DEFAULT_APP_NAME, broker=config[os.getenv("ETL_ENVIREMENT", "dev")].CELERY_BROKER_URL)
 sentry = Sentry()
 
 
@@ -24,9 +27,16 @@ def create_app(config=None):
     configure_path_converter(app)
     configure_blueprints(app)
     configure_sentry(app)
+    configure_extensions(app)
 
-    CORS(app, resources={r"/etl/admin/api/*": {"origins": "*"}})
-    CORS(app, resources={r"/etl/api/*": {"origins": "*"}})
+    CORS(
+        app,
+        resources={
+            r"/etl/admin/api/*": {"origins": "*"},
+            r"/etl/api/*": {"origins": "*"},
+            r"/forecast/api/*": {"origins": "*"},
+        },
+    )
 
     return app
 
@@ -58,6 +68,12 @@ def configure_path_converter(app):
 def configure_blueprints(app):
     from etl.controllers.api import etl_api as api
     from etl.controllers.admin_api import etl_admin_api as admin_api
+    from etl.controllers.forecast_api import forecast_api
 
     app.register_blueprint(api, url_prefix='/etl/api')
     app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
+    app.register_blueprint(forecast_api, url_prefix="/forecast/api")
+
+
+def configure_extensions(app):
+    cache.init_app(app)

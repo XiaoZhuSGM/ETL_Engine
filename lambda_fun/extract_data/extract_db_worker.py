@@ -10,21 +10,22 @@ import botocore
 import pytz
 from botocore.config import Config
 
-_TZINFO = pytz.timezone('Asia/Shanghai')
+_TZINFO = pytz.timezone("Asia/Shanghai")
 
-S3_BUCKET = 'ext-etl-data'
+S3_BUCKET = "ext-etl-data"
 
-SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
-HISTORY_HUMP_JSON = 'datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/' \
-                    'dump={timestamp}.json'
+SQL_PREFIX = "sql/source_id={source_id}/{date}/"
+HISTORY_HUMP_JSON = (
+    "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/"
+    "dump={timestamp}.json"
+)
 
-FULL_JSON = 'data/source_id={source_id}/ext_date={date}/' \
-            'dump={date}_whole_path.json'
+FULL_JSON = "data/source_id={source_id}/ext_date={date}/" "dump={date}_whole_path.json"
 
-S3_CLIENT = boto3.resource('s3')
+S3_CLIENT = boto3.resource("s3")
 session = botocore.session.get_session()
 BOTO3_CONFIG = Config(connect_timeout=300, read_timeout=300)
-LAMBDA_CLIENT = session.create_client('lambda', config=BOTO3_CONFIG)
+LAMBDA_CLIENT = session.create_client("lambda", config=BOTO3_CONFIG)
 
 
 class Method(Enum):
@@ -35,25 +36,30 @@ class Method(Enum):
 
 def handler(event, context):
     # Check if the incoming message was sent by SNS
-    if 'Records' in event:
-        message = json.loads(event['Records'][0]['Sns']['Message'])
+    if "Records" in event:
+        message = json.loads(event["Records"][0]["Sns"]["Message"])
     else:
         message = event
     ext_db_worker = ExtDBWork(message)
     response = json.dumps(ext_db_worker.extract_data())
     print(response)
     if response and ext_db_worker.task_type != Method.sync.name:
-        json_key = HISTORY_HUMP_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date,
-                                            timestamp=now_timestamp())
+        json_key = HISTORY_HUMP_JSON.format(
+            source_id=ext_db_worker.source_id,
+            date=ext_db_worker.query_date,
+            timestamp=now_timestamp(),
+        )
         print(json_key)
-        S3_CLIENT.Object(bucket_name=S3_BUCKET, key=json_key).put(
-            Body=response)
+        S3_CLIENT.Object(bucket_name=S3_BUCKET, key=json_key).put(Body=response)
 
         if ext_db_worker.task_type == Method.full.name:
             """full json 每天只会有一份，每次增量后的话都是更新，同步更新后放到data目录"""
-            full_json_ley = FULL_JSON.format(source_id=ext_db_worker.source_id, date=ext_db_worker.query_date)
+            full_json_ley = FULL_JSON.format(
+                source_id=ext_db_worker.source_id, date=ext_db_worker.query_date
+            )
             S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_ley).put(
-                Body=response)
+                Body=response
+            )
     return response
 
 
@@ -63,7 +69,6 @@ def now_timestamp():
 
 
 class ExtDBWork(object):
-
     def __init__(self, message):
         self.source_id = message.get("source_id", None)
         self.query_date = message.get("query_date", None)
@@ -84,9 +89,14 @@ class ExtDBWork(object):
          "type":"full"}
         return:
         """
-        key = SQL_PREFIX.format(source_id=self.source_id, date=self.query_date) + self.filename
+        key = (
+            SQL_PREFIX.format(source_id=self.source_id, date=self.query_date)
+            + self.filename
+        )
         print(key)
-        extract_sqls = S3_CLIENT.Object(S3_BUCKET, key).get()['Body'].read().decode('utf-8')
+        extract_sqls = (
+            S3_CLIENT.Object(S3_BUCKET, key).get()["Body"].read().decode("utf-8")
+        )
         return json.loads(extract_sqls)
 
     def extract_data(self):
@@ -101,14 +111,20 @@ class ExtDBWork(object):
         _type = sql_info["type"]
         futures = []
         with ThreadPoolExecutor() as executor:
-            for table_name, sql_statement in sql_info['sqls'].items():
+            for table_name, sql_statement in sql_info["sqls"].items():
                 for value in sql_statement:
                     print(value)
-                    future = executor.submit(self.thread_query_tables, (table_name, value), _type)
+                    future = executor.submit(
+                        self.thread_query_tables, (table_name, value), _type
+                    )
                     futures.append(future)
-                    time.sleep(0.1)
+                    time.sleep(1)
 
-        response = dict(source_id=self.source_id, query_date=self.query_date, task_type=self.task_type)
+        response = dict(
+            source_id=self.source_id,
+            query_date=self.query_date,
+            task_type=self.task_type,
+        )
         results = [f.result() for f in futures]
         extracted_data_list = [r for r in results if r is not None]
 
@@ -122,29 +138,121 @@ class ExtDBWork(object):
         return response
 
     def thread_query_tables(self, sql, _type):
-        msg = dict(source_id=self.source_id, sql=sql, type=_type, db_url=self.db_url, query_date=self.query_date)
-        # from executor_sql import handler
-        # payload = handler(msg, None)
-        invoke_response = LAMBDA_CLIENT.invoke(
-            FunctionName="executor_sql", InvocationType='RequestResponse',
-            Payload=json.dumps(msg), Qualifier='prod')
-        payload = invoke_response.get('Payload')
-        payload_str = payload.read()
-        payload = json.loads(payload_str)
-        status = payload.get('status', None)
-        if status and status == 'OK':
-            result = payload.get('result')
+        msg = dict(
+            source_id=self.source_id,
+            sql=sql,
+            type=_type,
+            db_url=self.db_url,
+            query_date=self.query_date,
+        )
+        from .executor_sql import handler
+
+        payload = handler(msg, None)
+        # invoke_response = LAMBDA_CLIENT.invoke(
+        #     FunctionName="executor_sql", InvocationType='RequestResponse',
+        #     Payload=json.dumps(msg), Qualifier='prod')
+        # payload = invoke_response.get('Payload')
+        # payload_str = payload.read()
+        # payload = json.loads(payload_str)
+        status = payload.get("status", None)
+        if status and status == "OK":
+            result = payload.get("result")
             return result
-        elif status and status == 'error':
-            trace = payload.get('trace')
+        elif status and status == "error":
+            trace = payload.get("trace")
             print(trace)
         return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    strat_time = time.time()
 
-    event = dict(source_id="48YYYYYYYYYYYYY", query_date="2018-08-10", task_type="full",
-                 filename="2018-08-31 16:16:55.633268.json",
-                 db_url="mssql+pymssql://test:njbld!@#456@nianjia.qnoddns.org.cn:1433/SysDB")
+    event = dict(
+        source_id="43YYYYYYYYYYYYY",
+        query_date="2018-09-04",
+        task_type="full",
+        filename="2018-09-05 11:26:50.709112.json",
+        db_url="oracle+cx_oracle://hd40:ttblhd40@60.6.202.4:51521/?service_name=hdapp",
+    )
 
-    handler(event, None)
+    event_1 = dict(
+        source_id="72YYYYYYYYYYYYY",
+        query_date="2018-09-05",
+        task_type="full",
+        filename="2018-09-06 00:43:02.473436.json",
+        db_url="mssql+pymssql://sa:hyqykj@172.31.0.18:40072/hbposv8",
+    )
+
+    event_2 = dict(
+        source_id="67YYYYYYYYYYYYY",
+        query_date="2018-09-05",
+        task_type="full",
+        filename="2018-09-06 18:18:49.988464.json",
+        db_url="oracle+cx_oracle://HDCM:HDCM@jiayihn.cn:9521/?service_name=jypos",
+    )
+
+    event_3 = {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-08",
+        "task_type": "full",
+        "filename": "2018-09-09 17:45:29.537564.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:3433/fjwjdb",
+    }
+
+    event_4 = {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-08",
+        "task_type": "full",
+        "filename": "2018-09-09 17:45:29.537564.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb",
+    }
+
+    event_5 = {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "split/2018-09-10 11:05:20.895028.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb",
+    }
+
+    event_6 = {
+        "source_id": "73YYYYYYYYYYYYY",
+        "query_date": "2018-09-25",
+        "task_type": "full",
+        "filename": "2018-09-26 10:31:10.161256.json",
+        "db_url": "mssql+pymssql://chaomeng:ChaoMeng@www.fjbnwj.com:2433/fjwjdb",
+    }
+
+    event_7 = {
+        "source_id": "54YYYYYYYYYYYYY",
+        "query_date": "2018-09-09",
+        "task_type": "full",
+        "filename": "2018-09-10 13:13:20.936079.json",
+        "db_url": "mssql+pymssql://cm:cmdata!2017@172.31.0.18:40054/hbposev9",
+    }
+    event_8 = {
+        "db_url": "oracle+cx_oracle://cmdata:cmdata2017@172.31.0.18:44375/?service_name=r5sdbdms",
+        "query_date": "2018-09-30",
+        "source_id": "1015YYYYYYYYYYY",
+        "task_type": "full",
+        "filename" : "2018-10-01 05:11:00.218641.json"
+    }
+    # handler(event_8, None)
+    invoke_response = LAMBDA_CLIENT.invoke(
+        FunctionName="extract_db_worker", InvocationType='RequestResponse',
+        Payload=json.dumps(event_8), )
+    print('FunctionError' in invoke_response)
+    payload_body = invoke_response['Payload']
+    payload_str = payload_body.read()
+    print(payload_str)
+    #
+    # invoke_response = LAMBDA_CLIENT.invoke(
+    #     FunctionName="extract_db_worker", InvocationType='RequestResponse',
+    #     Payload=json.dumps(event_8), )
+    # print('FunctionError' in invoke_response)
+    # payload_body = invoke_response['Payload']
+    # payload_str = payload_body.read()
+    # print(payload_str)
+    #
+    # end_time = time.time() - strat_time
+    # print(end_time)

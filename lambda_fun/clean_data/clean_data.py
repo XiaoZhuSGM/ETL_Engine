@@ -7,6 +7,7 @@ import json
 import boto3
 import pandas as pd
 import pytz
+import re
 
 S3_BUCKET = "ext-etl-data"
 
@@ -14,7 +15,9 @@ HISTORY_HUMP_JSON = (
     "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/"
 )
 
-CONVERTERS = {"str": str, "int": int, 'float': float}
+CONVERTERS = {"str": str, "int": int, "float": float}
+
+BLANK_CHAR = re.compile(r"[\r\n\t]+")
 
 _TZINFO = pytz.timezone("Asia/Shanghai")
 S3 = boto3.resource("s3")
@@ -31,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -49,15 +52,17 @@ def fetch_data_frames(keys, origin_table_columns, converts):
     for key in keys:
         content = S3.Object(S3_BUCKET, key).get()
         data = json.loads(content["Body"].read().decode("utf-8"))
-        extract_data_dict = data['extract_data']
+        extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
-            if table_name in origin_table_columns.keys() and table_name not in datas.keys():
+            if (
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
+            ):
                 datas[table_name] = records
 
     data_frames = {}
 
     for table, columns in origin_table_columns.items():
-        frame_table = None
         for csv_path in datas[table]:
             key = f"s3://{S3_BUCKET}/{csv_path}"
             if table in converts:
@@ -67,12 +72,10 @@ def fetch_data_frames(keys, origin_table_columns, converts):
             else:
                 frame = pd.read_csv(key, compression="gzip", usecols=columns)
 
-            if frame_table is None:
-                frame_table = frame.copy(deep=True)
+            if table in data_frames:
+                data_frames[table] = data_frames[table].append(frame)
             else:
-                frame_table = frame_table.append(frame)
-            data_frames[table] = frame_table
-
+                data_frames[table] = frame.copy(deep=True)
     return data_frames
 
 
@@ -99,6 +102,10 @@ def handler(event, context):
     )
 
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
+    for k, v in data_frames.items():
+        data_frames[k] = v.applymap(
+            lambda e: BLANK_CHAR.sub(" ", e).strip() if isinstance(e, str) else e
+        )
 
     if erp_name == "科脉云鼎":
         from kemaiyunding import clean_kemaiyunding
@@ -111,6 +118,7 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "思迅":
         from sixun import clean_sixun
+
         return clean_sixun(source_id, date, target_table, data_frames)
     elif erp_name == "宏业":
         from hongye import HongYeCleaner
@@ -119,55 +127,113 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "美食林":
         from meishilin import MeiShiLinCleaner
+
         cleaner = MeiShiLinCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == '智百威':
+    elif erp_name == "智百威":
         from zhibaiwei import ZhiBaiWeiCleaner
+
         cleaner = ZhiBaiWeiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == '商海导航':
+    elif erp_name == "商海导航":
         from shanghaidaohang import ShangHaiDaoHangCleaner
+
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
+    elif erp_name == "富基融通":
+        from fujirongtong import clean_fujirongtong
+
+        return clean_fujirongtong(source_id, date, target_table, data_frames)
+    elif erp_name == "便宅家中间库":
+        from bianzhaijia import clean_bianzhaijia
+
+        return clean_bianzhaijia(source_id, date, target_table, data_frames)
+    elif erp_name == "海信商定天下":
+        from haixin import clean_haixin
+
+        return clean_haixin(source_id, date, target_table, data_frames)
+    elif erp_name == "百年":
+        from bainian import clean_bainian
+
+        return clean_bainian(source_id, date, target_table, data_frames)
+    elif erp_name == "九垠":
+        from jiuyin import clean_jiuyin
+
+        return clean_jiuyin(source_id, date, target_table, data_frames)
+
+    elif erp_name == "晋中田森":
+        from jinzhongtiansen import clean_jinzhong
+
+        return clean_jinzhong(source_id, date, target_table, data_frames)
+
+    elif erp_name == "易客来":
+        from yikelai import HongYeCleaner
+
+        cleaner = HongYeCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+
+    elif erp_name == "中山及时中间库":
+        from zhongshanjishi import clean_jishi
+
+        return clean_jishi(source_id, date, target_table, data_frames)
+
+    elif erp_name == "超赢":
+        from chaoying import clean_chaoying
+
+        return clean_chaoying(source_id, date, target_table, data_frames)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     event = {
-        "source_id": "48YYYYYYYYYYYYY",
-        "erp_name": "商海导航",
-        "date": "2018-08-10",
-        "target_table": "goods_loss",
+        "source_id": "88YYYYYYYYYYYYY",
+        "erp_name": "超赢",
+        "date": "2018-10-28",
+        "target_table": "cost",
         "origin_table_columns": {
-            "differform": ['differno', 'orgcode', 'accdate'],
-            "differdetail": ['differno', 'plucode', 'ykcount', 'yktotal'],
-            "subshop": ['orgcode', 'orgname'],
-            "goods": ['plucode', 'clscode', 'barcode','pluname', 'unit'],
-            'gclass': ['clscode', 'clslevel'],
+            "tb_gsjg": [
+                "id",
+                "bm"
+            ],
+            "tb_sp": [
+                "id",
+                "bm",
+                "id_spfl"
+            ],
+            "tb_spfl": [
+                "id",
+                "id_1",
+                "bm"
+            ],
+            "v_tz_rj_sp_gys_jxc": [
+                "sl_ls",
+                "je_hs_ls",
+                "je_cb_hs_ls",
+                "id_gsjg",
+                "id_sp",
+                "ymd"
+            ]
         },
-
         "converts": {
-            "differform": {
-                'differno': 'str',
-                'orgcode': 'str',
-
+            "v_tz_rj_sp_gys_jxc": {
+                "id_gsjg": "str",
+                "id_sp": "str",
+                "ymd": "str"
             },
-            "differdetail": {
-                'differno': 'str',
-                'plucode': 'str',
-                'ykcount': 'float'
+            "tb_gsjg": {
+                "bm": "str",
+                "id": "str"
             },
-            "subshop": {
-                'orgcode': 'str'
+            "tb_sp": {
+                "bm": "str",
+                "id": "str",
+                "id_spfl": "str"
             },
-            "goods": {
-                'plucode': 'str',
-                'clscode': 'str',
-                'barcode': 'str'
-            },
-            'gclass': {
-                'clscode': 'str',
-                'clslevel': 'int'
+            "tb_spfl": {
+                "bm": "str",
+                "id": "str",
+                "id_1": "str"
             }
-        }
+        },
     }
+
     handler(event, None)

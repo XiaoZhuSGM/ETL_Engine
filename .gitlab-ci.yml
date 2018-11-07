@@ -1,0 +1,34 @@
+variables:
+***REMOVED***
+***REMOVED***
+  AWS_DEFAULT_REGION: cn-north-1
+
+stages:
+  - build
+  - test
+  - deploy
+
+cache:
+  paths:
+    - .venv/
+
+build:
+  stage: build
+  script:
+    - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
+    - python -m venv .venv
+    - .venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pytest:
+  stage: test
+  script:
+    - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
+
+deploy:
+  stage: deploy
+  only:
+    - branches@airflow-datapipline/etl-engine
+  except:
+    - master@airflow-datapipline/etl-engine
+  script:
+    - curl -v 172.31.16.17:9999

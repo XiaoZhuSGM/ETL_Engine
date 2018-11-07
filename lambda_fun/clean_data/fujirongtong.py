@@ -2,73 +2,6 @@
 超市发清洗逻辑
 销售，成本，库存，商品， 分类
 
-# goodsflow
-origin_table_columns =
-{"sale_j": ['LISTNO', 'sdate', 'stime', 'USEBARCODEID', 'PRICE',
-            'AMOUNT', 'x', 'SALEVALUE', 'discvalue', 'posid', 'goodsid', 'shopid'],
-"pay_j": ['paytype', 'cardno', 'listno', 'posid', 'sdate', 'shopid', 'stime'],
-"goods": ['GOODSID', 'NAME', 'UNITNAME', 'deptid'],
-"shop": ['ID', 'NAME'],
-"dbusrsdms.sgroup": ['ID', 'NAME'],
-"dbusrsdms.dept": ['ID', 'NAME'],
-}
-
-coverts = {
-            "sale_j": {"LISTNO": str, "USEBARCODEID": str, "posid": str, "goodsid": str, "shopid": str},
-            "pay_j": {"cardno": str, "listno": str, "posid":str, "shopid":str},
-            "goods": {"GOODSID": str, "deptid": str},
-            "shop": {"ID": str},
-            "dbusrsdms.sgroup": {"ID": str}
-            "dept": {"ID": str},
-           }
-
-
-# cost
-origin_table_columns = {
-"salecost": ['shopid', 'goodsid', 'sdate', 'qty', 'salevalue', 'discvalue', 'costvalue'],
-"goods": ['goodsid', 'deptid'],
-"sgroup": ['id', 'deptlevelid'],
-"dept": ["id"]
-}
-
-coverts = {
-"salecost": {"shopid": str, "goodsid": str},
-"goods": {"goodsid": str, "deptid": str},
-"sgroup": {"id": str, "deptlevelid": str},
-"dept": {"id": str},
-}
-
-
-
-# goods
-origin_table_columns = {
-"goods": ['barcodeid', 'goodsid', 'name', 'unitname', 'flag', 'deptid', 'keepdays'],
-"cost": ['cost', 'goodsid', 'shopid', 'flag'],
-"goodsshop": ['price', 'goodsid', 'shopid'],
-}
-
-coverts = {
-"goods": {"barcodeid": str, "goodsid": str, "deptid": str, "goodsid": str},
-           "cost": {"goodsid": str, "shopid": str},
-           "goodsshop": {"goodsid": str}
-           }
-
-
-
-#category
-origin_table_columns =
-{"sgroup": ['deptlevelid', 'id', 'name']}
-
-coverts = {"t_bd_item_cls": {"item_clsno": str, "cls_parent": str}}
-
-
-
-#store
-origin_table_columns =
-{"shop": ['id', 'name', 'address', 'shoptype', 'linktele']}
-
-coverts = {"shop": {"id": str}}
-
 """
 from datetime import datetime
 import pandas as pd
@@ -85,17 +18,17 @@ S3 = boto3.resource("s3")
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
 
-def clean_chaoshifa(source_id, date, target_table, data_frames):
+def clean_fujirongtong(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
-        clean_goodsflow(source_id, date, target_table, data_frames)
+        return clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
-        clean_cost(source_id, date, target_table, data_frames)
+        return clean_cost(source_id, date, target_table, data_frames)
     elif target_table == "store":
-        clean_store(source_id, date, target_table, data_frames)
+        return clean_store(source_id, date, target_table, data_frames)
     elif target_table == "goods":
-        clean_goods(source_id, date, target_table, data_frames)
+        return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
-        clean_category(source_id, date, target_table, data_frames)
+        return clean_category(source_id, date, target_table, data_frames)
     else:
         pass
 
@@ -115,108 +48,94 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     pay_frames = data_frames["pay_j"]
     pay_frames = pay_frames[pay_frames["paytype"] == "h"].drop_duplicates()
 
-    goodsflow_frames = pd.merge(flow_frames, pay_frames, how="left", on=["listno", "posid", "sdate", "shopid", "stime"])
-    goodsflow_frames = goodsflow_frames.merge(data_frames["goods"], how="left", on="goodsid")
-    goodsflow_frames = goodsflow_frames.merge(data_frames["shop"], how="left", left_on="shopid", right_on="id", suffixes=("", ".store"))
+    if len(flow_frames) == 0:
+        goodsflow_frames = pd.DataFrame(columns=[
+            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime', 'last_updated',
+            'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
+            'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
+            'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
+            'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'])
+    else:
+        goodsflow_frames = pd.merge(flow_frames, pay_frames, how="left", on=["listno", "posid", "sdate", "shopid", "stime"])
+        goodsflow_frames = goodsflow_frames.merge(data_frames["goods"], how="left", on="goodsid")
+        goodsflow_frames = goodsflow_frames.merge(data_frames["shop"], how="left", left_on="shopid", right_on="id", suffixes=("", ".store"))
 
-    sgroup_frames = data_frames["sgroup"]
-    lv3 = sgroup_frames[sgroup_frames["deptlevelid"] == "3"]
-    lv2 = sgroup_frames[sgroup_frames["deptlevelid"] == "2"]
-    lv1 = sgroup_frames[sgroup_frames["deptlevelid"] == "1"]
-    sgroup_frames["id_1"] = sgroup_frames.apply(lambda row: row["id"][:1], axis=1)
-    sgroup_frames["id_2"] = sgroup_frames.apply(lambda row: row["id"][:3], axis=1)
-    sgroup_frames["id_3"] = sgroup_frames.apply(lambda row: row["id"][:5], axis=1)
-    sgroup_frames = sgroup_frames.merge(lv3, how="left", left_on="id_3", right_on="id", suffixes=("", "_lv3"))
-    sgroup_frames = sgroup_frames.merge(lv2, how="left", left_on="id_2", right_on="id", suffixes=("", "_lv2"))
-    sgroup_frames = sgroup_frames.merge(lv1, how="left", left_on="id_1", right_on="id", suffixes=("", "_lv1"))
-    sgroup_frames = sgroup_frames[sgroup_frames["deptlevelid"] == "4"]
-    sgroup_frames = sgroup_frames[["id", "name", "id_lv3", "name_lv3", "id_lv2", "name_lv2", "id_lv1", "name_lv1"]]
-    sgroup_frames = sgroup_frames.rename(columns={
-        "id": "foreign_category_lv4",
-        "name": "foreign_category_lv4_name",
-        "id_lv3": "foreign_category_lv3",
-        "name_lv3": "foreign_category_lv3_name",
-        "id_lv2": "foreign_category_lv2",
-        "name_lv2": "foreign_category_lv2_name",
-        "id_lv1": "foreign_category_lv1",
-        "name_lv1": "foreign_category_lv1_name",
-    })
+        sgroup_frames = data_frames["sgroup"]
+        lv3 = sgroup_frames[sgroup_frames["deptlevelid"] == "3"]
+        lv2 = sgroup_frames[sgroup_frames["deptlevelid"] == "2"]
+        lv1 = sgroup_frames[sgroup_frames["deptlevelid"] == "1"]
+        sgroup_frames["id_1"] = sgroup_frames.apply(lambda row: row["id"][:1], axis=1)
+        sgroup_frames["id_2"] = sgroup_frames.apply(lambda row: row["id"][:3], axis=1)
+        sgroup_frames["id_3"] = sgroup_frames.apply(lambda row: row["id"][:5], axis=1)
+        sgroup_frames = sgroup_frames.merge(lv3, how="left", left_on="id_3", right_on="id", suffixes=("", "_lv3"))
+        sgroup_frames = sgroup_frames.merge(lv2, how="left", left_on="id_2", right_on="id", suffixes=("", "_lv2"))
+        sgroup_frames = sgroup_frames.merge(lv1, how="left", left_on="id_1", right_on="id", suffixes=("", "_lv1"))
+        sgroup_frames = sgroup_frames[sgroup_frames["deptlevelid"] == "4"]
+        sgroup_frames = sgroup_frames[["id", "name", "id_lv3", "name_lv3", "id_lv2", "name_lv2", "id_lv1", "name_lv1"]]
+        sgroup_frames = sgroup_frames.rename(columns={
+            "id": "foreign_category_lv4",
+            "name": "foreign_category_lv4_name",
+            "id_lv3": "foreign_category_lv3",
+            "name_lv3": "foreign_category_lv3_name",
+            "id_lv2": "foreign_category_lv2",
+            "name_lv2": "foreign_category_lv2_name",
+            "id_lv1": "foreign_category_lv1",
+            "name_lv1": "foreign_category_lv1_name",
+        })
 
-    goodsflow_frames["deptid1"] = goodsflow_frames.apply(lambda row: row["deptid"][:7], axis=1)
-    goodsflow_frames = goodsflow_frames.merge(sgroup_frames, how="left", left_on="deptid1", right_on="foreign_category_lv4")
-    goodsflow_frames = goodsflow_frames.merge(data_frames["dept"], how="left", left_on="deptid", right_on="id", suffixes=("", "_lv5"))
-    goodsflow_frames = goodsflow_frames[(goodsflow_frames["id"].notna()) & (goodsflow_frames["goodsid"].notna())]
+        goodsflow_frames["deptid1"] = goodsflow_frames.apply(lambda row: row["deptid"][:7], axis=1)
+        goodsflow_frames = goodsflow_frames.merge(sgroup_frames, how="left", left_on="deptid1", right_on="foreign_category_lv4")
+        goodsflow_frames = goodsflow_frames.merge(data_frames["dept"], how="left", left_on="deptid", right_on="id", suffixes=("", "_lv5"))
+        goodsflow_frames = goodsflow_frames[(goodsflow_frames["id"].notna()) & (goodsflow_frames["goodsid"].notna())]
 
-    goodsflow_frames["source_id"] = source_id
-    goodsflow_frames["cmid"] = cmid
-    goodsflow_frames["last_updated"] = datetime.now()
+        goodsflow_frames["source_id"] = source_id
+        goodsflow_frames["cmid"] = cmid
+        goodsflow_frames["last_updated"] = datetime.now(_TZINFO)
 
-    def quatity(row):
+        def quatity(row):
 
-        x = row["amount"]/row["x"] if row["x"] != 0 else 0
-        return x
-    goodsflow_frames["quantity"] = goodsflow_frames.apply(quatity, axis=1)
+            x = row["amount"]/row["x"] if row["x"] != 0 else 0
+            return x
+        goodsflow_frames["quantity"] = goodsflow_frames.apply(quatity, axis=1)
 
-    def subtotal(row):
-        x = row["salevalue"] - row["discvalue"]
-        return x
-    goodsflow_frames["subtotal"] = goodsflow_frames.apply(subtotal, axis=1)
+        def subtotal(row):
+            x = row["salevalue"] - row["discvalue"]
+            return x
+        goodsflow_frames["subtotal"] = goodsflow_frames.apply(subtotal, axis=1)
 
-    def saletime(row):
-        date = row["sdate"].split(" ")[0]
-        hour = row["stime"][0:2]
-        minute = row["stime"][2:4]
-        secend = row["stime"][4:6]
-        time = f"{date} {hour}:{minute}:{secend}"
-        return time
+        def saletime(row):
+            date = row["sdate"].split(" ")[0]
+            hour = row["stime"][0:2]
+            minute = row["stime"][2:4]
+            secend = row["stime"][4:6]
+            time = f"{date} {hour}:{minute}:{secend}"
+            return time
 
-    goodsflow_frames["saletime"] = goodsflow_frames.apply(saletime, axis=1)
-    goodsflow_frames = goodsflow_frames.rename(columns={
-        "id": "foreign_store_id",
-        "name.store": "store_name",
-        "listno": "receipt_id",
-        "cardno": "consumer_id",
-        "goodsid": "foreign_item_id",
-        "usebarcodeid": "barcode",
-        "name": "item_name",
-        "unitname": "item_unit",
-        "price": "saleprice",
-        "id_lv5": "foreign_category_lv5",
-        "name_lv5": "foreign_category_lv5_name",
-        "posid": "pos_id"
-    })
+        goodsflow_frames["saletime"] = goodsflow_frames.apply(saletime, axis=1)
+        goodsflow_frames = goodsflow_frames.rename(columns={
+            "id": "foreign_store_id",
+            "name.store": "store_name",
+            "listno": "receipt_id",
+            "cardno": "consumer_id",
+            "goodsid": "foreign_item_id",
+            "usebarcodeid": "barcode",
+            "name": "item_name",
+            "unitname": "item_unit",
+            "price": "saleprice",
+            "id_lv5": "foreign_category_lv5",
+            "name_lv5": "foreign_category_lv5_name",
+            "posid": "pos_id"
+        })
 
-    goodsflow_frames = goodsflow_frames[[
-        'source_id',
-        'cmid',
-        'foreign_store_id',
-        'store_name',
-        'receipt_id',
-        'consumer_id',
-        'saletime',
-        'last_updated',
-        'foreign_item_id',
-        'barcode',
-        'item_name',
-        'item_unit',
-        'saleprice',
-        'quantity',
-        'subtotal',
-        'foreign_category_lv1',
-        'foreign_category_lv1_name',
-        'foreign_category_lv2',
-        'foreign_category_lv2_name',
-        'foreign_category_lv3',
-        'foreign_category_lv3_name',
-        'foreign_category_lv4',
-        'foreign_category_lv4_name',
-        'foreign_category_lv5',
-        'foreign_category_lv5_name',
-        'pos_id'
-    ]]
-    upload_to_s3(goodsflow_frames, source_id, date, target_table)
+        goodsflow_frames = goodsflow_frames[[
+            'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime', 'last_updated',
+            'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
+            'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
+            'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
+            'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
+        ]]
 
-    return True
+    return upload_to_s3(goodsflow_frames, source_id, date, target_table)
 
 
 def clean_cost(source_id, date, target_table, data_frames):
@@ -231,58 +150,62 @@ def clean_cost(source_id, date, target_table, data_frames):
     cmid = source_id.split("Y")[0]
     cost_frames = data_frames["salecost"]
     cost_frames = cost_frames.merge(data_frames["goods"], on="goodsid")
+    if len(cost_frames) == 0:
+        cost_frames = pd.DataFrame(columns=[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5", "cmid"])
+    else:
+        sgroup_frames = data_frames["sgroup"]
+        lv3 = sgroup_frames[sgroup_frames["deptlevelid"] == "3"]
+        lv2 = sgroup_frames[sgroup_frames["deptlevelid"] == "2"]
+        lv1 = sgroup_frames[sgroup_frames["deptlevelid"] == "1"]
+        sgroup_frames["id_1"] = sgroup_frames.apply(lambda row: row["id"][:1], axis=1)
+        sgroup_frames["id_2"] = sgroup_frames.apply(lambda row: row["id"][:3], axis=1)
+        sgroup_frames["id_3"] = sgroup_frames.apply(lambda row: row["id"][:5], axis=1)
 
-    sgroup_frames = data_frames["sgroup"]
-    lv3 = sgroup_frames[sgroup_frames["deptlevelid"] == "3"]
-    lv2 = sgroup_frames[sgroup_frames["deptlevelid"] == "2"]
-    lv1 = sgroup_frames[sgroup_frames["deptlevelid"] == "1"]
-    sgroup_frames["id_1"] = sgroup_frames.apply(lambda row: row["id"][:1], axis=1)
-    sgroup_frames["id_2"] = sgroup_frames.apply(lambda row: row["id"][:3], axis=1)
-    sgroup_frames["id_3"] = sgroup_frames.apply(lambda row: row["id"][:5], axis=1)
-    sgroup_frames = sgroup_frames.merge(lv3, how="left", left_on="id_3", right_on="id", suffixes=("", "_lv3"))
-    sgroup_frames = sgroup_frames.merge(lv2, how="left", left_on="id_2", right_on="id", suffixes=("", "_lv2"))
-    sgroup_frames = sgroup_frames.merge(lv1, how="left", left_on="id_1", right_on="id", suffixes=("", "_lv1"))
-    sgroup_frames = sgroup_frames[sgroup_frames["deptlevelid"] == "4"]
-    sgroup_frames = sgroup_frames[["id", "id_lv3", "id_lv2", "id_lv1"]]
-    sgroup_frames = sgroup_frames.rename(columns={
-        "id": "foreign_category_lv4",
-        "id_lv3": "foreign_category_lv3",
-        "id_lv2": "foreign_category_lv2",
-        "id_lv1": "foreign_category_lv1",
-    })
+        sgroup_frames = sgroup_frames.merge(lv3, how="left", left_on="id_3", right_on="id", suffixes=("", "_lv3"))
+        sgroup_frames = sgroup_frames.merge(lv2, how="left", left_on="id_2", right_on="id", suffixes=("", "_lv2"))
+        sgroup_frames = sgroup_frames.merge(lv1, how="left", left_on="id_1", right_on="id", suffixes=("", "_lv1"))
+        sgroup_frames = sgroup_frames[sgroup_frames["deptlevelid"] == "4"]
+        sgroup_frames = sgroup_frames[["id", "id_lv3", "id_lv2", "id_lv1"]]
+        sgroup_frames = sgroup_frames.rename(columns={
+            "id": "foreign_category_lv4",
+            "id_lv3": "foreign_category_lv3",
+            "id_lv2": "foreign_category_lv2",
+            "id_lv1": "foreign_category_lv1",
+        })
 
-    cost_frames["deptid1"] = cost_frames.apply(lambda row: row["deptid"][:7], axis=1)
-    cost_frames = cost_frames.merge(sgroup_frames, how="left", left_on="deptid1", right_on="foreign_category_lv4")
-    cost_frames = cost_frames.merge(data_frames["dept"], how="left", left_on="deptid", right_on="id", suffixes=("", "_lv5"))
+        cost_frames["deptid1"] = cost_frames.apply(lambda row: row["deptid"][:7], axis=1)
+        cost_frames = cost_frames.merge(sgroup_frames, how="left", left_on="deptid1", right_on="foreign_category_lv4")
+        cost_frames = cost_frames.merge(data_frames["dept"], how="left", left_on="deptid", right_on="id", suffixes=("", "_lv5"))
 
-    def generate_total_sale(row):
-        res = row["salevalue"] - row["discvalue"]
-        return res
-    cost_frames["total_sale"] = cost_frames.apply(generate_total_sale, axis=1)
-    cost_frames.groupby([
-        "shopid", "goodsid", "sdate", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "id"]).\
-        agg({"qty": np.sum, "costvalue": np.sum, "total_sale": np.sum})
-    cost_frames["source_id"] = source_id
-    cost_frames["cmid"] = cmid
-    cost_frames["cost_type"] = ""
-    cost_frames = cost_frames.rename(columns={
-        "shopid": "foreign_store_id",
-        "goodsid": "foreign_item_id",
-        "sdate": "date",
-        "qty": "total_quantity",
-        "costvalue": "total_cost",
-        "id": "foreign_category_lv5",
-    })
+        def generate_total_sale(row):
+            res = row["salevalue"] - row["discvalue"]
+            return res
+        cost_frames["total_sale"] = cost_frames.apply(generate_total_sale, axis=1)
+        cost_frames = cost_frames.groupby([
+            "shopid", "goodsid", "sdate", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "id"], as_index=False).\
+            agg({"qty": np.sum, "costvalue": np.sum, "total_sale": np.sum})
+        cost_frames["source_id"] = source_id
+        cost_frames["cmid"] = cmid
+        cost_frames["cost_type"] = ""
+        cost_frames = cost_frames.rename(columns={
+            "shopid": "foreign_store_id",
+            "goodsid": "foreign_item_id",
+            "sdate": "date",
+            "qty": "total_quantity",
+            "costvalue": "total_cost",
+            "id": "foreign_category_lv5",
+        })
 
-    cost_frames = cost_frames[[
-        "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
-        "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
-        "foreign_category_lv5", "cmid"
-    ]]
+        cost_frames = cost_frames[[
+            "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
+            "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4",
+            "foreign_category_lv5", "cmid"
+        ]]
 
-    upload_to_s3(cost_frames, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(cost_frames, source_id, date, target_table)
 
 
 def clean_goods(source_id, date, target_table, data_frames):
@@ -335,8 +258,8 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods_frames['foreign_category_lv2'] = goods_frames.deptid.apply(lambda x: str(x)[:3])
     goods_frames['foreign_category_lv3'] = goods_frames.deptid.apply(lambda x: str(x)[:5])
     goods_frames['foreign_category_lv4'] = goods_frames.deptid.apply(lambda x: str(x)[:7])
-    goods_frames["storage_time"] = datetime.now()
-    goods_frames["last_updated"] = datetime.now()
+    goods_frames["storage_time"] = datetime.now(_TZINFO)
+    goods_frames["last_updated"] = datetime.now(_TZINFO)
     goods_frames["isvalid"] = "1"
     goods_frames["allot_method"] = ""
     goods_frames["supplier_name"] = ""
@@ -379,9 +302,7 @@ def clean_goods(source_id, date, target_table, data_frames):
         "brand_name",
     ]]
 
-    upload_to_s3(goods_frames, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(goods_frames, source_id, date, target_table)
 
 
 def clean_category(source_id, date, target_table, data_frames):
@@ -419,7 +340,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = ""
     category1["cmid"] = cmid
-    category1["last_updated"] = datetime.now()
+    category1["last_updated"] = datetime.now(_TZINFO)
     category1 = category1[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -442,7 +363,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = ""
     category2["cmid"] = cmid
-    category2["last_updated"] = datetime.now()
+    category2["last_updated"] = datetime.now(_TZINFO)
     category2 = category2[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -465,7 +386,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category3["foreign_category_lv5"] = ""
     category3["foreign_category_lv5_name"] = ""
     category3["cmid"] = cmid
-    category3["last_updated"] = datetime.now()
+    category3["last_updated"] = datetime.now(_TZINFO)
     category3 = category3[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -489,7 +410,7 @@ def clean_category(source_id, date, target_table, data_frames):
     category4["foreign_category_lv5"] = ""
     category4["foreign_category_lv5_name"] = ""
     category4["cmid"] = cmid
-    category4["last_updated"] = datetime.now()
+    category4["last_updated"] = datetime.now(_TZINFO)
     category4 = category4[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
         'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
@@ -514,7 +435,7 @@ def clean_category(source_id, date, target_table, data_frames):
         "name": "foreign_category_lv5_name",
     })
     category5["cmid"] = cmid
-    category5["last_updated"] = datetime.now()
+    category5["last_updated"] = datetime.now(_TZINFO)
     category5["level"] = "5"
     category5 = category5[[
         'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
@@ -524,9 +445,8 @@ def clean_category(source_id, date, target_table, data_frames):
     ]]
 
     category = pd.concat([category1, category2, category3, category4, category5])
-    upload_to_s3(category, source_id, date, target_table)
 
-    return True
+    return upload_to_s3(category, source_id, date, target_table)
 
 
 def clean_store(source_id, date, target_table, data_frames):
@@ -545,15 +465,15 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["device_id"] = ""
 
     def generate_stor_status(x):
-        if x == "11":
+        if x == 11:
             res = "正常营业"
-        elif x == "98":
+        elif x == 98:
             res = "闭店"
         else:
             res = "其它"
         return res
     store_frames["store_status"] = store_frames.shoptype.apply(generate_stor_status)
-    store_frames["create_date"] = datetime.now()
+    store_frames["create_date"] = datetime.now(_TZINFO)
     store_frames["lat"] = None
     store_frames["lng"] = None
     store_frames["contacts"] = None
@@ -563,7 +483,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["property_id"] = None
     store_frames["property"] = "直营店"
     store_frames["source_id"] = source_id
-    store_frames["last_updated"] = datetime.now()
+    store_frames["last_updated"] = datetime.now(_TZINFO)
     store_frames["show_code"] = store_frames["id"]
     store_frames = store_frames.rename(columns={
         "id": "foreign_store_id",
@@ -576,9 +496,7 @@ def clean_store(source_id, date, target_table, data_frames):
          'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
          'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
 
-    upload_to_s3(store_frames, source_id, date, target_table)
-
-    return True
+    return upload_to_s3(store_frames, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):
@@ -594,7 +512,7 @@ def upload_to_s3(frame, source_id, date, target_table):
         rowcount=count,
     )
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    pass
+    return key
 
 
 def now_timestamp():

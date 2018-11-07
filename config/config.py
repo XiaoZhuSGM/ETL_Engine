@@ -3,6 +3,7 @@ the app exam config file
 if another app called other ,so the config file named other_config.py. and so on
 
 """
+from typing import Optional
 
 
 class Config(object):
@@ -11,17 +12,23 @@ class Config(object):
     PORT = 5000
     HOST = "0.0.0.0"
     SQLALCHEMY_ECHO = False
-    SQLALCHEMY_POOL_SIZE = 10
-    SQLALCHEMY_MAX_OVERFLOW = 10
+    SQLALCHEMY_POOL_SIZE = 2
+    SQLALCHEMY_MAX_OVERFLOW = 5
+    # SQLALCHEMY_POOL_RECYCLE = 30 * 60
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "B18F697BCF51AD270703BF7602C457DA"
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD: Optional[str] = None
+    REDSHIFT_URL = ""
 
 
 class ProductionConfig(Config):
-    pgsql_db_username = ''
-    pgsql_db_password = ''
-    pgsql_db_name = ''
-    pgsql_db_hostname = ''
+***REMOVED***
+***REMOVED***'
+***REMOVED***
+***REMOVED***
     SQLALCHEMY_ECHO = False
 
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
@@ -29,6 +36,29 @@ class ProductionConfig(Config):
         DB_PASS=pgsql_db_password,
         DB_ADDR=pgsql_db_hostname,
         DB_NAME=pgsql_db_name)
+
+    SENTRY_DSN = ""
+
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+***REMOVED***
+
+    CELERYD_CONCURRENCY = 6
+    CELERYD_MAX_TASKS_PER_CHILD = 100
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+
+***REMOVED***
+***REMOVED***
+
+    CACHE_TYPE = "redis"
+    CACHE_REDIS_HOST = REDIS_HOST
+    CACHE_REDIS_PORT = REDIS_PORT
+    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
+    CACHE_REDIS_DB = REDIS_DB
 
 
 class DevelopmentConfig(Config):
@@ -47,8 +77,27 @@ class DevelopmentConfig(Config):
         DB_NAME=postgresql_db_name)
 
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
-    CELERY_RESULT_BACKEND = ""
-    CELERY_BROKER_URL = ""
+
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD = None
+
+    CELERYD_CONCURRENCY = 6
+    CELERYD_MAX_TASKS_PER_CHILD = 100
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://redis:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://redis:{REDIS_PORT}/10"
+
+***REMOVED***
+***REMOVED***
+
+    CACHE_TYPE = "null"  # debug, disable cache
+    CACHE_REDIS_HOST = REDIS_HOST
+    CACHE_REDIS_PORT = REDIS_PORT
+    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
+    CACHE_REDIS_DB = REDIS_DB
 
 
 class LocalConfig(Config):
@@ -64,6 +113,21 @@ class LocalConfig(Config):
         DB_ADDR=pgsql_db_hostname,
         DB_NAME=pgsql_db_name)
 
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD = None
+
+    CELERYD_CONCURRENCY = 6
+    CELERYD_MAX_TASKS_PER_CHILD = 100
+    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
+        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+
+***REMOVED***
+***REMOVED***
+
 
 class TestingConfig(Config):
     DEBUG = True
@@ -73,6 +137,20 @@ class TestingConfig(Config):
 
 class UnitestConfig(Config):
     TESTING = True
+    SENTRY_DSN = ""
+***REMOVED***
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
+    REDIS_PASSWORD = None
+
+
+class DockerDevConfig(DevelopmentConfig):
+    REDIS_HOST = "redis"
+
+
+class DockerProdConfig(ProductionConfig):
+    REDIS_HOST = "redis"
 
 
 config = {
@@ -82,4 +160,6 @@ config = {
     'default': LocalConfig,
     'local': LocalConfig,
     'unittest': UnitestConfig,
+    'docker_dev': DockerDevConfig,
+    'docker_prod': DockerProdConfig,
 }

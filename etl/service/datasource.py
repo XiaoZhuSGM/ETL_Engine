@@ -4,6 +4,7 @@ from ..dao.datasource import DatasourceDao
 from ..dao.datasource_config import DatasourceConfigDao
 from ..models import session_scope
 from ..models.datasource import ExtDatasource
+from ..models.etl_table import ExtCleanInfo
 
 
 class ExtDatasourceNotExist(Exception):
@@ -17,14 +18,20 @@ class ExtDatasourceConfigNotExist(Exception):
 
 
 class DatasourceService(object):
-
     def __init__(self):
         self.__datasourceDao = DatasourceDao()
         self.__datasourceConfigDao = DatasourceConfigDao()
         self.db_url_template = {
-            'sqlserver': 'mssql+pymssql://{username}:{password}@{host}:{port}/{db_name}',
-            'postgresql': 'postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}',
-            'oracle': 'oracle+cx_oracle://{username}:{password}@{host}:{port}/?service_name={db_name}'
+            "sqlserver": "mssql+pymssql://{username}:{password}@{host}:{port}/{db_name}",
+            "postgresql": "postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}",
+            "oracle": "oracle+cx_oracle://{username}:{password}@{host}:{port}/?service_name={db_name}",
+        }
+
+    def generate_online_enterprice(self):
+        datasources = ExtDatasource.query.filter_by(status=1).all()
+        return {
+            datasource.source_id: datasource.to_clean_info_dict()
+            for datasource in datasources
         }
 
     @session_scope
@@ -33,8 +40,8 @@ class DatasourceService(object):
         :param datasource_add_config_json datasource和datasource_config两个实体类的json
         :return: True OR False
         """
-        datasource_json = datasource_add_config_json['datasource']
-        datasource_config_json = datasource_add_config_json['datasource_config']
+        datasource_json = datasource_add_config_json["datasource"]
+        datasource_config_json = datasource_add_config_json["datasource_config"]
         self.__datasourceDao.add_datasource(datasource_json)
         self.__datasourceConfigDao.add_datasource_config(datasource_config_json)
         return True
@@ -55,18 +62,21 @@ class DatasourceService(object):
         return self.__datasourceDao.find_all()
 
     def find_by_page_limit(self, page, per_page):
-        pagination = ExtDatasource.query.order_by(ExtDatasource.source_id.asc()).paginate(page,
-                                                                                          per_page=per_page,
-                                                                                          error_out=False)
+        pagination = ExtDatasource.query.order_by(
+            ExtDatasource.source_id.asc()
+        ).paginate(page, per_page=per_page, error_out=False)
         datasource_list = pagination.items
         total = pagination.total
-        return dict(items=[datasource.to_dict_and_config() for datasource in datasource_list], total=total)
+        return dict(
+            items=[datasource.to_dict_and_config() for datasource in datasource_list],
+            total=total,
+        )
 
     @session_scope
     def update_by_id(self, datasource_id, new_datasource_and_config_json):
 
-        new_datasource_json = new_datasource_and_config_json['datasource']
-        new_datasource_config_json = new_datasource_and_config_json['datasource_config']
+        new_datasource_json = new_datasource_and_config_json["datasource"]
+        new_datasource_config_json = new_datasource_and_config_json["datasource_config"]
         old_datasource = self.__datasourceDao.get_model_by_id(datasource_id)
 
         if not old_datasource:
@@ -77,7 +87,9 @@ class DatasourceService(object):
         if not old_datasource_config:
             self.__datasourceConfigDao.add_datasource_config(new_datasource_config_json)
         else:
-            self.__datasourceConfigDao.update(old_datasource_config, new_datasource_config_json)
+            self.__datasourceConfigDao.update(
+                old_datasource_config, new_datasource_config_json
+            )
 
         self.__datasourceDao.update(old_datasource, new_datasource_json)
 
@@ -86,13 +98,15 @@ class DatasourceService(object):
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)
 
-    def generator_crontab_expression(self, source_id):
+    def generator_full_crontab_expression(self, source_id):
         """
         根据source_id生成cron表达式
         :param source_id: source_id
         :return: cron表达式
         """
-        datasource_config = self.__datasourceConfigDao.find_datasource_config_by_source_id(source_id)
+        datasource_config = self.__datasourceConfigDao.find_datasource_config_by_source_id(
+            source_id
+        )
 
         if not self.check_datasource_config_empty(datasource_config):
             return None
@@ -100,15 +114,21 @@ class DatasourceService(object):
         # 02:02:07
         ext_time = datasource_config.ext_time
         frequency = datasource_config.frequency
-        cron_list = [x.lstrip('0') for x in ext_time.split(':')]
-        cron_list = [x if x else '0' for x in cron_list]
-        hour = cron_list[0]
+        cron_list = [x.lstrip("0") for x in ext_time.split(":")]
+        cron_list = [x if x else "0" for x in cron_list]
+        temp_time = datetime(2018, 6, 4, hour=int(cron_list[0]))
+        temp_time = temp_time + timedelta(hours=-8)
+        hour = temp_time.hour
         minute = cron_list[1]
-        cron_expression = f'{minute} {hour}-23/{frequency} * * *'
+        cron_expression = f"{minute} {hour} * * *"
         return cron_expression
 
     def check_datasource_config_empty(self, datasource_config):
-        return datasource_config and datasource_config.frequency and datasource_config.ext_time
+        return (
+            datasource_config
+            and datasource_config.frequency
+            and datasource_config.ext_time
+        )
 
     def generator_extract_event(self, source_id):
         """
@@ -126,7 +146,7 @@ class DatasourceService(object):
 
         delta = datasource.delta
         now = datetime.now()
-        query_date = (now + timedelta(days=-delta)).strftime('%Y-%m-%d')
+        query_date = (now + timedelta(days=-delta)).strftime("%Y-%m-%d")
 
         # 2. 得到db_url
         db_url = self.generator_db_url(datasource)
@@ -134,15 +154,20 @@ class DatasourceService(object):
         # 3. 计算task_type类型是full还是增量
         task_type = self.generator_task_type(source_id, query_date)
 
-        event = dict(source_id=source_id, query_date=query_date, task_type=task_type, db_url=db_url)
+        event = dict(
+            source_id=source_id,
+            query_date=query_date,
+            task_type=task_type,
+            db_url=db_url,
+        )
         return event
 
     def generator_task_type(self, source_id, query_date):
-        return 'full'
+        return "full"
 
     def generator_db_url(self, datasource):
         db_type = datasource.db_type
-        db_name = datasource.db_name['database']
+        db_name = datasource.db_name["database"]
         username = datasource.username
         password = datasource.password
         host = datasource.host
@@ -152,10 +177,7 @@ class DatasourceService(object):
             return "DB_url parameter is missing"
 
         database_url = self.db_url_template[db_type].format(
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            db_name=db_name)
+            username=username, password=password, host=host, port=port, db_name=db_name
+        )
 
         return database_url

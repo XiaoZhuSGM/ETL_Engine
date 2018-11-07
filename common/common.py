@@ -9,8 +9,10 @@ import time
 import json
 
 import boto3
+from botocore.client import Config
 
 S3 = boto3.resource('s3')
+LAMBDA = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910))
 
 
 def timestamp2format_time(timestamp):
@@ -75,7 +77,7 @@ def get_content(bucket, key):
     :param key:
     :return:
     """
-    content = S3.get_object(Bucket=bucket, Key=key)
+    content = S3.Object(bucket, key).get()
     return json.loads(content["Body"].read().decode("utf-8"))
 
 

@@ -3,170 +3,160 @@
 # @Author  : 范佳楠
 from datetime import datetime
 
-
 import pandas as pd
 
 from typing import Dict
 from base import Base
+import pytz
+
+_TZINFO = pytz.timezone("Asia/Shanghai")
 
 
 class MeiShiLinCleaner(Base):
-
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         Base.__init__(self, source_id, date, data)
 
     """
     "origin_table_columns": {
-            "dbo.skstoresellingwater": ['sgid', 'gid', 'flowno', 'rtlprc', 'qty', 'realamt', 'fildate'],
-            "dbo.skstore": ['gid', 'name'],
-            "dbo.skgoods": ['gid', 'code2', 'name', 'munit'],
-            "dbo.skgoodssort": ['gid', 'ascode', 'asname', 'bscode', 'bsname', 'cscode', 'csname']
+            "skstoresellingwater": ["sgid", "gid", "flowno", "rtlprc", "qty", "realamt", "fildate"],
+            "skstore": ["gid", "name"],
+            "skgoods": ["gid", "code2", "name", "munit"],
+            "skgoodssort": ["gid", "ascode", "asname", "bscode", "bsname", "cscode", "csname"]
         },
 
         "converts": {
-            "dbo.skstoresellingwater": {"sgid": "str", "gid": "str",
-                                        "flowno": "str", "rtlprc": "float", 'qty': 'float', 'realamt': 'float'},
-            "dbo.skstore": {'gid': 'str', 'name': 'str'},
-            'dbo.skgoods': {'gid': 'str', 'code2': 'str', 'name': 'str', 'munit': 'str'},
-            'dbo.skgoodssort': {'gid': 'str', 'ascode': 'str', 'asname': 'str', 'bscode': 'str', 'bsname': 'str',
-                                'cscode': 'str', 'csname': 'str'}
+            "skstoresellingwater": {"sgid": "str", "gid": "str",
+                                        "flowno": "str", "rtlprc": "float",
+                                        "qty": "float", "realamt": "float"},
+            "skstore": {"gid": "str", "name": "str"},
+            "skgoods": {"gid": "str", "code2": "str", "name": "str", "munit": "str"},
+            "skgoodssort": {"gid": "str", "ascode": "str", "asname": "str",
+            "bscode": "str", "bsname": "str",
+                                "cscode": "str", "csname": "str"}
         }
     """
 
     def goodsflow(self):
-        flow_frame = self.data['dbo.skstoresellingwater']
-        store_frame = self.data['dbo.skstore']
-        goods_frame = self.data['dbo.skgoods']
-        gsort_frame = self.data['dbo.skgoodssort']
-        flow_frame['flowno'] = flow_frame['flowno'].str.strip()
-        result_frame = pd.merge(flow_frame,
-                                store_frame,
-                                left_on='sgid',
-                                right_on='gid',
-                                how='left',
-                                suffixes=('_flow', '_store')).merge(goods_frame,
-                                                                    left_on='gid_flow',
-                                                                    right_on='gid',
-                                                                    how='left',
-                                                                    suffixes=('_store', '_goods')).merge(gsort_frame,
-                                                                                                         left_on='gid',
-                                                                                                         right_on='gid',
-                                                                                                         how='left')
+        columns = [
+            "source_id",
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "receipt_id",
+            "consumer_id",
+            "saletime",
+            "last_updated",
+            "foreign_item_id",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "saleprice",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+            "pos_id",
+        ]
+        flow_frame = self.data["skstoresellingwater"]
 
-        result_frame['source_id'] = self.source_id
-        result_frame['cmid'] = self.cmid
-        result_frame['last_updated'] = datetime.now()
-        result_frame['foreign_category_lv4'] = ''
-        result_frame['foreign_category_lv4_name'] = None
-        result_frame['foreign_category_lv5'] = ''
-        result_frame['foreign_category_lv5_name'] = None
-        result_frame['pos_id'] = ''
-        result_frame['consumer_id'] = None
+        if not len(flow_frame):
+            return pd.DataFrame(columns=columns)
 
-        result_frame = result_frame.rename(columns={
-            'gid_store': 'foreign_store_id',
-            'name_store': 'store_name',
-            'flowno': 'receipt_id',
-            'fildate': 'saletime',
-            'gid': 'foreign_item_id',
-            'code2': 'barcode',
-            'name_goods': 'item_name',
-            'munit': 'item_unit',
-            'rtlprc': 'saleprice',
-            'qty': 'quantity',
-            'realamt': 'subtotal',
-            'ascode': 'foreign_category_lv1',
-            'asname': 'foreign_category_lv1_name',
-            'bscode': 'foreign_category_lv2',
-            'bsname': 'foreign_category_lv2_name',
-            'cscode': 'foreign_category_lv3',
-            'csname': 'foreign_category_lv3_name'
+        store_frame = self.data["skstore"]
+        goods_frame = self.data["skgoods"]
+        gsort_frame = self.data["skgoodssort"]
+        result_frame = (
+            pd.merge(
+                flow_frame,
+                store_frame,
+                left_on="sgid",
+                right_on="gid",
+                how="left",
+                suffixes=("_flow", "_store"),
+            )
+            .merge(
+                goods_frame,
+                left_on="gid_flow",
+                right_on="gid",
+                how="left",
+                suffixes=("_store", "_goods"),
+            )
+            .merge(gsort_frame, left_on="gid", right_on="gid", how="left")
+        )
 
-        })
+        result_frame["source_id"] = self.source_id
+        result_frame["cmid"] = self.cmid
+        result_frame["last_updated"] = datetime.now(_TZINFO)
+        result_frame["foreign_category_lv4"] = ""
+        result_frame["foreign_category_lv4_name"] = None
+        result_frame["foreign_category_lv5"] = ""
+        result_frame["foreign_category_lv5_name"] = None
+        result_frame["pos_id"] = ""
+        result_frame["consumer_id"] = None
 
-        result_frame = result_frame[[
-            'source_id',
-            'cmid',
-            'foreign_store_id',
-            'store_name',
-            'receipt_id',
-            'consumer_id',
-            'saletime',
-            'last_updated',
-            'foreign_item_id',
-            'barcode',
-            'item_name',
-            'item_unit',
-            'saleprice',
-            'quantity',
-            'subtotal',
-            'foreign_category_lv1',
-            'foreign_category_lv1_name',
-            'foreign_category_lv2',
-            'foreign_category_lv2_name',
-            'foreign_category_lv3',
-            'foreign_category_lv3_name',
-            'foreign_category_lv4',
-            'foreign_category_lv4_name',
-            'foreign_category_lv5',
-            'foreign_category_lv5_name',
-            'pos_id'
-        ]]
+        result_frame = result_frame.rename(
+            columns={
+                "gid_store": "foreign_store_id",
+                "name_store": "store_name",
+                "flowno": "receipt_id",
+                "fildate": "saletime",
+                "gid": "foreign_item_id",
+                "code2": "barcode",
+                "name_goods": "item_name",
+                "munit": "item_unit",
+                "rtlprc": "saleprice",
+                "qty": "quantity",
+                "realamt": "subtotal",
+                "ascode": "foreign_category_lv1",
+                "asname": "foreign_category_lv1_name",
+                "bscode": "foreign_category_lv2",
+                "bsname": "foreign_category_lv2_name",
+                "cscode": "foreign_category_lv3",
+                "csname": "foreign_category_lv3_name",
+            }
+        )
+
+        result_frame = result_frame[columns]
 
         return result_frame
 
     """
         "origin_table_columns": {
-                "dbo.skcmsale": ['pdkey', 
-                                 'orgkey', 
-                                 'fildate', 
-                                 'saleqty', 
-                                 'saleamt', 
-                                 'saletax',
-                                 'salecamt',
-                                 'salectax',
-    
+                "skcmsale": ["pdkey",
+                                 "orgkey",
+                                 "fildate",
+                                 "saleqty",
+                                 "saleamt",
+                                 "saletax",
+                                 "salecamt",
+                                 "salectax",
+
                                  ],
-                "dbo.skgoodssort":['gid', 'ascode', 'bscode', 'cscode'],
+                "skgoodssort":["gid", "ascode", "bscode", "cscode"],
             },
 
         "converts": {
-            "dbo.skcmsale": {'pdkey':'str', 
-                             'saleqty':'float',
-                             'saleamt':'float',
-                             'saletax':'float',
-                             'salecamt':'float',
-                             'salectax':'float',
+            "skcmsale": {"pdkey":"str",
+                             "saleqty":"float",
+                             "saleamt":"float",
+                             "saletax":"float",
+                             "salecamt":"float",
+                             "salectax":"float",
                              },
-            "dbo.skgoodssort": {"gid":'str'}
+            "skgoodssort": {"gid":"str"}
         }
         """
 
     def cost(self):
-        cost_frame = self.data['dbo.skcmsale']
-        gsort_frame = self.data['dbo.skgoodssort']
-
-        result_frame = pd.merge(cost_frame, gsort_frame, left_on='pdkey', right_on='gid', how='left')
-        result_frame['source_id'] = self.source_id
-        result_frame['cost_type'] = ''
-        result_frame['foreign_category_lv4'] = ''
-        result_frame['foreign_category_lv5'] = ''
-        result_frame['cmid'] = self.cmid
-
-        result_frame['total_sale'] = result_frame.apply(lambda row: row['saleamt'] + row['saletax'], axis=1)
-        result_frame['total_cost'] = result_frame.apply(lambda row: row['salecamt'] + row['salectax'], axis=1)
-
-        result_frame = result_frame.rename(columns={
-            'orgkey': 'foreign_store_id',
-            'pdkey': 'foreign_item_id',
-            'fildate': 'date',
-            'saleqty': 'total_quantity',
-            'ascode': 'foreign_category_lv1',
-            'bscode': 'foreign_category_lv2',
-            'cscode': 'foreign_category_lv3',
-        })
-
-        result_frame = result_frame[[
+        columns = [
             "source_id",
             "foreign_store_id",
             "foreign_item_id",
@@ -181,13 +171,49 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4",
             "foreign_category_lv5",
             "cmid",
-        ]]
+        ]
+        cost_frame = self.data["skcmsale"]
+
+        if not len(cost_frame):
+            return pd.DataFrame(columns=columns)
+
+        gsort_frame = self.data["skgoodssort"]
+
+        result_frame = pd.merge(
+            cost_frame, gsort_frame, left_on="pdkey", right_on="gid", how="left"
+        )
+        result_frame["source_id"] = self.source_id
+        result_frame["cost_type"] = ""
+        result_frame["foreign_category_lv4"] = ""
+        result_frame["foreign_category_lv5"] = ""
+        result_frame["cmid"] = self.cmid
+
+        result_frame["total_sale"] = result_frame.apply(
+            lambda row: row["saleamt"] + row["saletax"], axis=1
+        )
+        result_frame["total_cost"] = result_frame.apply(
+            lambda row: row["salecamt"] + row["salectax"], axis=1
+        )
+
+        result_frame = result_frame.rename(
+            columns={
+                "orgkey": "foreign_store_id",
+                "pdkey": "foreign_item_id",
+                "fildate": "date",
+                "saleqty": "total_quantity",
+                "ascode": "foreign_category_lv1",
+                "bscode": "foreign_category_lv2",
+                "cscode": "foreign_category_lv3",
+            }
+        )
+
+        result_frame = result_frame[columns]
 
         return result_frame
 
     """
     "origin_table_columns": {
-        "dbo.skstore": [
+        "skstore": [
             "address",
             "area",
             "code",
@@ -198,10 +224,10 @@ class MeiShiLinCleaner(Base):
             "property",
             "stat",
         ],
-        "dbo.skcmarea": ["code", "name"],
+        "skcmarea": ["code", "name"],
     },
     "converts": {
-        "dbo.skstore": {
+        "skstore": {
             "gid": "str",
             "name": "str",
             "address": "str",
@@ -210,17 +236,13 @@ class MeiShiLinCleaner(Base):
             "contactor": "str",
             "phone": "str",
         },
-        "dbo.skcmarea": {"code": "str", "name": "str"},
+        "skcmarea": {"code": "str", "name": "str"},
     },
     """
 
     def store(self):
-        store = self.data["dbo.skstore"]
-        area = self.data["dbo.skcmarea"]
-
-        store['area'] = store['area'].str.strip()
-        area['code'] = area['code'].str.strip()
-        area['name'] = area['name'].str.strip()
+        store = self.data["skstore"]
+        area = self.data["skcmarea"]
 
         columns = [
             "cmid",
@@ -260,7 +282,7 @@ class MeiShiLinCleaner(Base):
         part["lat"] = None
         part["lng"] = None
         part["create_date"] = None
-        part["last_updated"] = datetime.now()
+        part["last_updated"] = datetime.now(_TZINFO)
         part["store_status"] = part.apply(
             lambda row: "闭店" if row["stat"] == 1 else "正常", axis=1
         )
@@ -289,7 +311,7 @@ class MeiShiLinCleaner(Base):
         part["property"] = part.apply(
             lambda row: property_map(int(row["property_id"])), axis=1
         )
-        part['business_area'] = ''
+        part["business_area"] = ""
 
         part = part.rename(
             columns={
@@ -309,27 +331,25 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skgoods": [
+        "skgoods": [
             "alc",
             "brand",
-            "busgate",
             "code",
             "code2",
             "gid",
-            "lstinprc",
             "munit",
             "name",
             "rtlprc",
             "sort",
             "validperiod",
             "vdrgid",
-            'lifecycle'
+            "lifecycle"
         ],
-        "dbo.skcmbrand": ["name", "code", 'gid'],
-        "dbo.skcmvendor": ["name", "code", "gid"],
+        "skcmbrand": ["name", "code", "gid"],
+        "skcmvendor": ["name", "code", "gid"],
     },
     "converts": {
-        "dbo.skgoods": {
+        "skgoods": {
             "alc": "str",
             "brand": "str",
             "busgate": "str",
@@ -340,18 +360,18 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
             "vdrgid": "str",
-            'lifecycle':'str'
+            "lifecycle":"str"
         },
-        "dbo.skcmbrand": {"name": "str", "code": "str", 'gid':'str'},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skcmbrand": {"name": "str", "code": "str", "gid":"str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
     },
     """
 
     def goods(self):
-        goods = self.data["dbo.skgoods"]
-        # goodsbusgate = self.data["dbo.goodsbusgate"]
-        brand = self.data["dbo.skcmbrand"]
-        vendor = self.data["dbo.skcmvendor"]
+        goods = self.data["skgoods"]
+        # goodsbusgate = self.data["goodsbusgate"]
+        brand = self.data["skcmbrand"]
+        vendor = self.data["skcmvendor"]
 
         columns = [
             "cmid",
@@ -378,8 +398,6 @@ class MeiShiLinCleaner(Base):
             "brand_name",
         ]
 
-        vendor['gid'] = vendor['gid'].str.strip()
-
         part = goods.merge(
             brand,
             how="left",
@@ -400,10 +418,10 @@ class MeiShiLinCleaner(Base):
         part["foreign_category_lv4"] = ""
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
-        part["storage_time"] = datetime.now()
-        part["last_updated"] = datetime.now()
+        part["storage_time"] = datetime.now(_TZINFO)
+        part["last_updated"] = datetime.now(_TZINFO)
         part["isvalid"] = 1
-        part['lastin_price'] = None
+        part["lastin_price"] = None
 
         part = part.rename(
             columns={
@@ -422,18 +440,21 @@ class MeiShiLinCleaner(Base):
             }
         )
         part = part[columns]
+
+        part["supplier_name"] = part["supplier_name"].str.strip()
+        part["supplier_code"] = part["supplier_code"].str.strip()
+        part["brand_name"] = part["brand_name"].str.strip()
+
         return part
 
     """
-        "origin_table_columns": {"dbo.skcmsort": ["code", "name"]},
-        "converts": {"dbo.skcmsort": {"code": "str", "name": "str"}},
+        "origin_table_columns": {"skcmsort": ["code", "name"]},
+        "converts": {"skcmsort": {"code": "str", "name": "str"}},
     """
 
     def category(self):
 
-        sort = self.data["dbo.skcmsort"]
-        sort['code'] = sort['code'].str.strip()
-        sort['name'] = sort['name'].str.strip()
+        sort = self.data["skcmsort"]
 
         sort["code1"] = sort.apply(lambda row: row["code"][:2], axis=1)
         sort["code2"] = sort.apply(lambda row: row["code"][:4], axis=1)
@@ -465,7 +486,7 @@ class MeiShiLinCleaner(Base):
         part1["foreign_category_lv4_name"] = None
         part1["foreign_category_lv5"] = ""
         part1["foreign_category_lv5_name"] = None
-        part1["last_updated"] = datetime.now()
+        part1["last_updated"] = datetime.now(_TZINFO)
 
         part1 = part1.rename(
             columns={
@@ -491,7 +512,7 @@ class MeiShiLinCleaner(Base):
         part2["foreign_category_lv4_name"] = None
         part2["foreign_category_lv5"] = ""
         part2["foreign_category_lv5_name"] = None
-        part2["last_updated"] = datetime.now()
+        part2["last_updated"] = datetime.now(_TZINFO)
 
         part2 = part2.rename(
             columns={
@@ -524,7 +545,7 @@ class MeiShiLinCleaner(Base):
         part3["foreign_category_lv4_name"] = None
         part3["foreign_category_lv5"] = ""
         part3["foreign_category_lv5_name"] = None
-        part3["last_updated"] = datetime.now()
+        part3["last_updated"] = datetime.now(_TZINFO)
 
         part3 = part3.rename(
             columns={
@@ -541,9 +562,9 @@ class MeiShiLinCleaner(Base):
         return pd.concat([part1, part2, part3])
 
     """
-    
+
     "origin_table_columns": {
-        "dbo.skcmotrequireorder": [
+        "skcmotrequireorder": [
             "billnumber",
             "billtype",
             "buyercode",
@@ -551,7 +572,7 @@ class MeiShiLinCleaner(Base):
             "state",
             "uuid",
         ],
-        "dbo.skcmotrequireorderline": [
+        "skcmotrequireorderline": [
             "munit",
             "checkedqty",
             "price",
@@ -559,23 +580,23 @@ class MeiShiLinCleaner(Base):
             "bill",
             "product",
         ],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "name", "psr", "sort", "vdrgid"],
-        "dbo.skcmsort": ["code"],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skcmemployee": ["name", "gid"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "name", "psr", "sort", "vdrgid"],
+        "skcmsort": ["code"],
+        "skcmvendor": ["gid", "code", "name"],
+        "skcmemployee": ["name", "gid"],
     },
     "converts": {
-        "dbo.skcmotrequireorder": {
+        "skcmotrequireorder": {
             "billnumber": "str",
             "billtype": "str",
             "buyercode": "str",
             "checktime": "str",
             "uuid": "str",
         },
-        "dbo.skcmotrequireorderline": {"munit": "str", "bill": "str", "product": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmotrequireorderline": {"munit": "str", "bill": "str", "product": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -584,43 +605,14 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "vdrgid": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skcmemployee": {"name": "str", "gid": "str"},
+        "skcmsort": {"code": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skcmemployee": {"name": "str", "gid": "str"},
     },
-    
+
     """
 
     def requireorder(self):
-        otrequireorder = self.data["dbo.skcmotrequireorder"]
-        otrequireorderline = self.data["dbo.skcmotrequireorderline"]
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-        vendor = self.data["dbo.skcmvendor"]
-        employee = self.data["dbo.skcmemployee"]
-
-        employee['name'] = employee['name'].str.strip()
-
-        otrequireorder['billnumber'] = otrequireorder['billnumber'].str.strip()
-        otrequireorder['uuid'] = otrequireorder['uuid'].str.strip()
-        otrequireorder['buyercode'] = otrequireorder['buyercode'].str.strip()
-        otrequireorder['billtype'] = otrequireorder['billtype'].str.strip()
-        otrequireorderline['bill'] = otrequireorderline['bill'].str.strip()
-        otrequireorderline['product'] = otrequireorderline['product'].str.strip()
-        goods['gid'] = goods['gid'].str.strip()
-        goods['sort'] = goods['sort'].str.strip()
-        goods['vdrgid'] = goods['vdrgid'].str.strip()
-        goods['psr'] = goods['psr'].str.strip()
-        sort['code'] = sort['code'].str.strip()
-        vendor['gid'] = vendor['gid'].str.strip()
-        employee['gid'] = employee['gid'].str.strip()
-
-        # otrequireorder = otrequireorder.drop_duplicates()
-        # otrequireorderline = otrequireorderline.drop_duplicates()
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
         columns = [
             "source_id",
             "cmid",
@@ -648,6 +640,24 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv5",
             "purchaser",
         ]
+        otrequireorder = self.data["skcmotrequireorder"]
+
+        if not len(otrequireorder):
+            return pd.DataFrame(columns=columns)
+
+        otrequireorderline = self.data["skcmotrequireorderline"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        vendor = self.data["skcmvendor"]
+        employee = self.data["skcmemployee"]
+
+        # otrequireorder = otrequireorder.drop_duplicates()
+        # otrequireorderline = otrequireorderline.drop_duplicates()
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
+
         part = (
             otrequireorder.merge(
                 otrequireorderline,
@@ -656,49 +666,49 @@ class MeiShiLinCleaner(Base):
                 right_on=["bill"],
                 suffixes=("", ".otrequireorderline"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["buyercode"],
                 right_on=["code"],
                 suffixes=("", ".sotre"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["product"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
                 right_on=["code"],
                 suffixes=("", ".sort3"),
             )
-                .merge(
+            .merge(
                 vendor,
                 how="left",
                 left_on=["vdrgid"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-                .merge(
+            .merge(
                 employee,
                 how="left",
                 left_on=["psr"],
@@ -741,50 +751,50 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-            "dbo.skcmstkout": ["billto", "cls", "num", "ocrdate", "stat"],
-            "dbo.skcmstkoutdtl": ["alcsrc", "cls", "gdgid", "munit", "num", "qty", "wrh"],
-            "dbo.skstore": ["gid", "name", "code"],
-            "dbo.skcmwarehouse": ["gid", "name", "code"],
-            "dbo.skgoods": ["code", "code2", "gid", "name", "rtlprc", "sort"],
-            "dbo.skcmsort": ["code"],
-            "dbo.skcmstkoutbck": ["billto", "cls", "num", "ocrdate", "stat"],
-            "dbo.skcmstkoutbckdtl": ["bckcls", "cls", "gdgid", "munit", "num", "qty", "wrh"],
+            "skcmstkout": ["billto", "cls", "num", "ocrdate", "stat"],
+            "skcmstkoutdtl": ["alcsrc", "cls", "gdgid", "munit", "num", "qty", "wrh"],
+            "skstore": ["gid", "name", "code"],
+            "skcmwarehouse": ["gid", "name", "code"],
+            "skgoods": ["code", "code2", "gid", "name", "rtlprc", "sort"],
+            "skcmsort": ["code"],
+            "skcmstkoutbck": ["billto", "cls", "num", "ocrdate", "stat"],
+            "skcmstkoutbckdtl": ["bckcls", "cls", "gdgid", "munit", "num", "qty", "wrh"],
         },
         "converts": {
-            "dbo.skcmstkout": {
+            "skcmstkout": {
                 "billto": "str",
                 "cls": "str",
                 "num": "str",
                 "ocrdate": "str",
                 "stat": "str",
             },
-            "dbo.skcmstkoutdtl": {
+            "skcmstkoutdtl": {
                 "cls": "str",
                 "gdgid": "str",
                 "munit": "str",
                 "num": "str",
                 "wrh": "str",
-                # 'qty':'float'
+                # "qty":"float"
             },
-            "dbo.skstore": {"gid": "str", "name": "str", "code": "str"},
-            "dbo.skcmwarehouse": {"gid": "str", "name": "str", "code": "str"},
-            "dbo.skgoods": {
+            "skstore": {"gid": "str", "name": "str", "code": "str"},
+            "skcmwarehouse": {"gid": "str", "name": "str", "code": "str"},
+            "skgoods": {
                 "code": "str",
                 "code2": "str",
                 "gid": "str",
                 "name": "str",
                 "sort": "str",
-                # 'rtlprc':'float'
+                # "rtlprc":"float"
             },
-            "dbo.skcmsort": {"code": "str"},
-            "dbo.skcmstkoutbck": {
+            "skcmsort": {"code": "str"},
+            "skcmstkoutbck": {
                 "billto": "str",
                 "cls": "str",
                 "num": "str",
                 "ocrdate": "str",
                 "stat": "str",
             },
-            "dbo.skcmstkoutbckdtl": {
+            "skcmstkoutbckdtl": {
                 "bckcls": "str",
                 "cls": "str",
                 "gdgid": "str",
@@ -796,56 +806,6 @@ class MeiShiLinCleaner(Base):
     """
 
     def delivery(self):
-        stkout = self.data["dbo.skcmstkout"]
-        stkoutdtl = self.data["dbo.skcmstkoutdtl"]
-        store = self.data["dbo.skstore"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-        stkoutbck = self.data["dbo.skcmstkoutbck"]
-        stkoutbckdtl = self.data["dbo.skcmstkoutbckdtl"]
-
-        stkoutdtl['munit'] = stkoutdtl['munit'].str.strip()
-        stkoutbckdtl['munit'] = stkoutbckdtl['munit'].str.strip()
-
-        sort['code'] = sort['code'].str.strip()
-
-        stkout['num'] = stkout['num'].str.strip()
-        stkoutdtl['num'] = stkoutdtl['num'].str.strip()
-        stkoutdtl['cls'] = stkoutdtl['cls'].str.strip()
-        stkout['cls'] = stkout['cls'].str.strip()
-        store['gid'] = store['gid'].str.strip()
-        stkout['billto'] = stkout['billto'].str.strip()
-        stkoutdtl['wrh'] = stkoutdtl['wrh'].str.strip()
-        warehouse['gid'] = warehouse['gid'].str.strip()
-        stkoutdtl['gdgid'] = stkoutdtl['gdgid'].str.strip()
-        goods['gid'] = goods['gid'].str.strip()
-
-        goods['sort'] = goods['sort'].str.strip()
-        stkout['stat'] = stkout['stat'].str.strip()
-
-        stkoutbck['num'] = stkoutbck['num'].str.strip()
-        stkoutbckdtl['num'] = stkoutbckdtl['num'].str.strip()
-        stkoutbckdtl['cls'] = stkoutbckdtl['cls'].str.strip()
-        stkoutbck['cls'] = stkoutbck['cls'].str.strip()
-        stkoutbck['stat'] = stkoutbck['stat'].str.strip()
-        stkoutbck['billto'] = stkoutbck['billto'].str.strip()
-        stkoutbckdtl['wrh'] = stkoutbckdtl['wrh'].str.strip()
-        stkoutbckdtl['gdgid'] = stkoutbckdtl['gdgid'].str.strip()
-
-        stkout: pd.DataFrame = stkout[
-            (stkout["cls"] == "统配出")
-            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-        stkoutbck: pd.DataFrame = stkoutbck[
-            (stkoutbck["cls"] == "统配出退")
-            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
-            ]
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
         columns = [
             "delivery_num",
             "delivery_date",
@@ -874,6 +834,31 @@ class MeiShiLinCleaner(Base):
             "source_id",
             "cmid",
         ]
+        stkout = self.data["skcmstkout"]
+
+        if not len(stkout):
+            return pd.DataFrame(columns=columns)
+
+        stkoutdtl = self.data["skcmstkoutdtl"]
+        store = self.data["skstore"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+        stkoutbck = self.data["skcmstkoutbck"]
+        stkoutbckdtl = self.data["skcmstkoutbckdtl"]
+
+        stkout: pd.DataFrame = stkout[
+            (stkout["cls"] == "统配出")
+            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
+        ]
+        stkoutbck: pd.DataFrame = stkoutbck[
+            (stkoutbck["cls"] == "统配出退")
+            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+        ]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         src_type = {
             0: "人工录入",
@@ -897,42 +882,42 @@ class MeiShiLinCleaner(Base):
             stkout.merge(
                 stkoutdtl, how="inner", on=["num", "cls"], suffixes=("", ".stkoutdtl")
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -941,42 +926,49 @@ class MeiShiLinCleaner(Base):
             )
         )
 
-        # print(part1)
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv5"] = ""
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1["rtl_amt"] = part1.apply(
+                lambda row: row["rtlprc"] * row["qty"], axis=1
+            )
+            part1["src_type"] = part1.apply(lambda row: src_type[row["alcsrc"]], axis=1)
+            part1["delivery_state"] = part1.apply(
+                lambda row: delivery_state[row["stat"]], axis=1
+            )
+            part1 = part1.rename(
+                columns={
+                    "num": "delivery_num",
+                    "ocrdate": "delivery_date",
+                    "cls": "delivery_type",
+                    "gid": "foreign_store_id",
+                    "code": "store_show_code",
+                    "name": "store_name",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "qty": "delivery_qty",
+                    "rtlprc": "rtl_price",
+                    "gid.warehouse": "warehouse_id",
+                    "code.warehouse": "warehouse_show_code",
+                    "name.warehouse": "warehouse_name",
+                    "code.sort1": "foreign_category_lv1",
+                    "code.sort2": "foreign_category_lv2",
+                    "code.sort3": "foreign_category_lv3",
+                }
+            )
+            part1 = part1[columns]
 
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv5"] = ""
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1["rtl_amt"] = part1.apply(lambda row: row["rtlprc"] * row["qty"], axis=1)
-        part1["src_type"] = part1.apply(lambda row: src_type[row["alcsrc"]], axis=1)
-        part1["delivery_state"] = part1.apply(
-            lambda row: delivery_state[row["stat"]], axis=1
-        )
-        part1 = part1.rename(
-            columns={
-                "num": "delivery_num",
-                "ocrdate": "delivery_date",
-                "cls": "delivery_type",
-                "gid": "foreign_store_id",
-                "code": "store_show_code",
-                "name": "store_name",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "qty": "delivery_qty",
-                "rtlprc": "rtl_price",
-                "gid.warehouse": "warehouse_id",
-                "code.warehouse": "warehouse_show_code",
-                "name.warehouse": "warehouse_name",
-                "code.sort1": "foreign_category_lv1",
-                "code.sort2": "foreign_category_lv2",
-                "code.sort3": "foreign_category_lv3",
-            }
-        )
-        part1 = part1[columns]
-
+        stkoutbck: pd.DataFrame = stkoutbck[
+            (stkoutbck["cls"] == "统配出退")
+            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+        ]
         part2 = (
             stkoutbck.merge(
                 stkoutbckdtl,
@@ -984,42 +976,42 @@ class MeiShiLinCleaner(Base):
                 on=["num", "cls"],
                 suffixes=("", ".stkoutbckdtl"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["wrh"],
                 right_on=["gid"],
                 suffixes=("", ".warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort1"],
                 right_on=["code"],
                 suffixes=("", ".sort1"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort2"],
                 right_on=["code"],
                 suffixes=("", ".sort2"),
             )
-                .merge(
+            .merge(
                 sort,
                 how="left",
                 left_on=["sort3"],
@@ -1027,47 +1019,50 @@ class MeiShiLinCleaner(Base):
                 suffixes=("", ".sort3"),
             )
         )
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
-        part2["delivery_qty"] = part2.apply(lambda row: row["qty"] * -1, axis=1)
-        part2["rtl_amt"] = part2.apply(
-            lambda row: row["rtlprc"] * row["qty"] * -1, axis=1
-        )
-        part2["delivery_state"] = part2.apply(
-            lambda row: delivery_state[row["stat"]], axis=1
-        )
-        part2 = part2.rename(
-            columns={
-                "num": "delivery_num",
-                "ocrdate": "delivery_date",
-                "cls": "delivery_type",
-                "gid": "foreign_store_id",
-                "code": "store_show_code",
-                "name": "store_name",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "rtlprc": "rtl_price",
-                "gid.warehouse": "warehouse_id",
-                "code.warehouse": "warehouse_show_code",
-                "name.warehouse": "warehouse_name",
-                "bckcls": "src_type",
-                "code.sort1": "foreign_category_lv1",
-                "code.sort2": "foreign_category_lv2",
-                "code.sort3": "foreign_category_lv3",
-            }
-        )
-        part2 = part2[columns]
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["delivery_qty"] = part2.apply(lambda row: row["qty"] * -1, axis=1)
+            part2["rtl_amt"] = part2.apply(
+                lambda row: row["rtlprc"] * row["qty"] * -1, axis=1
+            )
+            part2["delivery_state"] = part2.apply(
+                lambda row: delivery_state[row["stat"]], axis=1
+            )
+            part2 = part2.rename(
+                columns={
+                    "num": "delivery_num",
+                    "ocrdate": "delivery_date",
+                    "cls": "delivery_type",
+                    "gid": "foreign_store_id",
+                    "code": "store_show_code",
+                    "name": "store_name",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "rtlprc": "rtl_price",
+                    "gid.warehouse": "warehouse_id",
+                    "code.warehouse": "warehouse_show_code",
+                    "name.warehouse": "warehouse_name",
+                    "bckcls": "src_type",
+                    "code.sort1": "foreign_category_lv1",
+                    "code.sort2": "foreign_category_lv2",
+                    "code.sort3": "foreign_category_lv3",
+                }
+            )
+            part2 = part2[columns]
         return pd.concat([part1, part2])
 
     """
         "origin_table_columns": {
-        "dbo.skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
-        "dbo.skcmstkindtl": [
+        "skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
+        "skcmstkindtl": [
             "qty",
             "price",
             "qpc",
@@ -1077,13 +1072,13 @@ class MeiShiLinCleaner(Base):
             "gdgid",
             "wrh",
         ],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skcmmodulestat": ["statname", "no"],
-        "dbo.skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmbrand": ["code", "name"],
-        "dbo.skcmwarehouse": ["code", "name", "gid"],
-        "dbo.skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
-        "dbo.skcmstkinbckdtl": [
+        "skcmvendor": ["gid", "code", "name"],
+        "skcmmodulestat": ["statname", "no"],
+        "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
+        "skcmbrand": ["code", "name"],
+        "skcmwarehouse": ["code", "name", "gid"],
+        "skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
+        "skcmstkinbckdtl": [
             "qty",
             "price",
             "qpc",
@@ -1095,16 +1090,16 @@ class MeiShiLinCleaner(Base):
         ],
     },
     "converts": {
-        "dbo.skcmstkin": {
+        "skcmstkin": {
             "num": "str",
             "fildate": "str",
             "cls": "str",
             "vendor": "str",
         },
-        "dbo.skcmstkindtl": {"num": "str", "cls": "str", "gdgid": "str", "wrh": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.modulestat": {"statname": "str"},
-        "dbo.skgoods": {
+        "skcmstkindtl": {"num": "str", "cls": "str", "gdgid": "str", "wrh": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "modulestat": {"statname": "str"},
+        "skgoods": {
             "code": "str",
             "brand": "str",
             "code2": "str",
@@ -1113,70 +1108,25 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "name": "str",
         },
-        "dbo.skcmbrand": {"code": "str", "name": "str"},
-        "dbo.skcmwarehouse": {"code": "str", "name": "str", "gid": "str"},
-        "dbo.skcmstkinbck": {
+        "skcmbrand": {"code": "str", "name": "str"},
+        "skcmwarehouse": {"code": "str", "name": "str", "gid": "str"},
+        "skcmstkinbck": {
             "num": "str",
             "fildate": "str",
             "cls": "str",
             "vendor": "str",
         },
-        "dbo.skcmstkinbckdtl": {
+        "skcmstkinbckdtl": {
             "num": "str",
             "cls": "str",
             "gdgid": "str",
             "wrh": "str",
         },
     },
-    
+
     """
 
     def purchase_warehouse(self):
-        stkin = self.data["dbo.skcmstkin"]
-        stkindtl = self.data["dbo.skcmstkindtl"]
-        vendorh = self.data["dbo.skcmvendor"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-        goods = self.data["dbo.skgoods"]
-        brand = self.data["dbo.skcmbrand"]
-        warehouseh = self.data["dbo.skcmwarehouse"]
-        stkinbck = self.data["dbo.skcmstkinbck"]
-        stkinbckdtl = self.data["dbo.skcmstkinbckdtl"]
-
-        brand['name'] = brand['name'].str.strip()
-
-        stkin['num'] = stkin['num'].str.strip()
-        stkin['cls'] = stkin['cls'].str.strip()
-        stkin['vendor'] = stkin['vendor'].str.strip()
-        stkin['cls'] = stkin['cls'].str.strip()
-        # stkin['stat'] = stkin['stat'].str.strip()
-
-        modulestat['statname'] = modulestat['statname'].str.strip()
-
-        vendorh['gid'] = vendorh['gid'].str.strip()
-
-        stkindtl['num'] = stkindtl['num'].str.strip()
-        stkindtl['cls'] = stkindtl['cls'].str.strip()
-        stkindtl['gdgid'] = stkindtl['gdgid'].str.strip()
-        stkindtl['wrh'] = stkindtl['wrh'].str.strip()
-
-        goods['gid'] = goods['gid'].str.strip()
-        goods['brand'] = goods['brand'].str.strip()
-        warehouseh['gid'] = warehouseh['gid'].str.strip()
-
-        brand['code'] = brand['code'].str.strip()
-
-        stkinbck['num'] = stkinbck['num'].str.strip()
-        stkinbck['num'] = stkinbck['num'].str.strip()
-        stkinbck['cls'] = stkinbck['cls'].str.strip()
-        stkinbck['vendor'] = stkinbck['vendor'].str.strip()
-        stkinbck['cls'] = stkinbck['cls'].str.strip()
-        # stkinbck['stat'] = stkinbck['stat'].str.strip()
-
-        stkinbckdtl['num'] = stkinbckdtl['num'].str.strip()
-        stkinbckdtl['cls'] = stkinbckdtl['cls'].str.strip()
-        stkinbckdtl['gdgid'] = stkinbckdtl['gdgid'].str.strip()
-        stkinbckdtl['wrh'] = stkinbckdtl['wrh'].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1205,50 +1155,68 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv5",
             "bill_status",
         ]
+        stkin = self.data["skcmstkin"]
 
-        part1 = (
-            stkin.merge(
-                stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
-            )
-                .merge(
-                vendorh,
-                how="left",
-                left_on=["vendor"],
-                right_on=["gid"],
-                suffixes=("", ".vendorh"),
-            )
-                .merge(
-                modulestat,
-                how="left",
-                left_on=["stat"],
-                right_on=["no"],
-                suffixes=("", ".modulestat"),
-            )
-                .merge(
-                goods,
-                how="left",
-                left_on=["gdgid"],
-                right_on=["gid"],
-                suffixes=("", ".goods"),
-            )
-                .merge(
-                brand,
-                how="left",
-                left_on=["brand"],
-                right_on=["code"],
-                suffixes=("", ".brand"),
-            )
-                .merge(
-                warehouseh,
-                how="left",
-                left_on=["wrh"],
-                right_on=["gid"],
-                suffixes=("", ".warehouseh"),
-            )
+        if not len(stkin):
+            return pd.DataFrame(columns=columns)
+
+        stkindtl = self.data["skcmstkindtl"]
+        vendorh = self.data["skcmvendor"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
+        warehouseh = self.data["skcmwarehouse"]
+        stkinbck = self.data["skcmstkinbck"]
+        stkinbckdtl = self.data["skcmstkinbckdtl"]
+
+        part1 = stkin.merge(
+            stkindtl, how="left", on=["num", "cls"], suffixes=("", ".stkindtl")
         )
+
+        part1 = part1.merge(
+            vendorh,
+            how="left",
+            left_on=["vendor"],
+            right_on=["gid"],
+            suffixes=("", ".vendorh"),
+        )
+
+        part1 = part1.merge(
+            modulestat,
+            how="left",
+            left_on=["stat"],
+            right_on=["no"],
+            suffixes=("", ".modulestat"),
+        )
+
+        part1 = part1.merge(
+            goods,
+            how="left",
+            left_on=["gdgid"],
+            right_on=["gid"],
+            suffixes=("", ".goods"),
+        )
+
+        part1 = part1.merge(
+            brand,
+            how="left",
+            left_on=["brand"],
+            right_on=["code"],
+            suffixes=("", ".brand"),
+        )
+
+        part1 = part1.merge(
+            warehouseh,
+            how="left",
+            left_on=["wrh"],
+            right_on=["gid"],
+            suffixes=("", ".warehouseh"),
+        )
+
         part1["purchase_price"] = part1.apply(
             lambda row: row["price"] / row["qpc"], axis=1
         )
+
         part1["foreign_category_lv1"] = part1.apply(lambda row: row["sort"][:2], axis=1)
         part1["foreign_category_lv2"] = part1.apply(lambda row: row["sort"][:4], axis=1)
         part1["foreign_category_lv3"] = part1.apply(lambda row: row["sort"][:6], axis=1)
@@ -1287,35 +1255,35 @@ class MeiShiLinCleaner(Base):
                 on=["num", "cls"],
                 suffixes=("", ".stkinbckdtl"),
             )
-                .merge(
+            .merge(
                 vendorh,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendorh"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
                 right_on=["code"],
                 suffixes=("", ".brand"),
             )
-                .merge(
+            .merge(
                 warehouseh,
                 how="left",
                 left_on=["wrh"],
@@ -1361,27 +1329,27 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmdiralc": ["cls", "fildate", "num", "receiver", "stat", "vendor"],
-        "dbo.skcmdiralcdtl": ["cls", "gdgid", "num", "price", "qpc", "qty", "total"],
-        "dbo.skcmvendor": ["gid", "code", "name"],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skcmmodulestat": ["statname", "no"],
-        "dbo.skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmbrand": ["code", "name"],
+        "skcmdiralc": ["cls", "fildate", "num", "receiver", "stat", "vendor"],
+        "skcmdiralcdtl": ["cls", "gdgid", "num", "price", "qpc", "qty", "total"],
+        "skcmvendor": ["gid", "code", "name"],
+        "skstore": ["gid", "code", "name"],
+        "skcmmodulestat": ["statname", "no"],
+        "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
+        "skcmbrand": ["code", "name"],
     },
     "converts": {
-        "dbo.skcmdiralc": {
+        "skcmdiralc": {
             "cls": "str",
             "num": "str",
             "fildate": "str",
             "receiver": "str",
             "vendor": "str",
         },
-        "dbo.skcmdiralcdtl": {"cls": "str", "num": "str", "gdgid": "str"},
-        "dbo.skcmvendor": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skcmmodulestat": {"statname": "str"},
-        "dbo.skgoods": {
+        "skcmdiralcdtl": {"cls": "str", "num": "str", "gdgid": "str"},
+        "skcmvendor": {"gid": "str", "code": "str", "name": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skcmmodulestat": {"statname": "str"},
+        "skgoods": {
             "code": "str",
             "brand": "str",
             "code2": "str",
@@ -1390,39 +1358,11 @@ class MeiShiLinCleaner(Base):
             "sort": "str",
             "name": "str",
         },
-        "dbo.skcmbrand": {"code": "str", "name": "str"},
+        "skcmbrand": {"code": "str", "name": "str"},
     },
     """
 
     def purchase_store(self):
-        diralc = self.data["dbo.skcmdiralc"]
-        diralcdtl = self.data["dbo.skcmdiralcdtl"]
-        vendor = self.data["dbo.skcmvendor"]
-        store = self.data["dbo.skstore"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-        goods = self.data["dbo.skgoods"]
-        brand = self.data["dbo.skcmbrand"]
-
-        diralc['num'] = diralc['num'].str.strip()
-        diralc['cls'] = diralc['cls'].str.strip()
-        diralc['vendor'] = diralc['vendor'].str.strip()
-        diralc['receiver'] = diralc['receiver'].str.strip()
-
-        diralcdtl['num'] = diralcdtl['num'].str.strip()
-        diralcdtl['cls'] = diralcdtl['cls'].str.strip()
-        diralcdtl['gdgid'] = diralcdtl['gdgid'].str.strip()
-
-        vendor['gid'] = vendor['gid'].str.strip()
-        store['gid'] = store['gid'].str.strip()
-        goods['gid'] = goods['gid'].str.strip()
-        goods['brand'] = goods['brand'].str.strip()
-
-        brand['code'] = brand['code'].str.strip()
-
-        brand['name'] = brand['name'].str.strip()
-
-        modulestat['statname'] = modulestat['statname'].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1453,39 +1393,51 @@ class MeiShiLinCleaner(Base):
             "bill_status",
         ]
 
+        diralc = self.data["skcmdiralc"]
+
+        if not len(diralc):
+            return pd.DataFrame(columns=columns)
+
+        diralcdtl = self.data["skcmdiralcdtl"]
+        vendor = self.data["skcmvendor"]
+        store = self.data["skstore"]
+        modulestat = self.data["skcmmodulestat"]
+        goods = self.data["skgoods"]
+        brand = self.data["skcmbrand"]
+
         part = (
             diralc.merge(
                 diralcdtl, how="left", on=["num", "cls"], suffixes=("", ".diralcdtl")
             )
-                .merge(
+            .merge(
                 vendor,
                 how="left",
                 left_on=["vendor"],
                 right_on=["gid"],
                 suffixes=("", ".vendor"),
             )
-                .merge(
+            .merge(
                 store,
                 how="left",
                 left_on=["receiver"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
                 right_on=["no"],
                 suffixes=("", ".modulestat"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="left",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 brand,
                 how="left",
                 left_on=["brand"],
@@ -1537,23 +1489,23 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcminvxf": ["cls", "fildate", "fromstore", "num", "stat", "tostore"],
-        "dbo.skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmmodulestat": ["statname", "no"],
+        "skcminvxf": ["cls", "fildate", "fromstore", "num", "stat", "tostore"],
+        "skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmmodulestat": ["statname", "no"],
     },
     "converts": {
-        "dbo.skcminvxf": {
+        "skcminvxf": {
             "cls": "str",
             "fildate": "str",
             "fromstore": "str",
             "num": "str",
             "tostore": "str",
         },
-        "dbo.skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1561,33 +1513,11 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmmodulestat": {"statname": "str"},
+        "skcmmodulestat": {"statname": "str"},
     },
     """
 
     def move_store(self):
-        invxf = self.data["dbo.skcminvxf"]
-        invxfdtl = self.data["dbo.skcminvxfdtl"]
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-
-        modulestat['statname'] = modulestat['statname'].str.strip()
-
-        invxf['num'] = invxf['num'].str.strip()
-        invxf['cls'] = invxf['cls'].str.strip()
-        invxf['fromstore'] = invxf['fromstore'].str.strip()
-        invxf['tostore'] = invxf['tostore'].str.strip()
-
-        store['gid'] = store['gid'].str.strip()
-
-        invxfdtl['num'] = invxfdtl['num'].str.strip()
-        invxfdtl['cls'] = invxfdtl['cls'].str.strip()
-        invxfdtl['gdgid'] = invxfdtl['gdgid'].str.strip()
-
-        goods['gid'] = goods['gid'].str.strip()
-        goods['sort'] = goods['sort'].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1615,33 +1545,42 @@ class MeiShiLinCleaner(Base):
             "barcode",
             "item_unit",
         ]
+        invxf = self.data["skcminvxf"]
+
+        if not len(invxf):
+            return pd.DataFrame(columns=columns)
+
+        invxfdtl = self.data["skcminvxfdtl"]
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
 
         part = (
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["fromstore"],
                 right_on=["gid"],
                 suffixes=("", ".from_store"),
             )
-                .merge(
+            .merge(
                 store,
                 how="inner",
                 left_on=["tostore"],
                 right_on=["gid"],
                 suffixes=("", ".to_store"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1685,23 +1624,23 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
-        "dbo.skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
-        "dbo.skcmwarehouse": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmmodulestat": ["statname", "no"],
+        "skcminvxf": ["cls", "fildate", "fromwrh", "num", "stat", "towrh"],
+        "skcminvxfdtl": ["qty", "price", "total", "num", "cls", "gdgid"],
+        "skcmwarehouse": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmmodulestat": ["statname", "no"],
     },
     "converts": {
-        "dbo.skcminvxf": {
+        "skcminvxf": {
             "cls": "str",
             "fildate": "str",
             "fromwrh": "str",
             "num": "str",
             "towrh": "str",
         },
-        "dbo.skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
-        "dbo.skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcminvxfdtl": {"num": "str", "cls": "str", "gdgid": "str"},
+        "skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1709,32 +1648,11 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmmodulestat": {"statname": "str"},
+        "skcmmodulestat": {"statname": "str"},
     },
     """
 
     def move_warehouse(self):
-        invxf = self.data["dbo.skcminvxf"]
-        invxfdtl = self.data["dbo.skcminvxfdtl"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        modulestat = self.data["dbo.skcmmodulestat"]
-
-        modulestat['statname'] = modulestat['statname'].str.strip()
-
-        invxf['num'] = invxf['num'].str.strip()
-        invxf['cls'] = invxf['cls'].str.strip()
-        invxf['fromwrh'] = invxf['fromwrh'].str.strip()
-        invxf['towrh'] = invxf['towrh'].str.strip()
-
-        warehouse['gid'] = warehouse['gid'].str.strip()
-
-        invxfdtl['num'] = invxfdtl['num'].str.strip()
-        invxfdtl['cls'] = invxfdtl['cls'].str.strip()
-        invxfdtl['gdgid'] = invxfdtl['gdgid'].str.strip()
-
-        goods['gid'] = goods['gid'].str.strip()
-
         columns = [
             "source_id",
             "cmid",
@@ -1763,32 +1681,42 @@ class MeiShiLinCleaner(Base):
             "item_unit",
         ]
 
+        invxf = self.data["skcminvxf"]
+
+        if not len(invxf):
+            return pd.DataFrame(columns=columns)
+
+        invxfdtl = self.data["skcminvxfdtl"]
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        modulestat = self.data["skcmmodulestat"]
+
         part = (
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["fromwrh"],
                 right_on=["gid"],
                 suffixes=("", ".from_warehouse"),
             )
-                .merge(
+            .merge(
                 warehouse,
                 how="inner",
                 left_on=["towrh"],
                 right_on=["gid"],
                 suffixes=("", ".to_warehouse"),
             )
-                .merge(
+            .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-                .merge(
+            .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1796,7 +1724,8 @@ class MeiShiLinCleaner(Base):
                 suffixes=("", ".modulestat"),
             )
         )
-        part = part[part["cls"].isin(("仓库调拨",))]
+        if not len(part):
+            return pd.DataFrame(columns=columns)
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
@@ -1804,6 +1733,8 @@ class MeiShiLinCleaner(Base):
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
+        part = part[part["cls"].isin(("仓库调拨",))]
+
         part = part.rename(
             columns={
                 "num": "move_num",
@@ -1831,7 +1762,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmckdatas": [
+        "skcmckdatas": [
             "rtlbal",
             "acntqty",
             "cktime",
@@ -1841,14 +1772,14 @@ class MeiShiLinCleaner(Base):
             "stat",
             "store",
         ],
-        "dbo.skstore": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmsort": ["code"],
+        "skstore": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmsort": ["code"],
     },
     "converts": {
-        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
-        "dbo.skstore": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "store": "str"},
+        "skstore": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -1856,35 +1787,11 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
+        "skcmsort": {"code": "str"},
     },
     """
 
     def goods_loss(self):
-        ckdatas = self.data["dbo.skcmckdatas"]
-
-        if not len(ckdatas):
-            return pd.DataFrame()
-
-        store = self.data["dbo.skstore"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-
-        ckdatas['store'] = ckdatas['store'].str.strip()
-        ckdatas['gdgid'] = ckdatas['gdgid'].str.strip()
-        ckdatas['num'] = ckdatas['num'].str.strip()
-
-        store['gid'] = store['gid'].str.strip()
-        goods['gid'] = goods['gid'].str.strip()
-        goods['sort'] = goods['sort'].str.strip()
-        goods['munit'] = goods['munit'].str.strip()
-
-        sort['code'] = sort['code'].str.strip()
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
         columns = [
             "cmid",
             "source_id",
@@ -1906,6 +1813,18 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4",
             "foreign_category_lv5",
         ]
+        ckdatas = self.data["skcmckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame(columns=columns)
+
+        store = self.data["skstore"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         part = (
             ckdatas.merge(
@@ -1945,6 +1864,10 @@ class MeiShiLinCleaner(Base):
             )
         )
         part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
+
+        if not len(part):
+            return pd.DataFrame(columns=columns)
+
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
         part["source_id"] = self.source_id
         part["cmid"] = self.cmid
@@ -1975,7 +1898,7 @@ class MeiShiLinCleaner(Base):
 
     """
     "origin_table_columns": {
-        "dbo.skcmckdatas": [
+        "skcmckdatas": [
             "rtlbal",
             "acntqty",
             "cktime",
@@ -1985,14 +1908,14 @@ class MeiShiLinCleaner(Base):
             "stat",
             "wrh",
         ],
-        "dbo.skcmwarehouse": ["gid", "code", "name"],
-        "dbo.skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
-        "dbo.skcmsort": ["code"],
+        "skcmwarehouse": ["gid", "code", "name"],
+        "skgoods": ["code", "code2", "gid", "munit", "name", "sort"],
+        "skcmsort": ["code"],
     },
     "converts": {
-        "dbo.skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "wrh": "str"},
-        "dbo.skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
-        "dbo.skgoods": {
+        "skcmckdatas": {"cktime": "str", "gdgid": "str", "num": "str", "wrh": "str"},
+        "skcmwarehouse": {"gid": "str", "code": "str", "name": "str"},
+        "skgoods": {
             "code": "str",
             "code2": "str",
             "gid": "str",
@@ -2000,33 +1923,11 @@ class MeiShiLinCleaner(Base):
             "name": "str",
             "sort": "str",
         },
-        "dbo.skcmsort": {"code": "str"},
+        "skcmsort": {"code": "str"},
     },
     """
-    
+
     def check_warehouse(self):
-        ckdatas = self.data["dbo.skcmckdatas"]
-        warehouse = self.data["dbo.skcmwarehouse"]
-        goods = self.data["dbo.skgoods"]
-        sort = self.data["dbo.skcmsort"]
-
-        goods['sort'] = goods['sort'].str.strip()
-
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-
-        ckdatas['num'] = ckdatas['num'].str.strip()
-        ckdatas['wrh'] = ckdatas['wrh'].str.strip()
-        ckdatas['gdgid'] = ckdatas['gdgid'].str.strip()
-
-        goods['gid'] = goods['gid'].str.strip()
-        goods['sort'] = goods['sort'].str.strip()
-        goods['munit'] = goods['munit'].str.strip()
-        warehouse['gid'] = warehouse['gid'].str.strip()
-
-        sort['code'] = sort['code'].str.strip()
-
         columns = [
             "cmid",
             "source_id",
@@ -2048,6 +1949,18 @@ class MeiShiLinCleaner(Base):
             "foreign_category_lv4",
             "foreign_category_lv5",
         ]
+        ckdatas = self.data["skcmckdatas"]
+
+        if not len(ckdatas):
+            return pd.DataFrame(columns=columns)
+
+        warehouse = self.data["skcmwarehouse"]
+        goods = self.data["skgoods"]
+        sort = self.data["skcmsort"]
+
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
         part = (
             ckdatas.merge(
@@ -2114,4 +2027,3 @@ class MeiShiLinCleaner(Base):
         )
         part = part[columns]
         return part
-
