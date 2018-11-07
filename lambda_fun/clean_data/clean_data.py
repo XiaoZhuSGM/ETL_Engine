@@ -182,63 +182,38 @@ def handler(event, context):
 
         return clean_chaoying(source_id, date, target_table, data_frames)
 
+    elif erp_name == "科脉御商v9":
+        from kemaiyushang_v9 import clean_kemaiyushang
+
+        return clean_kemaiyushang(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
-    event = {
-        "source_id": "58YYYYYYYYYYYYY",
-        "erp_name": "美食林",
-        "date": "2018-11-06",
-        "target_table": "goods",
+
+    event1 = {
+        "source_id": "90YYYYYYYYYYYYY",
+        "erp_name": "科脉御商v9",
+        "date": "2018-10-28",
+        "target_table": "store",
         "origin_table_columns": {
-            "skcmvendor": [
-                "gid",
-                "name",
-                "code"
-            ],
-            "skcmbrand": [
-                "name",
-                "code"
-            ],
-            "skgoods": [
-                "alc",
-                "brand",
-                "code",
-                "code2",
-                "gid",
-                "munit",
-                "name",
-                "rtlprc",
-                "sort",
-                "validperiod",
-                "vdrgid",
-                "lifecycle",
-                "alword",
+            "bi_t_branch_info": [
+                "property",
+                "branch_id",
+                "branch_name",
+                "address",
+                "rj_datetime",
+                "branch_no",
+                "display_flag",
+                "branch_tel",
+                "branch_man"
             ]
         },
         "converts": {
-            "skcmvendor": {
-                "code": "str",
-                "gid": "str",
-                "name": "str"
-            },
-            "skcmbrand": {
-                "code": "str",
-                "name": "str"
-            },
-            "skgoods": {
-                "alc": "str",
-                "brand": "str",
-                "code": "str",
-                "code2": "str",
-                "gid": "str",
-                "lifecycle": "str",
-                "munit": "str",
-                "name": "str",
-                "sort": "str",
-                "vdrgid": "str",
-                "alword": "str",
+            "bi_t_branch_info": {
+                "branch_id": "str",
+                "branch_no": "str",
+                "property": "str"
             }
-        },
+        }
     }
-
-    handler(event, None)
+    handler(event1, None)
