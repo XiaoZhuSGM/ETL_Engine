@@ -1390,7 +1390,8 @@ class HongYeCleaner:
             .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
             .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
         )
-        part1 = part1[part1["warehouse.type"] == 5]
+
+        part1 = part1[(part1["warehouse.type"] == 5) & (part1["store.type"] == 4)]
 
         if len(part1) == 0:
             part1 = pd.DataFrame(columns=columns)
@@ -1465,7 +1466,8 @@ class HongYeCleaner:
             .merge(brand, how="left", left_on="item.brandcode", right_on="brand.brandcode")
             .merge(vendor, how="left", left_on="detail.suppliercode", right_on="vendor.unitcode")
         )
-        part2 = part2[part2["warehouse.type"] == 5]
+
+        part2 = part2[(part2["warehouse.type"] == 5) & (part2["store.type"] == 4)]
 
         if len(part2) == 0:
             part2 = pd.DataFrame(columns=columns)
