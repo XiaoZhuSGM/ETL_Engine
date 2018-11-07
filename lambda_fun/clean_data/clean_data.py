@@ -34,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -55,8 +55,8 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
             if (
-                    table_name in origin_table_columns.keys()
-                    and table_name not in datas.keys()
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
             ):
                 datas[table_name] = records
 
@@ -190,15 +190,8 @@ if __name__ == "__main__":
         "date": "2018-11-06",
         "target_table": "goods",
         "origin_table_columns": {
-            "skcmvendor": [
-                "gid",
-                "name",
-                "code"
-            ],
-            "skcmbrand": [
-                "name",
-                "code"
-            ],
+            "skcmvendor": ["gid", "name", "code"],
+            "skcmbrand": ["name", "code"],
             "skgoods": [
                 "alc",
                 "brand",
@@ -213,18 +206,11 @@ if __name__ == "__main__":
                 "vdrgid",
                 "lifecycle",
                 "alword",
-            ]
+            ],
         },
         "converts": {
-            "skcmvendor": {
-                "code": "str",
-                "gid": "str",
-                "name": "str"
-            },
-            "skcmbrand": {
-                "code": "str",
-                "name": "str"
-            },
+            "skcmvendor": {"code": "str", "gid": "str", "name": "str"},
+            "skcmbrand": {"code": "str", "name": "str"},
             "skgoods": {
                 "alc": "str",
                 "brand": "str",
@@ -237,7 +223,7 @@ if __name__ == "__main__":
                 "sort": "str",
                 "vdrgid": "str",
                 "alword": "str",
-            }
+            },
         },
     }
 
