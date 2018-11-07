@@ -84,28 +84,20 @@ class ForecastService:
 
     @cache.memoize(timeout=300)
     def lacking_rate(self, cmid, store_id):
-        end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=60)
-        dates = pd.date_range(start, end, closed="right")
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(Prefix=f"agg_lacking_rate/{cmid}/"),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        rate = pd.read_csv(f"s3://{BUCKET}/{obj.key}", dtype={"门店ID": str})
+        rate = rate[rate["门店ID"] == store_id]
         data = []
-        for d in dates:
-            try:
-                df = pd.read_excel(
-                    f"s3://{BUCKET}/lacking_rate/{cmid.ljust(15, 'Y')}/{d.strftime('%Y-%m-%d')}.xlsx",
-                    sheet_name=0,
-                    dtype={"门店ID": str},
-                )
-                df.set_index("门店ID", inplace=True)
-                if store_id not in df.index:
-                    continue
-            except Exception as e:
-                print(f"{d}:{store_id}:{e}")
-                continue
+        for _, row in rate.iterrows():
             data.append(
                 {
-                    "date": d.strftime("%Y-%m-%d"),
-                    "count": int(df.loc[store_id]["现门店已缺货 SKU 数"]),
-                    "rate": round(float(df.loc[store_id]["门店缺货率"]), 3),
+                    "date": row["date"],
+                    "count": row["现门店已缺货 SKU 数"],
+                    "rate": round(row["门店缺货率"], 3),
                 }
             )
         return data
@@ -157,9 +149,9 @@ class ForecastService:
             data.append(
                 {
                     "date": row["date"],
-                    "suggest_order": row["订货sku建议成功率"],
-                    "order_match": row["订货sku及数量建议成功率"],
-                    "unsuggest": row["未建议sku订货比率"],
+                    "suggest_order": round(row["订货sku建议成功率"], 3),
+                    "order_match": round(row["订货sku及数量建议成功率"], 3),
+                    "unsuggest": round(row["未建议sku订货比率"], 3),
                 }
             )
         return data
@@ -184,7 +176,7 @@ class ForecastService:
         start = end - timedelta(days=60)
         dates = pd.date_range(start.replace(day=1), end, closed="right")
         data = []
-        month_data = defaultdict(dict)
+        month_data = defaultdict(lambda: defaultdict(float))
         for d in dates:
             try:
                 df = pd.read_csv(
@@ -197,8 +189,6 @@ class ForecastService:
                 continue
             _lost_sales = df.loc[store_id]["lost_sales"]
             _lost_gross = df.loc[store_id]["lost_gross"]
-            month_data[d.month].setdefault("sales", 0)
-            month_data[d.month].setdefault("gross", 0)
             month_data[d.month]["sales"] += _lost_sales
             month_data[d.month]["gross"] += _lost_gross
             data.append(
@@ -217,72 +207,20 @@ class ForecastService:
 
     @cache.memoize(timeout=300)
     def sale_amount(self, cmid, store_id):
-        end = datetime.now() - timedelta(days=1)
-        start = end - timedelta(days=30)
-        dates = pd.date_range(start, end, closed="right")
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(Prefix=f"total_sales/{cmid}/"),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        total_sales = pd.read_csv(
+            f"s3://{BUCKET}/{obj.key}", dtype={"foreign_store_id": str}
+        )
+        total_sales = total_sales[total_sales["foreign_store_id"] == store_id]
         data = []
-        for d in dates:
-            try:
-                year, month, day = str(d.date()).split("-")
-                df = dd.read_csv(
-                    f"s3://standard-data/{year}/{month}/{day}/{cmid.ljust(15, 'Y')}/cost/*.gz",
-                    compression="gzip",
-                    blocksize=None,
-                    names=[
-                        "source_id",
-                        "foreign_store_id",
-                        "foreign_item_id",
-                        "date",
-                        "cost_type",
-                        "total_quantity",
-                        "total_sale",
-                        "total_cost",
-                        "foreign_category_lv1",
-                        "foreign_category_lv2",
-                        "foreign_category_lv3",
-                        "foreign_category_lv4",
-                        "foreign_category_lv5",
-                        "cmid",
-                    ],
-                    dtype={
-                        "source_id": str,
-                        "foreign_store_id": str,
-                        "foreign_item_id": str,
-                        "date": str,
-                        "cost_type": str,
-                        "total_quantity": float,
-                        "total_sale": float,
-                        "total_cost": float,
-                        "foreign_category_lv1": str,
-                        "foreign_category_lv2": str,
-                        "foreign_category_lv3": str,
-                        "foreign_category_lv4": str,
-                        "foreign_category_lv5": str,
-                        "cmid": str,
-                    },
-                    usecols=[
-                        "foreign_store_id",
-                        "foreign_item_id",
-                        "date",
-                        "total_quantity",
-                        "total_sale",
-                        "total_cost",
-                        "foreign_category_lv1",
-                    ],
-                )
-                cost_data = df.compute()
-                cost_data = cost_data[cost_data["foreign_store_id"] == store_id]
-                data.append(
-                    {
-                        "date": d.strftime("%Y-%m-%d"),
-                        "total_sale": round(cost_data["total_sale"].sum(), 3),
-                    }
-                )
-            except Exception as e:
-                print(e)
-            finally:
-                pass
-
+        for _, row in total_sales.iterrows():
+            data.append(
+                {"date": row["date"], "total_sale": round(row["total_sale"], 3)}
+            )
         return data
 
 
@@ -487,8 +425,6 @@ class BossService:
     @cache.memoize(timeout=300)
     def goods(self, cmid, query):
         end = datetime.now() - timedelta(days=2)
-        start = end - timedelta(days=30)
-        dates = pd.date_range(start, end, closed="right")
         all_goods = pd.read_csv(
             f"s3://standard-data/{end.strftime('%Y/%m/%d')}/{cmid.ljust(15, 'Y')}/chain_goods/chain_goods000.gz",
             compression="gzip",
@@ -539,14 +475,15 @@ class BossService:
         suggest_times_and_same_times.sort_values(
             "same_times", ascending=False, inplace=True
         )
-        urls = []
-        for d in dates:
-            urls.append(
-                f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/{d.strftime('%Y-%m-%d')}.csv"
-            )
-        _voc = [dd.read_csv(url, dtype={"商品ID": str}, blocksize=None) for url in urls]
-        voc = dd.concat(_voc).compute()
-        avg_voc = voc.groupby("商品ID").agg({"商品周转周期": "mean"})
+        obj = sorted(
+            s3.Bucket(BUCKET).objects.filter(
+                Prefix=f"velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/"
+            ),
+            key=lambda obj: int(obj.last_modified.strftime("%s")),
+            reverse=True,
+        )[0]
+        voc = pd.read_csv(f"s3://{BUCKET}/{obj.key}", dtype={"商品ID": str})
+        voc.set_index("商品ID", inplace=True)
         before_suggest = pd.read_csv(
             f"s3://replenish/velocity_of_circulation/{cmid.ljust(15, 'Y')}/intermediate/item_view/2018-09-25.csv",
             dtype={"商品ID": str},
@@ -555,9 +492,7 @@ class BossService:
         data = []
         for _, row in suggest_times_and_same_times.iterrows():
             item_id = row["foreign_item_id"]
-            if any(
-                item_id not in df.index for df in (avg_voc, before_suggest, all_goods)
-            ):
+            if any(item_id not in df.index for df in (voc, before_suggest, all_goods)):
                 continue
             show_code = all_goods.loc[item_id]["show_code"]
             item_name = all_goods.loc[item_id]["item_name"]
@@ -565,8 +500,10 @@ class BossService:
                 continue
             if query and query not in item_name:
                 continue
-            avg_turnover = float(avg_voc.loc[item_id]["商品周转周期"])
+            avg_turnover = float(voc.loc[item_id]["商品周转周期"])
             before_turnover = float(before_suggest.loc[item_id]["商品周转周期"])
+            if avg_turnover < 0 or before_turnover < 0:
+                continue
             turnover_contrast = (
                 (before_turnover - avg_turnover) / before_turnover
                 if before_turnover
