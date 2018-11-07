@@ -102,7 +102,8 @@ def get_task_warehouse_status():
         status = "failed"
         reason = str(result)
     return jsonify_with_data(
-        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id}
+        APIError.OK,
+        data={"status": status, "reason": reason, "task_id": task_id, "result": ""},
     )
 
 
@@ -130,5 +131,5 @@ def get_task_rollback_status():
         status = "failed"
         reason = str(result)
     return jsonify_with_data(
-        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id}
+        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id, "result": ""}
     )
