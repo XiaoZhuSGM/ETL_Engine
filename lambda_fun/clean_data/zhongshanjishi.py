@@ -246,7 +246,6 @@ def clean_category(source_id, date, target_table, data_frames):
         'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
         'foreign_category_lv5_name'
     ]]
-    print(len(category1))
     category2 = lv2.copy()
     category2["lv1.clscode"] = category2["lv2.clscode"].apply(lambda x: x[:len(x) - 2])
     category2 = category2.merge(lv1.copy(), how="left", on="lv1.clscode")
