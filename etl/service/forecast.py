@@ -502,7 +502,7 @@ class BossService:
                 continue
             avg_turnover = float(voc.loc[item_id]["商品周转周期"])
             before_turnover = float(before_suggest.loc[item_id]["商品周转周期"])
-            if avg_turnover < 0 or before_turnover < 0:
+            if avg_turnover <= 0 or before_turnover <= 0:
                 continue
             turnover_contrast = (
                 (before_turnover - avg_turnover) / before_turnover
