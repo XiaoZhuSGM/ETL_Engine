@@ -7,14 +7,11 @@ from config.config import config
 import os
 from etl.extensions import cache
 
-__all__ = ["create_app"]
+__all__ = ['create_app']
 
-DEFAULT_APP_NAME = "etl"
+DEFAULT_APP_NAME = 'etl'
 db = SQLAlchemy()
-celery = Celery(
-    DEFAULT_APP_NAME,
-    broker=config[os.getenv("ETL_ENVIREMENT", "dev")].CELERY_BROKER_URL,
-)
+celery = Celery(DEFAULT_APP_NAME, broker=config[os.getenv("ETL_ENVIREMENT", "dev")].CELERY_BROKER_URL)
 sentry = Sentry()
 
 
@@ -22,7 +19,7 @@ def create_app(config=None):
     app = Flask(DEFAULT_APP_NAME, instance_relative_config=True)
     if config is not None:
         app.config.from_object(config)
-    app.config.from_pyfile("local_config.py", silent=True)  # 加载个人配置
+    app.config.from_pyfile('local_config.py', silent=True)  # 加载个人配置
     db.init_app(app)
 
     configure_celery(app)
@@ -31,7 +28,6 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
     configure_extensions(app)
-    configure_hook(app)
 
     CORS(
         app,
@@ -64,9 +60,9 @@ def configure_path_converter(app):
     from werkzeug.routing import PathConverter
 
     class EverythingConverter(PathConverter):
-        regex = ".*?"
+        regex = '.*?'
 
-    app.url_map.converters["everything"] = EverythingConverter
+    app.url_map.converters['everything'] = EverythingConverter
 
 
 def configure_blueprints(app):
@@ -74,15 +70,9 @@ def configure_blueprints(app):
     from etl.controllers.admin_api import etl_admin_api as admin_api
     from etl.controllers.forecast_api import forecast_api
 
-    app.register_blueprint(api, url_prefix="/etl/api")
-    app.register_blueprint(admin_api, url_prefix="/etl/admin/api")
+    app.register_blueprint(api, url_prefix='/etl/api')
+    app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
     app.register_blueprint(forecast_api, url_prefix="/forecast/api")
-
-
-def configure_hook(app):
-    from etl.controllers.hook import access_control
-
-    app.before_request(access_control)
 
 
 def configure_extensions(app):
