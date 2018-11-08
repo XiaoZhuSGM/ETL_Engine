@@ -496,13 +496,11 @@ class BossService:
                 continue
             show_code = all_goods.loc[item_id]["show_code"]
             item_name = all_goods.loc[item_id]["item_name"]
-            if query and query not in show_code:
-                continue
-            if query and query not in item_name:
+            if query and query not in show_code and query not in item_name:
                 continue
             avg_turnover = float(voc.loc[item_id]["商品周转周期"])
             before_turnover = float(before_suggest.loc[item_id]["商品周转周期"])
-            if avg_turnover < 0 or before_turnover < 0:
+            if avg_turnover <= 0 or before_turnover <= 0:
                 continue
             turnover_contrast = (
                 (before_turnover - avg_turnover) / before_turnover
@@ -523,7 +521,7 @@ class BossService:
                 }
             )
         top_50 = data[:50]
-        middle_50 = data[len(data) // 2 - 25 : len(data) // 2 + 25]
+        middle_50 = data[len(data) // 2 - 25 : len(data) // 2 + 25] if len(data) >= 150 else []
         empty = [d for d in data if d["same_times"] == 0]
         empty_50 = (
             random.choices([d for d in data if d["same_times"] == 0], k=50)
