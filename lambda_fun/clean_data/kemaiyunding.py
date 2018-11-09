@@ -79,6 +79,8 @@ def clean_kemaiyunding(source_id, date, target_table, data_frames):
         return clean_sales_target(source_id, date, target_table, data_frames)
     elif target_table == "category":
         return clean_category(source_id, date, target_table, data_frames)
+    elif target_table == "delivery":
+        return clean_delivery(source_id, date, target_table, data_frames)
     else:
         pass
 
@@ -353,6 +355,128 @@ def clean_store(source_id, date, target_table, frames):
     return upload_to_s3(store_frame, source_id, date, target_table)
 
 
+def clean_delivery(source_id, date, target_table, data_frames):
+    """
+    清洗大仓配货
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
+    cmid = source_id.split("Y")[0]
+    columns = ["delivery_num", "delivery_date", "delivery_type", "foreign_store_id", "store_show_code",
+               "store_name", "foreign_item_id", "item_show_code", "barcode", "item_name", "item_unit",
+               "delivery_qty", "rtl_price", "rtl_amt", "warehouse_id", "warehouse_show_code", "warehouse_name",
+               "src_type", "delivery_state", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
+               "foreign_category_lv4", "foreign_category_lv5", "source_id", "cmid"]
+
+    def generate_delivery_state(x):
+        if x == "1":
+            return "已收货"
+        elif x == "0":
+            return "未收货"
+        else:
+            return "未审核"
+
+    def generate_warehouse_name(x):
+        if x == "01":
+            return "正常仓"
+        elif x == "02":
+            return "退货仓"
+        elif x == "03":
+            return "赠品仓"
+        elif x == "05":
+            return "旧仓"
+        elif x == "06":
+            return "不良仓"
+        elif x == "07":
+            return "金健仓"
+
+    header = data_frames["t_inout_master"].rename(columns=lambda x: f"header.{x}")
+    detail = data_frames["t_inout_detail"]
+    detail = detail[(detail["fqty"] != 0) | (detail["famt"] != 0)].rename(columns=lambda x: f"detail.{x}")
+    store = data_frames["t_br_master"].rename(columns=lambda x: f"store.{x}")
+    goods = data_frames["t_bi_master"].rename(columns=lambda x: f"goods.{x}")
+
+    frames_part1 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
+        .merge(store, how="inner", left_on="header.fd_brh_no", right_on="store.fbrh_no") \
+        .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
+
+    frames_part1 = frames_part1[frames_part1["header.fsheet_type"] == 'DS']
+    frames_part1["foreign_category_lv1"] = frames_part1["goods.fitem_clsno"].apply(lambda x: x[:2])
+    frames_part1["foreign_category_lv2"] = frames_part1["goods.fitem_clsno"].apply(lambda x: x[:4])
+    frames_part1["foreign_category_lv3"] = frames_part1["goods.fitem_clsno"]
+    frames_part1["foreign_category_lv4"] = ""
+    frames_part1["foreign_category_lv5"] = ""
+    frames_part1["cmid"] = cmid
+    frames_part1["source_id"] = source_id
+    frames_part1["store_show_code"] = frames_part1["store.fbrh_no"]
+    frames_part1["warehouse_show_code"] = frames_part1["header.fwh_no"]
+    frames_part1["warehouse_name"] = frames_part1["header.fwh_no"].apply(generate_warehouse_name)
+    frames_part1["src_type"] = '配送中心统配'
+    frames_part1["delivery_type"] = '统配出'
+    frames_part1["delivery_state"] = frames_part1["header.fdone_status"].apply(generate_delivery_state)
+
+    frames_part1 = frames_part1.rename(columns={
+        "header.fsheet_no": "delivery_num",
+        "header.fap_date": "delivery_date",
+        "store.fbrh_no": "foreign_store_id",
+        "store.fbrh_name": "store_name",
+        "goods.fitem_id": "foreign_item_id",
+        "goods.fitem_no": "item_show_code",
+        "goods.fitem_subno": "barcode",
+        "goods.fitem_name": "item_name",
+        "detail.funit_no": "item_unit",
+        "detail.fqty": "delivery_qty",
+        "detail.fprice": "rtl_price",
+        "detail.famt": "rtl_amt",
+        "header.fwh_no": "warehouse_id"
+    })
+
+    frames_part1 = frames_part1[columns]
+
+    frames_part2 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
+        .merge(store, how="inner", left_on="header.fbrh_no", right_on="store.fbrh_no") \
+        .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
+
+    frames_part2 = frames_part2[frames_part2["header.fsheet_type"] == 'DR']
+    frames_part2["foreign_category_lv1"] = frames_part2["goods.fitem_clsno"].apply(lambda x: x[:2])
+    frames_part2["foreign_category_lv2"] = frames_part2["goods.fitem_clsno"].apply(lambda x: x[:4])
+    frames_part2["foreign_category_lv3"] = frames_part2["goods.fitem_clsno"]
+    frames_part2["foreign_category_lv4"] = ""
+    frames_part2["foreign_category_lv5"] = ""
+    frames_part2["cmid"] = cmid
+    frames_part2["source_id"] = source_id
+    frames_part2["store_show_code"] = frames_part2["store.fbrh_no"]
+    frames_part2["warehouse_show_code"] = frames_part2["header.fwh_no"]
+    frames_part2["warehouse_name"] = frames_part2["header.fwh_no"].apply(generate_warehouse_name)
+    frames_part2["src_type"] = '配送中心统配'
+    frames_part2["delivery_type"] = '统配出退'
+    frames_part2["delivery_state"] = frames_part2["header.fdone_status"].apply(generate_delivery_state)
+    frames_part2["delivery_qty"] = frames_part2.apply(lambda row: -1 * row["detail.fqty"], axis=1)
+    frames_part2["rtl_amt"] = frames_part2.apply(lambda row: -1 * row["detail.famt"], axis=1)
+
+    frames_part2 = frames_part2.rename(columns={
+        "header.fsheet_no": "delivery_num",
+        "header.fap_date": "delivery_date",
+        "store.fbrh_no": "foreign_store_id",
+        "store.fbrh_name": "store_name",
+        "goods.fitem_id": "foreign_item_id",
+        "goods.fitem_no": "item_show_code",
+        "goods.fitem_subno": "barcode",
+        "goods.fitem_name": "item_name",
+        "detail.funit_no": "item_unit",
+        "detail.fprice": "rtl_price",
+        "header.fwh_no": "warehouse_id"
+    })
+
+    frames_part2 = frames_part2[columns]
+    frames = pd.concat([frames_part1, frames_part2])
+
+    return upload_to_s3(frames, source_id, date, target_table)
+
+
 def upload_to_s3(frame, source_id, date, target_table):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
     count = len(frame)
@@ -477,14 +601,13 @@ def frame2(cmid, source_id, frames):
     temp2["subtotal"] = temp2.apply(lambda row: gene_sbutotal(row["fsell_way"], row["famt"]), axis=1)
     temp2["saleprice"] = temp2.apply(lambda row: row["fprice"] / row["funit_qty"], axis=1)
 
-
     temp2 = temp2.merge(frames["t_bc_master"], how="left", on="fitem_clsno")
 
     temp2 = temp2.merge(frames["t_bc_master"], how="left", left_on="fprt_no", right_on="fitem_clsno",
                         suffixes=('_lv3', '_lv2'))
 
     temp2 = temp2.merge(frames["t_bc_master"], how="left", left_on="fprt_no_lv2",
-                                                         right_on="fitem_clsno")
+                        right_on="fitem_clsno")
 
     temp2 = temp2.rename(columns={"fbrh_no": "foreign_store_id", "fbrh_name": "store_name", "fflow_no": "receipt_id",
                                   "fitem_id": "foreign_item_id", "fitem_subno": "barcode", "fitem_name": "item_name",
