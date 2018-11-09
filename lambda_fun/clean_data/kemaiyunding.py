@@ -394,9 +394,6 @@ def clean_delivery(source_id, date, target_table, data_frames):
             return "金健仓"
 
     header = data_frames["t_inout_master"].rename(columns=lambda x: f"header.{x}")
-    # header["header.fsheet_no"] = header["header.fsheet_no"].apply(lambda x: x.strip())
-    # header = header[header["header.fsheet_no"] == '18102802DS2144']
-    # print(len(header))
     detail = data_frames["t_inout_detail"]
     detail = detail[(detail["fqty"] != 0) | (detail["famt"] != 0)].rename(columns=lambda x: f"detail.{x}")
     store = data_frames["t_br_master"].rename(columns=lambda x: f"store.{x}")
