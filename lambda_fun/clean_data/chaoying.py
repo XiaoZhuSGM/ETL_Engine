@@ -168,7 +168,6 @@ def clean_goods(source_id, date, target_table, data_frames):
     brand = data_frames["tb_pp"].rename(columns=lambda x: f"brand.{x}")
     lv1 = data_frames["tb_spfl"].rename(columns=lambda x: f"lv1.{x}")
     lv2 = data_frames["tb_spfl"].rename(columns=lambda x: f"lv2.{x}")
-
     category1 = lv1.copy()
     category1 = category1[category1["lv1.js"] == '1']
 
@@ -214,8 +213,7 @@ def clean_goods(source_id, date, target_table, data_frames):
 
     frames["item_status"] = frames["attr.flag_state"].apply(generate_item_status)
     frames["foreign_category_lv1"] = frames["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
-    # frames["foreign_category_lv2"] = frames["lv2.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
-    frames["foreign_category_lv2"] = frames["lv2.bm"]
+    frames["foreign_category_lv2"] = frames["lv2.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
     frames["foreign_category_lv3"] = ""
     frames["foreign_category_lv4"] = ""
     frames["foreign_category_lv5"] = ""
