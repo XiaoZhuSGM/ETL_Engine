@@ -2,6 +2,7 @@ from huey import RedisHuey
 from config.config import config
 import os
 
+
 setting = config[os.getenv("ETL_ENVIREMENT", "dev")]
 
 huey = RedisHuey(
@@ -11,3 +12,4 @@ huey = RedisHuey(
     db=setting.REDIS_DB,
     password=setting.REDIS_PASSWORD,
 )
+

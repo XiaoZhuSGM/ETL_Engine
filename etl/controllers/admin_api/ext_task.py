@@ -25,21 +25,31 @@ def trigger_task_extract_data():
     filename = message["filename"]
     db_url = message["db_url"]
 
-    result = task_extract_data(
+    event = dict(
         source_id=source_id,
         query_date=query_date,
         task_type=task_type,
         filename=filename,
         db_url=db_url,
     )
-    return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
+
+    result = task_extract_data.apply_async(kwargs=event)
+    return jsonify_with_data(APIError.OK, data={"task_id": result.id})
 
 
 @etl_admin_api.route("/ext/tasks/extract_data/status", methods=["GET"])
 def get_task_extract_data_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id)
+    result = task_extract_data.AsyncResult(task_id=task_id)
+
+    if result.successful():
+        pass
+    elif result.failed():
+        pass
+    else:
+        pass
+
     if result is None:
         status = "running"
     elif isinstance(result, str):
@@ -131,5 +141,6 @@ def get_task_rollback_status():
         status = "failed"
         reason = str(result)
     return jsonify_with_data(
-        APIError.OK, data={"status": status, "reason": reason, "task_id": task_id, "result": ""}
+        APIError.OK,
+        data={"status": status, "reason": reason, "task_id": task_id, "result": ""},
     )
