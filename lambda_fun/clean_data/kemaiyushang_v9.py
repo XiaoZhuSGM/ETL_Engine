@@ -78,6 +78,8 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             .merge(lv2, how="left", left_on="lv2_item", right_on="item_clsno")
             .merge(lv1, how="left", left_on="lv1_item", right_on="item_clsno", suffixes=("_lv2", "_lv1"))
         )
+        frames = frames[frames["item_id"].notna()]
+
         frames["source_id"] = source_id
         frames["cmid"] = cmid
         frames["consumer_id"] = ""
