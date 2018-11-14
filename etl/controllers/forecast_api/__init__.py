@@ -5,3 +5,5 @@ from . import hook  # noqa
 from . import graph  # noqa
 from . import lacking_view  # noqa
 from . import store_view  # noqa
+from . import parm_platform
+from . import suggest
