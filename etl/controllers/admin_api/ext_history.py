@@ -59,10 +59,10 @@ def get_task_running():
     查询正在进行中的所有任务
     :return:
     """
-    try:
-        data = service.get_task_running()
-    except Exception as e:
-        return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))
+    # try:
+    data = service.get_task_running()
+    # except Exception as e:
+    #     return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))
     return jsonify_with_data(APIError.OK, data=data)
 
 
