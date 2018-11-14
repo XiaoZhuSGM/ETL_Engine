@@ -35,6 +35,7 @@ def create_app(config=None):
         resources={
             r"/etl/admin/api/*": {"origins": "*"},
             r"/etl/api/*": {"origins": "*"},
+            r"/forecast/api/*": {"origins": "*"},
         },
     )
 
