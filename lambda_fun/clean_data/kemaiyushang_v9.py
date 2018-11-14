@@ -66,11 +66,20 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             .merge(store, how="left", on="branch_id")
             .merge(sale, how="left", on="flow_no")
             .merge(item, how="left", on="item_id", suffixes=("_sale", "_item"))
-            .merge(lv4, how="left", on="item_clsno")
-            .merge(lv3, how="left", left_on="up_clsno", right_on="item_clsno", suffixes=("_lv4", "_lv3"))
-            .merge(lv2, how="left", left_on="up_clsno_lv3", right_on="item_clsno")
-            .merge(lv1, how="left", left_on="up_clsno", right_on="item_clsno", suffixes=("_lv2", "_lv1"))
         )
+
+        frames["lv1_item"] = frames.item_clsno.apply(lambda x: x if pd.isnull(x) else x[:2])
+        frames["lv2_item"] = frames.item_clsno.apply(lambda x: x if pd.isnull(x) else x[:4])
+        frames["lv3_item"] = frames.item_clsno.apply(lambda x: x if pd.isnull(x) else x[:6])
+        frames = (
+            frames
+            .merge(lv4, how="left", on="item_clsno")
+            .merge(lv3, how="left", left_on="lv3_item", right_on="item_clsno", suffixes=("_lv4", "_lv3"))
+            .merge(lv2, how="left", left_on="lv2_item", right_on="item_clsno")
+            .merge(lv1, how="left", left_on="lv1_item", right_on="item_clsno", suffixes=("_lv2", "_lv1"))
+        )
+        frames = frames[frames["item_id"].notna()]
+
         frames["source_id"] = source_id
         frames["cmid"] = cmid
         frames["consumer_id"] = ""
@@ -91,6 +100,32 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             elif row["sell_way"] == "C":
                 return 0
         frames["subtotal"] = frames.apply(generate_subtotal, axis=1)
+
+        frames["item_clsno_lv4"] = frames["item_clsno_lv4"].fillna("")
+        frames["foreign_category_lv1"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 2 else row["item_clsno_lv1"], axis=1)
+        )
+        frames["foreign_category_lv1_name"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 2 else row["item_clsname_lv1"], axis=1)
+        )
+        frames["foreign_category_lv2"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 4 else row["item_clsno_lv2"], axis=1)
+        )
+        frames["foreign_category_lv2_name"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 4 else row["item_clsname_lv2"], axis=1)
+        )
+        frames["foreign_category_lv3"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 6 else row["item_clsno_lv3"], axis=1)
+        )
+        frames["foreign_category_lv3_name"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 6 else row["item_clsname_lv3"], axis=1)
+        )
+        frames["foreign_category_lv4"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 8 else row["item_clsno_lv4"], axis=1)
+        )
+        frames["foreign_category_lv4_name"] = (
+            frames.apply(lambda row: "" if len(row["item_clsno_lv4"]) < 8 else row["item_clsname_lv4"], axis=1)
+        )
         frames["foreign_category_lv5"] = ""
         frames["foreign_category_lv5_name"] = None
         frames["pos_id"] = ""
@@ -103,14 +138,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             "item_subno_sale": "barcode",
             "item_name": "item_name",
             "unit_no": "item_unit",
-            "item_clsno_lv1": "foreign_category_lv1",
-            "item_clsname_lv1": "foreign_category_lv1_name",
-            "item_clsno_lv2": "foreign_category_lv2",
-            "item_clsname_lv2": "foreign_category_lv2_name",
-            "item_clsno_lv3": "foreign_category_lv3",
-            "item_clsname_lv3": "foreign_category_lv3_name",
-            "item_clsno_lv4": "foreign_category_lv4",
-            "item_clsname_lv4": "foreign_category_lv4_name",
         })
 
         frames = frames[columns]
@@ -139,15 +166,16 @@ def clean_cost(source_id, date, target_table, data_frames):
             cost
             .merge(item, how="left", on="item_id")
         )
+        frames = frames[frames["item_id"].notna()]
         frames = frames.groupby(["branch_id", "item_id", "oper_date", "item_clsno"], as_index=False)\
             .agg({"ls_qty": sum, "ls_amt_s": sum, "ls_amt": sum})
 
         frames["source_id"] = source_id
         frames["cost_type"] = ""
-        frames["foreign_category_lv1"] = frames.item_clsno.apply(lambda x: "" if len(x) == 2 else x[:2])
-        frames["foreign_category_lv2"] = frames.item_clsno.apply(lambda x: "" if len(x) == 2 else x[:4])
-        frames["foreign_category_lv3"] = frames.item_clsno.apply(lambda x: "" if len(x) == 2 else x[:6])
-        frames["foreign_category_lv4"] = frames.item_clsno.apply(lambda x: "" if len(x) == 2 else x[:8])
+        frames["foreign_category_lv1"] = frames.item_clsno.apply(lambda x: x if len(x) == 2 else x[:2])
+        frames["foreign_category_lv2"] = frames.item_clsno.apply(lambda x: "" if len(x) < 4 else x[:4])
+        frames["foreign_category_lv3"] = frames.item_clsno.apply(lambda x: "" if len(x) < 6 else x[:6])
+        frames["foreign_category_lv4"] = frames.item_clsno.apply(lambda x: "" if len(x) < 8 else x[:8])
         frames["foreign_category_lv5"] = ""
         frames["cmid"] = cmid
         frames = frames.rename(columns={
