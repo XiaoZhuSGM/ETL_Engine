@@ -130,3 +130,24 @@ class ExtCheckNum(CRUDMixin, db.Model):
     source_id = Column(String(15))
     date = Column(DateTime)
     num = Column(Integer)
+
+
+class ExtParmPlatform(CRUDMixin, db.Model):
+    cmid = Column(Integer)
+    foreign_store_id = Column(String(50))
+    foreign_item_id = Column(String(512))
+    item_name = Column(String(512))
+    mini_show = Column(Integer, default=0)
+    safety_stock_count = Column(Integer)
+    promotions = Column(Boolean)
+    seasonal = Column(String(24))
+    is_valid = Column(Boolean)
+    specification = Column(Integer)
+    safety_stock_days = Column(Integer)
+    delivery = Column(String(24))
+
+
+class DeliveryPeriod(CRUDMixin, db.Model):
+    cmid = Column(Integer)
+    foreign_store_id = Column(String(50))
+    delivery_period = Column(String(64), default='')
