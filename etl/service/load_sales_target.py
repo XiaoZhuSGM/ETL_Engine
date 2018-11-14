@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import request
-***REMOVED***
-***REMOVED***
+from config.config import config
+import os
+
 INSERTSQL = """insert into chain_sales_target_{source_id}
                 (source_id,cmid,target_date,foreign_store_id,store_show_code,store_name,target_sales,target_gross_profit,
                 foreign_category_lv1,foreign_category_lv2,foreign_category_lv3,foreign_category_lv4,foreign_category_lv5)
@@ -11,10 +12,14 @@ SELECTSTORE = """select source_id,foreign_store_id,store_name from chain_store w
 DELETESALES = """delete from chain_sales_target_{source_id} where source_id='{source_id}' and target_date='{date1}' and foreign_store_id in ({deletes})"""
 INSERTVALUE = """('{source_id}',{cmid},'{date1}','{store_id}','{show_code}','{store_name}',{target_sales},{target_gross_profit},'','','','','')"""
 
+setting = config[os.getenv("ETL_ENVIREMENT", "dev")]
+REDSHIFT_URL = setting.REDSHIFT_URL
+
 
 class LoadSalestargetServices:
 
     def __init__(self):
+        print(REDSHIFT_URL)
         engine = create_engine(REDSHIFT_URL)
         Session = sessionmaker(bind=engine)
         self.session = Session()
