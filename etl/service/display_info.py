@@ -52,4 +52,5 @@ class DisplayInfo:
     @session_scope
     def update_info(self, **info):
         id = info.get("id")
-        ExtParamPlatform.query.filter_by(id=id).update(info)
+        params = info.get("params")
+        ExtParamPlatform.query.filter_by(id=id).update(params)
