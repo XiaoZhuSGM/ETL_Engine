@@ -10,11 +10,11 @@ display_info = DisplayInfo()
 delivery_period = DeliveryPeriodService()
 
 
-@forecast_api.route("/parm/info")
+@forecast_api.route("/param/info")
 def display_homepage():
     cmid_list = display_info.get_cmid()
     foreign_store_id = display_info.get_store_id_from_cmid(43)
-    store_data = display_info.get_info_from_store_id('431231')
+    store_data = display_info.get_info_from_store_id(43, '431231')
     if not foreign_store_id:
         return jsonify_with_data(APIError.NOTFOUND, data={'result': 'cmid不存在'})
     if foreign_store_id:
@@ -22,8 +22,8 @@ def display_homepage():
                                                     'store_data': store_data})
 
 
-@forecast_api.route("/parm/info/<cmid>", methods=["GET"])
-def get_display_info(cmid):
+@forecast_api.route("/param/info/<cmid>", methods=["GET"])
+def get_display_store(cmid):
     foreign_store_id = display_info.get_store_id_from_cmid(cmid)
     if not foreign_store_id:
         return jsonify_with_error(APIError.VALIDATE_ERROR, "cmid 不存在")
@@ -31,7 +31,13 @@ def get_display_info(cmid):
     return jsonify_with_data(APIError.OK, data={'foreign_store_id': foreign_store_id})
 
 
-@forecast_api.route("/parm/add", methods=["POST"])
+@forecast_api.route("/param/info/<cmid>/<store_id>")
+def get_display_info(cmid, store_id):
+    store_data = display_info.get_info_from_store_id(cmid, store_id)
+    return jsonify_with_data(APIError.OK, data={'store_data': store_data})
+
+
+@forecast_api.route("/param/add", methods=["POST"])
 def add_display_info():
     data = request.json
     try:
@@ -42,7 +48,7 @@ def add_display_info():
     return jsonify_with_data(APIError.OK)
 
 
-@forecast_api.route("/parm/delete", methods=['POST'])
+@forecast_api.route("/param/delete", methods=['POST'])
 def delete_display_info():
     data = request.json
     id_list = data.get('id')
@@ -53,7 +59,7 @@ def delete_display_info():
     return jsonify_with_data(APIError.OK)
 
 
-@forecast_api.route("/parm/update", methods=['POST'])
+@forecast_api.route("/param/update", methods=['POST'])
 def update_display_info():
     data = request.json
     display_info.update_info(**data)
@@ -61,14 +67,14 @@ def update_display_info():
     return jsonify_with_data(APIError.OK)
 
 
-@forecast_api.route("/parm/delivery")
+@forecast_api.route("/param/delivery")
 def delivery():
     cmid_list = delivery_period.get_cmid()
     foreign_store_id = delivery_period.get_store_id(43)
     return jsonify_with_data(APIError.OK, data={'cmid_list': cmid_list, 'foreign_store_id': foreign_store_id})
 
 
-@forecast_api.route("/parm/delivery/add", methods=['POST'])
+@forecast_api.route("/param/delivery/add", methods=['POST'])
 def delivery_add():
     data = request.json
     try:
@@ -79,7 +85,7 @@ def delivery_add():
     return jsonify_with_data(APIError.OK)
 
 
-@forecast_api.route("/parm/delivery/delete", methods=['POST'])
+@forecast_api.route("/param/delivery/delete", methods=['POST'])
 def delivery_delete():
     data = request.json
     id_list = data.get("id")
@@ -90,7 +96,7 @@ def delivery_delete():
     return jsonify_with_data(APIError.OK)
 
 
-@forecast_api.route("/parm/delivery/update", methods=['POST'])
+@forecast_api.route("/param/delivery/update", methods=['POST'])
 def update_delievry():
     data = request.json
     delivery_period.update_info(**data)
