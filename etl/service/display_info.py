@@ -1,5 +1,5 @@
 from etl.models import session_scope
-from etl.models.etl_table import ExtParmPlatform
+from etl.models.etl_table import ExtParamPlatform
 
 
 class DisplayInfoExist(Exception):
@@ -10,14 +10,14 @@ class DisplayInfoExist(Exception):
 class DisplayInfo:
     @staticmethod
     def get_cmid():
-        ext_display_info = ExtParmPlatform.query.all()
+        ext_display_info = ExtParamPlatform.query.all()
         cmid = list(set([item.cmid for item in ext_display_info]))
         cmid.sort()
         return list(cmid)
 
     @staticmethod
     def get_store_id_from_cmid(cmid):
-        ext_display_info = ExtParmPlatform.query.filter_by(cmid=cmid).all()
+        ext_display_info = ExtParamPlatform.query.filter_by(cmid=cmid).all()
         if not ext_display_info:
             return None
         foreign_store_id = list(set([item.foreign_store_id for item in ext_display_info]))
@@ -25,8 +25,8 @@ class DisplayInfo:
         return foreign_store_id
 
     @staticmethod
-    def get_info_from_store_id(foreign_store_id):
-        ext_display_info = ExtParmPlatform.query.filter_by(foreign_store_id=foreign_store_id).all()
+    def get_info_from_store_id(cmid, foreign_store_id):
+        ext_display_info = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id).all()
         if not ext_display_info:
             return None
 
@@ -37,19 +37,19 @@ class DisplayInfo:
         cmid = info.get('cmid')
         foreign_store_id = info.get('foreign_store_id')
         foreign_item_id = info.get('foreign_item_id')
-        ext_display_info = ExtParmPlatform.query.filter_by(cmid=cmid,
+        ext_display_info = ExtParamPlatform.query.filter_by(cmid=cmid,
                                                            foreign_store_id=foreign_store_id,
                                                            foreign_item_id=foreign_item_id).first()
         if ext_display_info:
             raise DisplayInfoExist
 
-        ExtParmPlatform(**info).save()
+        ExtParamPlatform(**info).save()
 
     @session_scope
     def delete_info(self, id_list):
-        ExtParmPlatform.query.filter(ExtParmPlatform.id.in_(id_list)).delete(synchronize_session=False)
+        ExtParamPlatform.query.filter(ExtParamPlatform.id.in_(id_list)).delete(synchronize_session=False)
 
     @session_scope
     def update_info(self, **info):
         id = info.get("id")
-        ExtParmPlatform.query.filter_by(id=id).update(info)
+        ExtParamPlatform.query.filter_by(id=id).update(info)

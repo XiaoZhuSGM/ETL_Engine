@@ -132,7 +132,7 @@ class ExtCheckNum(CRUDMixin, db.Model):
     num = Column(Integer)
 
 
-class ExtParmPlatform(CRUDMixin, db.Model):
+class ExtParamPlatform(CRUDMixin, db.Model):
     cmid = Column(Integer)
     foreign_store_id = Column(String(50))
     foreign_item_id = Column(String(512))
