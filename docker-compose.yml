@@ -4,8 +4,6 @@ services:
   gunicorn:
     image: etl-engine
     build: .
-    volumes:
-      - .:/app
     depends_on:
       - redis
     stop_signal:
@@ -15,8 +13,6 @@ services:
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
   huey:
     image: etl-engine
-    volumes:
-      - .:/app
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
     command: huey_consumer.py etl.tasks.main.huey -k thread -w 8
@@ -26,8 +22,6 @@ services:
       SIGINT
   celery:
     image: etl-engine
-    volumes:
-      - .:/app
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
     command: celery -A celery_worker.celery worker -l info

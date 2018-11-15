@@ -4,7 +4,7 @@ from etl.controllers import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.ext_table_check import ExtCheckTable
 
 from . import etl_admin_api
-from etl.models.etl_table import ExtCheckNum, ExtTestQuery
+from etl.models.etl_table import ExtCheckNum
 
 import arrow
 
