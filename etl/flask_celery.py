@@ -14,10 +14,12 @@ class Celery(_Celery):
                 with app.app_context():
                     return self.run(*args, **kwargs)
 
+        print(app.config["CELERY_BROKER_URL"])
+        print(app.config["CELERY_BACKEND_URL"])
         super().__init__(
             app.import_name,
             broker=app.config["CELERY_BROKER_URL"],
-            backend=["CELERY_BACKEND"],
+            backend=app.config["CELERY_BACKEND_URL"],
         )
-        self.conf.update(app.config)
+        # self.conf.update(app.config)
         self.Task = ContextTask

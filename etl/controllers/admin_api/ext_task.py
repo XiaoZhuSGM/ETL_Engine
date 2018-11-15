@@ -18,7 +18,6 @@ S3_CLIENT = boto3.resource("s3")
 @etl_admin_api.route("/ext/tasks/extract_data", methods=["POST"])
 def trigger_task_extract_data():
     message = request.json
-
     source_id = message["source_id"]
     query_date = message["query_date"]
     task_type = message["task_type"]
@@ -41,23 +40,16 @@ def trigger_task_extract_data():
 def get_task_extract_data_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = task_extract_data.AsyncResult(task_id=task_id)
+    result = ""
+    async_result = task_extract_data.AsyncResult(task_id=task_id)
 
-    if result.successful():
-        pass
-    elif result.failed():
-        pass
-    else:
-        pass
-
-    if result is None:
-        status = "running"
-    elif isinstance(result, str):
-        status = "success"
-    else:
+    if async_result.successful():
+        result = async_result.result
+    elif async_result.failed():
         status = "failed"
-        reason = str(result)
-        result = ""
+        reason = str(async_result.info)
+    else:
+        status = "running"
     return jsonify_with_data(
         APIError.OK,
         data={"status": status, "reason": reason, "task_id": task_id, "result": result},
