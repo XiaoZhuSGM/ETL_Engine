@@ -187,32 +187,46 @@ def handler(event, context):
 
         return clean_kemaiyushang(source_id, date, target_table, data_frames)
 
+    elif erp_name == "友琪":
+        from youqi import YouQiCleaner
+
+        cleaner = YouQiCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+
 
 if __name__ == "__main__":
 
     event1 = {
-        "source_id": "90YYYYYYYYYYYYY",
-        "erp_name": "科脉御商v9",
-        "date": "2018-10-28",
+        "source_id": "87YYYYYYYYYYYYY",
+        "erp_name": "友琪",
+        "date": "2018-11-08",
         "target_table": "store",
         "origin_table_columns": {
-            "bi_t_branch_info": [
-                "property",
-                "branch_id",
-                "branch_name",
+            "tshoparea": [
+                "shopareacode",
+                "shopareaname"
+            ],
+            "tshopitem": [
+                "uniquecode",
+                "shopname",
                 "address",
-                "rj_datetime",
-                "branch_no",
-                "display_flag",
-                "branch_tel",
-                "branch_man"
+                "shopmemo",
+                "sdatetime",
+                "shopcode",
+                "phoneno",
+                "linkman",
+                "shoptype",
+                "shoparea"
             ]
         },
         "converts": {
-            "bi_t_branch_info": {
-                "branch_id": "str",
-                "branch_no": "str",
-                "property": "str"
+            "tshoparea": {
+                "shopareacode": "str"
+            },
+            "tshopitem": {
+                "shoparea": "str",
+                "shopcode": "str",
+                "uniquecode": "str"
             }
         }
     }
