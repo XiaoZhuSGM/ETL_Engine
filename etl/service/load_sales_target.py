@@ -18,17 +18,13 @@ REDSHIFT_URL = setting.REDSHIFT_URL
 
 class LoadSalestargetServices:
 
-    def __init__(self):
-        print(REDSHIFT_URL)
-        engine = create_engine(REDSHIFT_URL)
-        Session = sessionmaker(bind=engine)
-        self.session = Session()
-
     def load_sales_target(self):
         """
         后端调用此接口，导入销售目标表到redshift
         :return:
         """
+        engine = create_engine(REDSHIFT_URL)
+
         data = request.get_json()
         cmid = data.get("cmid")
         date1 = data.get("date")
@@ -36,36 +32,33 @@ class LoadSalestargetServices:
 
         value_list = []
         delete_list = []
-        for target in target_list:
-            select_sql = SELECTSTORE.format(cmid=cmid, show_code=target.get("showcode"))
-            result = self.session.execute(select_sql).first()
-            if not result:
-                continue
-            source_id = result[0]
-            foreign_store_id = result[1]
-            store_name = result[2]
-            show_code = target.get("showcode")
-            target_sales = target.get("target_sales")
-            target_gross_profit = target.get("target_gross_profit")
+        with engine.connect() as conn:
+            for target in target_list:
+                select_sql = SELECTSTORE.format(cmid=cmid, show_code=target.get("showcode"))
+                result = conn.execute(select_sql).first()
+                if not result:
+                    continue
+                source_id = result[0]
+                foreign_store_id = result[1]
+                store_name = result[2]
+                show_code = target.get("showcode")
+                target_sales = target.get("target_sales")
+                target_gross_profit = target.get("target_gross_profit")
 
-            delete = f"'{foreign_store_id}'"
-            delete_list.append(delete)
+                delete = f"'{foreign_store_id}'"
+                delete_list.append(delete)
 
-            value = INSERTVALUE.format(
-                cmid=cmid, store_id=foreign_store_id, show_code=show_code, store_name=store_name,
-                target_sales=target_sales, date1=date1, target_gross_profit=target_gross_profit,
-                source_id=source_id)
-            value_list.append(value)
+                value = INSERTVALUE.format(
+                    cmid=cmid, store_id=foreign_store_id, show_code=show_code, store_name=store_name,
+                    target_sales=target_sales, date1=date1, target_gross_profit=target_gross_profit,
+                    source_id=source_id)
+                value_list.append(value)
 
-        deletes = ",".join(delete_list)
-        delete_sales_sql = DELETESALES.format(source_id=source_id, date1=date1, deletes=deletes)
-        self.session.execute(delete_sales_sql)
+            deletes = ",".join(delete_list)
+            delete_sales_sql = DELETESALES.format(source_id=source_id, date1=date1, deletes=deletes)
 
-        values = ",".join(value_list)
-        insert_sql = INSERTSQL.format(source_id=source_id, values=values)
-        self.session.execute(insert_sql)
-        try:
-            self.session.commit()
-        except Exception as e:
-            self.session.rollback()
-            raise e
+            values = ",".join(value_list)
+            insert_sql = INSERTSQL.format(source_id=source_id, values=values)
+            with conn.begin():
+                conn.execute(delete_sales_sql)
+                conn.execute(insert_sql)
