@@ -135,7 +135,7 @@ def handler(event, context):
 
         cleaner = ZhiBaiWeiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == "商海导航":
+    elif erp_name in ("商海导航", "商海（连锁版）"):
         from shanghaidaohang import ShangHaiDaoHangCleaner
 
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
