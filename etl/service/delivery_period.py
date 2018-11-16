@@ -41,4 +41,5 @@ class DeliveryPeriodService(object):
     @session_scope
     def update_info(self, **info):
         id = info.get("id")
-        DeliveryPeriod.query.filter_by(id=id).update(info)
+        params = info.get("params")
+        DeliveryPeriod.query.filter_by(id=id).update(params)
