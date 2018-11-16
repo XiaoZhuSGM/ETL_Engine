@@ -128,7 +128,6 @@ class YouQiCleaner:
             .groupby(["pid", "ywdate", "depcode", "store_id"], as_index=False)
             .agg({"countn": np.sum, "saleamt": np.sum, "cost": np.sum})
         )
-
         if len(frames) == 0:
             frames = pd.DataFrame(columns=columns)
         else:
@@ -206,6 +205,7 @@ class YouQiCleaner:
             "last_updated", "isvalid", "warranty", "show_code", "foreign_category_lv5", "allot_method", "supplier_name",
             "supplier_code", "brand_name"
         ]]
+        frames["warranty"] = frames.warranty.apply(lambda x: None if pd.isnull(x) else str(int(x)))
 
         return frames
 
