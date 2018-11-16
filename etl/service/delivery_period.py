@@ -7,6 +7,11 @@ class DeliveryPeriodExist(Exception):
         return 'foreign_store_id 已经存在'
 
 
+class DeliveryPeriodNotExist(Exception):
+    def __str__(self):
+        return 'foreign_store_id 不存在'
+
+
 class DeliveryPeriodService(object):
     @staticmethod
     def get_cmid():
@@ -22,6 +27,16 @@ class DeliveryPeriodService(object):
             return None
 
         return [item.to_dict() for item in delivery_period]
+
+    @staticmethod
+    def get_info_from_store_id(cmid, foreign_store_id):
+        foreign_store_id = foreign_store_id.get("foreign_store_id")
+        delivery_period = DeliveryPeriod.query.filter_by(cmid=cmid,
+                                                         foreign_store_id=foreign_store_id).first()
+        if not delivery_period:
+            raise DeliveryPeriodNotExist
+
+        return delivery_period.to_dict()
 
     @session_scope
     def create(self, **info):
