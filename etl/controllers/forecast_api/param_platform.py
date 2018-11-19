@@ -46,7 +46,12 @@ def get_display_info(cmid, store_id):
     page = request.args.get("page", default=-1, type=int)
     per_page = request.args.get("per_page", default=-1, type=int)
     store_data = display_info.find_by_page_limit(page, per_page, cmid, store_id)
-    return jsonify_with_data(APIError.OK, data={'store_data': store_data})
+    return jsonify_with_data(APIError.OK,
+                             data={
+                                 'store_data': store_data.get('items'),
+                                 'total_page': store_data.get('total_page'),
+                                 'cur_page': store_data.get('cur_page'),
+                             })
 
 
 @forecast_api.route("/param/add", methods=["POST"])
