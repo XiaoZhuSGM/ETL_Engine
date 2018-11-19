@@ -28,6 +28,14 @@ class ExtDatasourceConnError(Exception):
         return f"数据库连接错误,错误信息:{self.errmsg}"
 
 
+class ExtDataSourceNotFound(Exception):
+    def __init__(self, source_id):
+        self.source_id = source_id
+
+    def __str__(self):
+        return f"在数据源配置中没有找到{self.source_id}"
+
+
 class ExtTableService(object):
     @staticmethod
     def connect_test(kwargs):
@@ -181,6 +189,8 @@ class ExtTableService(object):
         # 测试数据库是否能够正常连接，无法连接就返回错误信息
         data = self.get_datasource_by_source_id(source_id)
 
+        if not data:
+            raise ExtDataSourceNotFound(source_id)
         # 如果任务已经在运行，就返回
         if self.get_status(source_id) == "running":
             raise ExtTaskExists()
@@ -227,6 +237,9 @@ class ExtTableService(object):
         if not all([source_id, tables]):
             raise ExtDatasourceParaMiss()
         data = self.get_datasource_by_source_id(source_id)
+        if not data:
+            raise ExtDataSourceNotFound(source_id)
+
         erp_vendor = data.get('erp_vendor')
         engine, inspector = self.connect_test(data)
         special_schema = f"[{schema}]" if schema and (erp_vendor == "百年创纪云" or erp_vendor == "百年新世纪") else None

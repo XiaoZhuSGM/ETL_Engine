@@ -1,4 +1,6 @@
-from etl.service.ext_table import ExtTableService, ExtTaskExists, ExtDatasourceParaMiss, ExtDatasourceConnError
+from etl.service.ext_table import (
+    ExtTableService, ExtTaskExists, ExtDatasourceParaMiss, ExtDatasourceConnError, ExtDataSourceNotFound
+)
 from . import etl_admin_api, jsonify_with_data, jsonify_with_error
 from .. import APIError
 from flask import current_app
@@ -16,7 +18,7 @@ def download_tables(source_id):
         service.generate_download_table(source_id)
     except ExtTaskExists as e:
         return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))
-    except (ExtDatasourceParaMiss, ExtDatasourceConnError) as e:
+    except (ExtDatasourceParaMiss, ExtDatasourceConnError, ExtDataSourceNotFound) as e:
         return jsonify_with_error(APIError.BAD_REQUEST, reason=str(e))
     return jsonify_with_data(APIError.OK)
 
@@ -41,7 +43,7 @@ def download_special_table():
         service.download_special_tables()
     except ExtTaskExists as e:
         return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))
-    except (ExtDatasourceParaMiss, ExtDatasourceConnError) as e:
+    except (ExtDatasourceParaMiss, ExtDatasourceConnError, ExtDataSourceNotFound) as e:
         return jsonify_with_error(APIError.BAD_REQUEST, reason=str(e))
     return jsonify_with_data(APIError.OK)
 
