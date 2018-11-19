@@ -192,41 +192,30 @@ def handler(event, context):
 
         cleaner = YouQiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
+    elif erp_name == "衡阳联邦":
+        from hengyanglianbang import clean_lianbang
+        return clean_lianbang(source_id, date, target_table, data_frames)
 
 
 if __name__ == "__main__":
-
     event1 = {
-        "source_id": "87YYYYYYYYYYYYY",
-        "erp_name": "友琪",
-        "date": "2018-11-08",
+        "source_id": "91YYYYYYYYYYYYY",
+        "erp_name": "衡阳联邦",
+        "date": "2018-11-14",
         "target_table": "store",
         "origin_table_columns": {
-            "tshoparea": [
-                "shopareacode",
-                "shopareaname"
-            ],
-            "tshopitem": [
-                "uniquecode",
-                "shopname",
+            "t_bd_branch_info": [
+                "branch_no",
+                "branch_name",
                 "address",
-                "shopmemo",
-                "sdatetime",
-                "shopcode",
-                "phoneno",
-                "linkman",
-                "shoptype",
-                "shoparea"
+                "branch_tel",
+                "branch_man"
             ]
         },
         "converts": {
-            "tshoparea": {
-                "shopareacode": "str"
-            },
-            "tshopitem": {
-                "shoparea": "str",
-                "shopcode": "str",
-                "uniquecode": "str"
+            "t_bd_branch_info": {
+                "branch_no": "str",
+                "branch_tel": "str"
             }
         }
     }
