@@ -4,7 +4,7 @@ from . import forecast_api
 from .. import APIError, jsonify_with_data, jsonify_with_error
 
 from etl.service.display_info import DisplayInfo, DisplayInfoExist
-from etl.service.delivery_period import DeliveryPeriodService, DeliveryPeriodExist
+from etl.service.delivery_period import DeliveryPeriodService, DeliveryPeriodExist, DeliveryPeriodNotExist
 
 display_info = DisplayInfo()
 delivery_period = DeliveryPeriodService()
@@ -72,6 +72,22 @@ def delivery():
     cmid_list = delivery_period.get_cmid()
     foreign_store_id = delivery_period.get_store_id(43)
     return jsonify_with_data(APIError.OK, data={'cmid_list': cmid_list, 'foreign_store_id': foreign_store_id})
+
+
+@forecast_api.route("/param/delivery/<cmid>")
+def get_delivery_from_cmid(cmid):
+    foreign_store_id = delivery_period.get_store_id(cmid)
+    return jsonify_with_data(APIError.OK, data={"foreign_store_id": foreign_store_id})
+
+
+@forecast_api.route("/param/delivery/<cmid>", methods=['POST'])
+def get_delivery_from_store_id(cmid):
+    forieign_store_id = request.json
+    try:
+        data = delivery_period.get_info_from_store_id(cmid, forieign_store_id)
+    except DeliveryPeriodNotExist as e:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
+    return jsonify_with_data(APIError.OK, data={"data": data})
 
 
 @forecast_api.route("/param/delivery/add", methods=['POST'])
