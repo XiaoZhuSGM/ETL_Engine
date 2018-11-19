@@ -22,8 +22,11 @@ def display_homepage():
         return jsonify_with_data(
             APIError.OK,
             data={'cmid_list': cmid_list,
-                  'store_data': data,
-                  'foreign_store_id': foreign_store_id}
+                  'store_data': data.get('items'),
+                  'foreign_store_id': foreign_store_id,
+                  'total_page': data.get('total_page'),
+                  'cur_page': data.get('cur_page'),
+                  }
         )
     else:
         return jsonify_with_error(APIError.VALIDATE_ERROR, reason="paramter error")
