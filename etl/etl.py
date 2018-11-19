@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from celery import Celery
 from flask import Flask
 from flask_cors import CORS
@@ -34,6 +35,7 @@ def create_app(config=None):
         resources={
             r"/etl/admin/api/*": {"origins": "*"},
             r"/etl/api/*": {"origins": "*"},
+            r"/forecast/api/*": {"origins": "*"},
         },
     )
 
@@ -67,9 +69,11 @@ def configure_path_converter(app):
 def configure_blueprints(app):
     from etl.controllers.api import etl_api as api
     from etl.controllers.admin_api import etl_admin_api as admin_api
+    from etl.controllers.forecast_api import forecast_api
 
     app.register_blueprint(api, url_prefix='/etl/api')
     app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
+    app.register_blueprint(forecast_api, url_prefix='/forecast/api')
 
 
 def configure_extensions(app):

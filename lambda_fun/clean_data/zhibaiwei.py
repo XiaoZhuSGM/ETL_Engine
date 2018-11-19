@@ -48,6 +48,49 @@ class ZhiBaiWeiCleaner(Base):
     """
 
     def goodsflow(self):
+        filter_columns = [
+            "source_id",
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "receipt_id",
+            "consumer_id",
+            "saletime",
+            "last_updated",
+            "foreign_item_id",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "saleprice",
+            "quantity",
+            "subtotal",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+            "pos_id",
+        ]
+        rename_columns_dict = {
+            "branch_no": "foreign_store_id",
+            "branch_name": "store_name",
+            "flow_no": "receipt_id",
+            "oper_date": "saletime",
+            "item_no": "foreign_item_id",
+            "item_name": "item_name",
+            "unit_no": "item_unit",
+            "item_clsno_lv1": "foreign_category_lv1",
+            "item_clsname": "foreign_category_lv1_name",
+            "item_clsno_lv2": "foreign_category_lv2",
+            "item_clsname_lv2": "foreign_category_lv2_name",
+            "item_clsno_lv3": "foreign_category_lv3",
+            "item_clsname_lv3": "foreign_category_lv3_name",
+        }
 
         flow = self.data["pos_t_saleflow"]
         store = self.data["bi_t_branch_info"]
@@ -114,66 +157,25 @@ class ZhiBaiWeiCleaner(Base):
             else:
                 pass
 
-        part1["saleprice"] = part1.apply(saleprice_convert, axis=1)
-        part1["quantity"] = part1.apply(quantity_convert, axis=1)
-        part1["subtotal"] = part1.apply(subtotal, axis=1)
-        part1["source_id"] = self.source_id
-        part1["cmid"] = self.cmid
-        part1["consumer_id"] = ""
-        part1["last_updated"] = datetime.now(_TZINFO)
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv4_name"] = None
-        part1["foreign_category_lv5"] = ""
-        part1["foreign_category_lv5_name"] = None
-        part1["pos_id"] = ""
+        if len(part1) == 0:
+            part1 = pd.DataFrame(columns=filter_columns)
+        else:
+            part1["saleprice"] = part1.apply(saleprice_convert, axis=1)
+            part1["quantity"] = part1.apply(quantity_convert, axis=1)
+            part1["subtotal"] = part1.apply(subtotal, axis=1)
+            part1["source_id"] = self.source_id
+            part1["cmid"] = self.cmid
+            part1["consumer_id"] = ""
+            part1["last_updated"] = datetime.now(_TZINFO)
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv4_name"] = None
+            part1["foreign_category_lv5"] = ""
+            part1["foreign_category_lv5_name"] = None
+            part1["pos_id"] = ""
 
-        filter_columns = [
-            "source_id",
-            "cmid",
-            "foreign_store_id",
-            "store_name",
-            "receipt_id",
-            "consumer_id",
-            "saletime",
-            "last_updated",
-            "foreign_item_id",
-            "barcode",
-            "item_name",
-            "item_unit",
-            "saleprice",
-            "quantity",
-            "subtotal",
-            "foreign_category_lv1",
-            "foreign_category_lv1_name",
-            "foreign_category_lv2",
-            "foreign_category_lv2_name",
-            "foreign_category_lv3",
-            "foreign_category_lv3_name",
-            "foreign_category_lv4",
-            "foreign_category_lv4_name",
-            "foreign_category_lv5",
-            "foreign_category_lv5_name",
-            "pos_id",
-        ]
-        rename_columns_dict = {
-            "branch_no": "foreign_store_id",
-            "branch_name": "store_name",
-            "flow_no": "receipt_id",
-            "oper_date": "saletime",
-            "item_no": "foreign_item_id",
-            "item_name": "item_name",
-            "unit_no": "item_unit",
-            "item_clsno_lv1": "foreign_category_lv1",
-            "item_clsname": "foreign_category_lv1_name",
-            "item_clsno_lv2": "foreign_category_lv2",
-            "item_clsname_lv2": "foreign_category_lv2_name",
-            "item_clsno_lv3": "foreign_category_lv3",
-            "item_clsname_lv3": "foreign_category_lv3_name",
-        }
+            part1 = part1.rename(columns=rename_columns_dict)
 
-        part1 = part1.rename(columns=rename_columns_dict)
-
-        part1 = part1[filter_columns]
+            part1 = part1[filter_columns]
 
         part2 = (
             (
@@ -193,30 +195,32 @@ class ZhiBaiWeiCleaner(Base):
 
         part2 = part2[part2["item_clsno"] == "00"]
         part2 = part2[part2["item_flag"] == "0"]
+        if len(part2) == 0:
+            part2 = pd.DataFrame(columns=filter_columns)
+        else:
+            part2["saleprice"] = part2.apply(saleprice_convert, axis=1)
+            part2["quantity"] = part2.apply(quantity_convert, axis=1)
+            part2["subtotal"] = part2.apply(subtotal, axis=1)
+            part2["source_id"] = self.source_id
+            part2["cmid"] = self.cmid
+            part2["consumer_id"] = ""
+            part2["last_updated"] = datetime.now(_TZINFO)
 
-        part2["saleprice"] = part2.apply(saleprice_convert, axis=1)
-        part2["quantity"] = part2.apply(quantity_convert, axis=1)
-        part2["subtotal"] = part2.apply(subtotal, axis=1)
-        part2["source_id"] = self.source_id
-        part2["cmid"] = self.cmid
-        part2["consumer_id"] = ""
-        part2["last_updated"] = datetime.now(_TZINFO)
+            part2["foreign_category_lv2"] = ""
+            part2["foreign_category_lv2_name"] = None
+            part2["foreign_category_lv3"] = ""
+            part2["foreign_category_lv3_name"] = None
+            part2["pos_id"] = ""
 
-        part2["foreign_category_lv2"] = ""
-        part2["foreign_category_lv2_name"] = None
-        part2["foreign_category_lv3"] = ""
-        part2["foreign_category_lv3_name"] = None
-        part2["pos_id"] = ""
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv4_name"] = None
+            part2["foreign_category_lv5"] = ""
+            part2["foreign_category_lv5_name"] = None
+            part2["pos_id"] = ""
 
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv4_name"] = None
-        part2["foreign_category_lv5"] = ""
-        part2["foreign_category_lv5_name"] = None
-        part2["pos_id"] = ""
+            part2 = part2.rename(columns=rename_columns_dict)
 
-        part2 = part2.rename(columns=rename_columns_dict)
-
-        part2 = part2[filter_columns]
+            part2 = part2[filter_columns]
 
         return pd.concat([part1, part2])
 

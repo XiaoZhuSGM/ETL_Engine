@@ -4,8 +4,6 @@ services:
   gunicorn:
     image: etl-engine
     build: .
-    volumes:
-      - .:/app
     depends_on:
       - redis
     stop_signal:
@@ -13,10 +11,9 @@ services:
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
+    restart: always
   huey:
     image: etl-engine
-    volumes:
-      - .:/app
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
     command: huey_consumer.py etl.tasks.main.huey -k thread -w 8
@@ -24,10 +21,9 @@ services:
       - redis
     stop_signal:
       SIGINT
+    restart: always
   celery:
     image: etl-engine
-    volumes:
-      - .:/app
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
     command: celery -A celery_worker.celery worker -l info
@@ -35,8 +31,10 @@ services:
       - redis
     stop_signal:
       SIGTERM
+    restart: always
   redis:
     image: redis:4
+    restart: always
   nginx-proxy:
     image: jwilder/nginx-proxy
     ports:
@@ -45,3 +43,4 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock
     depends_on:
       - gunicorn
+    restart: always

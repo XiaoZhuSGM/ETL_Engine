@@ -4,7 +4,7 @@ from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
 from ...service.datasource import ExtDatasourceNotExist, ExtDatasourceConfigNotExist
-from ...service.ext_table import ExtTableService
+from ...service.ext_table import ExtTableService, ExtDatasourceParaMiss, ExtDatasourceConnError
 from ...validators.validator import (
     validate_arg,
     JsonDatasourceAddInput,
@@ -107,17 +107,10 @@ def update_datasource(datasource_id):
 @validate_arg(JsonDatasourceTestConnectionInput)
 def test_connection_datasource():
     data = request.json
-    db_name = data.get("db_name")
-    if db_name is None:
-        return jsonify_with_error(APIError.BAD_REQUEST, "db_name is missing")
-    database = db_name.get("database")
-    if database is None:
-        return jsonify_with_error(APIError.BAD_REQUEST, "database is missing")
-    data["database"] = database
-    error = table_service.connect_test(data)
-    if error:
-        return jsonify_with_error(APIError.BAD_REQUEST, reason=error)
-
+    try:
+        table_service.connect_test(data)
+    except (ExtDatasourceConnError, ExtDatasourceParaMiss) as e:
+        return jsonify_with_error(APIError.BAD_REQUEST, reason=str(e))
     return jsonify_with_data(APIError.OK)
 
 
