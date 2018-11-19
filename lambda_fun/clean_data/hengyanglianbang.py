@@ -33,22 +33,21 @@ def clean_lianbang(source_id, date, target_table, data_frames):
 
 # 门店表
 '''
-    'origin_table_columns': {
-            "t_bd_branch_info": ['branch_no',
-                                 'branch_name',
-                                 'address',
-                                 'dj_yw',
-                                 'init_date',
-                                 'branch_no',
-                                 'branch_tel',
-                                 'branch_fax',
-                                 'other1',
-                                 'trade_type',
-                                 'property',
-                                 ]
+  "origin_table_columns": {
+            "t_bd_branch_info": [
+                "branch_no",
+                "branch_name",
+                "address",
+                "branch_tel",
+                "branch_man"
+            ]
         },
-
-        'converts': {"t_bd_branch_info": {'branch_no': 'str', 'property': 'int', 'trade_type': 'int', 'dj_yw': 'int'}}
+        "converts": {
+            "t_bd_branch_info": {
+                "branch_no": "str",
+                "branch_tel": "str"
+            }
+        }
 '''
 
 
