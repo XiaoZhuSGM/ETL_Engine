@@ -86,27 +86,36 @@ def update_display_info():
 
 @forecast_api.route("/param/delivery")
 def delivery():
+    page = request.args.get("page", default=-1, type=int)
+    per_page = request.args.get("per_page", default=-1, type=int)
     cmid_list = delivery_period.get_cmid()
-    result = delivery_period.get_store_id(43)
+    result = delivery_period.find_by_page_limit(page, per_page, 43)
+    print(result)
     if not result:
         result = []
-    return jsonify_with_data(APIError.OK, data={'cmid_list': cmid_list, 'result': result})
+    return jsonify_with_data(APIError.OK,
+                             data={'cmid_list': cmid_list,
+                                   'result': result.get('items'),
+                                   'cur_page': result.get('cur_page'),
+                                   'total_page': result.get('total_page'),
+                                   }
+                             )
 
 
-@forecast_api.route("/param/delivery/<cmid>")
+@forecast_api.route("/param/delivery/<cmid>", methods=['POST', 'GET'])
 def get_delivery_from_cmid(cmid):
+    if request.method == 'POST':
+        forieign_store_id = request.json.get('foreign_store_id')
+        if forieign_store_id:
+            try:
+                data = delivery_period.get_info_from_store_id(cmid, forieign_store_id)
+            except DeliveryPeriodNotExist as e:
+                return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
+            return jsonify_with_data(APIError.OK, data={"data": data})
+        return jsonify_with_error(APIError.VALIDATE_ERROR, reason='Key Value')
+
     result = delivery_period.get_store_id(cmid)
     return jsonify_with_data(APIError.OK, data={"result": result})
-
-
-@forecast_api.route("/param/delivery/<cmid>", methods=['POST'])
-def get_delivery_from_store_id(cmid):
-    forieign_store_id = request.json
-    try:
-        data = delivery_period.get_info_from_store_id(cmid, forieign_store_id)
-    except DeliveryPeriodNotExist as e:
-        return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
-    return jsonify_with_data(APIError.OK, data={"data": data})
 
 
 @forecast_api.route("/param/delivery/add", methods=['POST'])
