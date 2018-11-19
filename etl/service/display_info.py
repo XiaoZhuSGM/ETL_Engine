@@ -59,12 +59,14 @@ class DisplayInfo:
     def find_by_page_limit(self, page, per_page, cmid, foreign_store_id):
         if page == -1 and per_page == -1:
             data_list = self.find_all(cmid, foreign_store_id)
-            store_data = [data.to_dict() for data in data_list]
-            return store_data
+            return dict(
+                items=[data.to_dict() for data in data_list],
+                cur_page='',
+                total_page=1,
+            )
 
-        pagination = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id). \
-            order_by(ExtParamPlatform.id.asc()
-                     ).paginate(page, per_page=per_page, error_out=False)
+        pagination = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id).order_by(
+            ExtParamPlatform.id.asc()).paginate(page, per_page=per_page, error_out=False)
         params = pagination.items
         total_page = pagination.pages
         return dict(
