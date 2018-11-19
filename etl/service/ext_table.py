@@ -129,7 +129,7 @@ class ExtTableService(object):
             .update(dict(ext_pri_key=ext_pri_key, ext_column=ext_column, record_num=record_num))
         )
         if result == 0:
-            weight = 2 if record_num > 0 else 1
+            weight = 2 if record_num > 0 else 0
             ExtTableInfo.create(
                 source_id=source_id, table_name=table_name, ext_pri_key=ext_pri_key,
                 ext_column=ext_column, record_num=record_num, weight=weight
