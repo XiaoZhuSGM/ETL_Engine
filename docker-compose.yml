@@ -16,7 +16,7 @@ services:
     image: etl-engine
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
-    command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history`
+    command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history
     depends_on:
       - redis
     stop_signal:
