@@ -57,23 +57,43 @@ def clean_store(source_id, date, target_table, data_frames):
     store['cmid'] = cmid
     store['source_id'] = source_id
     store['show_code'] = store['branch_no']
+
+    def area_type_convert(area_code):
+        if area_code == '00':
+            return '默认区域'
+        if area_code == '01':
+            return '江东'
+        if area_code == '02':
+            return '湘江西'
+        if area_code == '03':
+            return '加盟'
+
+    def property_type_convert(code):
+        if code == '0':
+            return '总部'
+        if code == '5':
+            return '仓库'
+        if code == '3':
+            return '自营店'
+
     store = store.rename(columns={'branch_no': 'foreign_store_id',
                                   'branch_name': 'store_name',
                                   'address': 'store_address',
                                   'branch_tel': 'phone_number',
-                                  'branch_man': 'contacts'
+                                  'branch_man': 'contacts',
+                                  'branch_clsno': 'area_code',
+                                  'trade_type': 'property_id'
                                   })
+
+    store['area_name'] = store['area_code'].map(area_type_convert)
+    store['property'] = store['property_id'].map(property_type_convert)
     store['address_code'] = ''
     store['device_id'] = ''
     store['create_date'] = datetime.now(_TZINFO)
     store['lat'] = None
     store['lng'] = None
     store['last_updated'] = datetime.now(_TZINFO)
-    store['area_code'] = None
-    store['area_name'] = None
     store['business_area'] = None
-    store['property_id'] = None
-    store['property'] = None
     store['store_status'] = None
     store = store[[
         'cmid',
@@ -97,7 +117,6 @@ def clean_store(source_id, date, target_table, data_frames):
         'source_id',
         'last_updated'
     ]]
-
     return upload_to_s3(store, source_id, date, target_table)
 
 
@@ -356,7 +375,8 @@ def clean_goods(source_id, date, target_table, data_frames):
                     "item_no",
                     "sale_price",
                     "sale_qnty",
-                    "sale_money"
+                    "sale_money",
+                    "sell_way"
                 ]
             }
 
@@ -408,13 +428,39 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         lv1, how='left', left_on='lv_1', right_on='item_clsno', suffixes=['', '_lv_1']).merge(
         lv2, how='left', left_on='lv_2', right_on='item_clsno', suffixes=['', '_lv_2']).merge(
         lv3, how='left', left_on='lv_3', right_on='item_clsno', suffixes=['', '_lv_3'])
-    # print(goods[goods['item_no']=='9999'].T)
-    goods = goods[['item_no','item_name', 'item_clsno', 'unit_no', 'lv_1',
-                   'item_clsname', 'lv_2', 'item_clsname_lv_2','lv_3',
+    goods = goods[['item_no', 'item_name', 'item_clsno', 'unit_no', 'lv_1',
+                   'item_clsname', 'lv_2', 'item_clsname_lv_2', 'lv_3',
                    'item_clsname_lv_3']]
+    sale['branch_no'] = sale['branch_no'].str.slice(0, 4)
     result_frame = sale.merge(
-            store, how='left', on='branch_no').merge(
-            goods, how='left', on='item_no')
+        store, how='left', on='branch_no').merge(
+        goods, how='left', on='item_no')
+
+    def saleprice_convert(row):
+        if row['sell_way'] == 'C':
+            return 0
+        else:
+            return row['sale_price']
+
+    def quantity_convert(row):
+        if row['sell_way'] == 'A' or row['sell_way'] == 'C':
+            return row['sale_qnty']
+        else:
+            return -1 * row['sale_qnty']
+
+    def subtotal(row):
+        if row['sell_way'] == 'A':
+            return row['sale_money']
+        elif row['sell_way'] == 'B':
+            return -1 * row['sale_money']
+        elif row['sell_way'] == 'C':
+            return 0
+        else:
+            pass
+
+    result_frame['saleprice'] = result_frame.apply(saleprice_convert, axis=1)
+    result_frame['quantity'] = result_frame.apply(quantity_convert, axis=1)
+    result_frame['subtotal'] = result_frame.apply(subtotal, axis=1)
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
         'branch_name': 'store_name',
@@ -423,15 +469,12 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         'item_no': 'foreign_item_id',
         'item_name': 'item_name',
         'unit_no': 'item_unit',
-        'lv_1':'foreign_category_lv1',
+        'lv_1': 'foreign_category_lv1',
         'item_clsname': 'foreign_category_lv1_name',
         'lv_2': 'foreign_category_lv2',
         'item_clsname_lv_2': 'foreign_category_lv2_name',
         'lv_3': 'foreign_category_lv3',
-        'item_clsname_lv_3': 'foreign_category_lv3_name',
-        'sale_price':'saleprice',
-        'sale_qnty':'quantity',
-        'sale_money':'subtotal'
+        'item_clsname_lv_3': 'foreign_category_lv3_name'
     })
     result_frame['source_id'] = source_id
     result_frame['cmid'] = cmid
@@ -486,9 +529,9 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
                 "item_no",
                 "branch_no",
                 "oper_date",
-                "settle_amt2",
-                "settle_amt",
-                "settle_qty"
+                "pos_qty",
+                "pos_qty",
+                "avg_cost_amt"
             ]
         }
 
@@ -526,7 +569,8 @@ def clean_cost(source_id, date, target_table, data_frames):
 
     cmid = source_id.split("Y")[0]
     cost = data_frames['t_da_jxc_daysum']
-
+    cost['total_quantity'] = cost['pos_qty'] - cost['pos_ret_qty']
+    cost['total_sale'] = cost['pos_amt'] - cost['pos_ret_amt']
     if not len(cost):
         return upload_to_s3(pd.DataFrame(columns=columns), source_id, date, target_table)
 
@@ -539,19 +583,17 @@ def clean_cost(source_id, date, target_table, data_frames):
         else x[:4])
     goods['foreign_category_lv3'] = goods['item_clsno'].apply(
         lambda x: x if len(x) == 6 else '')
-    result_frame = pd.merge(cost, goods, on='item_no', how='left',suffixes=('_cost', '_goods'))
+    result_frame = pd.merge(cost, goods, on='item_no', how='left', suffixes=('_cost', '_goods'))
     result_frame['foreign_category_lv4'] = ''
     result_frame['foreign_category_lv5'] = ''
     result_frame['source_id'] = source_id
     result_frame['cmid'] = cmid
-    result_frame['cost_type']=''
+    result_frame['cost_type'] = ''
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
         'item_no': 'foreign_item_id',
         'oper_date': 'date',
-        'settle_qty': 'total_quantity',
-        'settle_amt2': 'total_sale',
-        'settle_amt': 'total_cost',
+        'avg_cost_amt': 'total_cost'
 
     })
     result_frame = result_frame[columns]
