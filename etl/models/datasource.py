@@ -72,6 +72,6 @@ class ExtDatasource(CRUDMixin, db.Model):
         hour = temp_time.hour
         minute = cron_list[1]
         cron_expression = f"{minute} {hour} * * *"
-        data['crontab'] = cron_expression
+        data["crontab"] = cron_expression
         return data
 
