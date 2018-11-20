@@ -1,4 +1,5 @@
 from celery import Celery as _Celery
+from kombu import Queue
 
 
 class Celery(_Celery):
@@ -14,12 +15,10 @@ class Celery(_Celery):
                 with app.app_context():
                     return self.run(*args, **kwargs)
 
-        print(app.config["CELERY_BROKER_URL"])
-        print(app.config["CELERY_BACKEND_URL"])
         super().__init__(
             app.import_name,
             broker=app.config["CELERY_BROKER_URL"],
-            backend=app.config["CELERY_BACKEND_URL"],
+            backend=app.config["CELERY_RESULT_BACKEND"],
         )
-        # self.conf.update(app.config)
+        self.conf.update(app.config)
         self.Task = ContextTask

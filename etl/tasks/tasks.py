@@ -4,7 +4,7 @@ import lambda_fun.extract_data.extract_db_worker as worker
 from etl.etl import celery
 
 
-@huey.task(include_task=True)
+@celery.task(name='etl.task_warehose')
 def task_warehouse(
     db_url,
     target_table,
@@ -23,7 +23,7 @@ def task_warehouse(
     return True
 
 
-@celery.task
+@celery.task(name='etl.task_extract_data')
 def task_extract_data(source_id, query_date, task_type, filename, db_url, **kwargs):
     event = dict(
         source_id=source_id,

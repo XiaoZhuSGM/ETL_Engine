@@ -40,11 +40,12 @@ def trigger_task_extract_data():
 def get_task_extract_data_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = ""
+    result = False
     async_result = task_extract_data.AsyncResult(task_id=task_id)
 
     if async_result.successful():
         result = async_result.result
+        status = "success"
     elif async_result.failed():
         status = "failed"
         reason = str(async_result.info)
@@ -78,61 +79,72 @@ def trigger_task_warehouse():
     )
     sync_column = target_tables[table_key]["sync_column"]
     date_column = target_tables[table_key]["date_column"]
-    result = task_warehouse(
-        redshift_url,
-        target_table,
-        data_key,
-        sync_column,
-        date_column,
-        cmid,
-        source_id,
-        warehouse_type,
+
+    event = dict(
+        db_url=redshift_url,
+        target_table=target_table,
+        data_key=data_key,
+        sync_column=sync_column,
+        date_column=date_column,
+        cmid=cmid,
+        source_id=source_id,
+        warehouse_type=warehouse_type,
     )
-    return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
+
+    result = task_warehouse.apply_async(kwargs=event)
+
+    return jsonify_with_data(APIError.OK, data={"task_id": result.id})
 
 
 @etl_admin_api.route("/ext/tasks/warehouse/status", methods=["GET"])
 def get_task_warehouse_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id)
-    if result is None:
-        status = "running"
-    elif result is True:
+    result = False
+    async_result = task_warehouse.AsyncResult(task_id=task_id)
+    if async_result.successful():
+        result = async_result.result
         status = "success"
-    else:
+    elif async_result.failed():
         status = "failed"
-        reason = str(result)
+        reason = str(async_result.info)
+    else:
+        status = "running"
     return jsonify_with_data(
         APIError.OK,
-        data={"status": status, "reason": reason, "task_id": task_id, "result": ""},
+        data={"status": status, "reason": reason, "task_id": task_id, "result": result},
     )
 
 
 @etl_admin_api.route("/ext/tasks/rollback", methods=["POST"])
 def trigger_task_rollback():
     message = request.json
-    source_id = message["source_id"]
-    date = message["date"]
-    erp_name = message["erp_name"]
-    target_list = message["target_list"]
-    result = task_rollback(source_id, date, erp_name, target_list)
-    return jsonify_with_data(APIError.OK, data={"task_id": result.task.task_id})
+    event = dict(
+        source_id=message["source_id"],
+        date=message["date"],
+        erp_name=message["erp_name"],
+        target_list=message["target_list"],
+    )
+
+    result = task_rollback.apply_async(kwargs=event)
+    return jsonify_with_data(APIError.OK, data={"task_id": result.id})
 
 
 @etl_admin_api.route("/ext/tasks/rollback/status", methods=["GET"])
 def get_task_rollback_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = huey.result(task_id)
-    if result is None:
-        status = "running"
-    elif result is True:
+    result = False
+    async_result = task_rollback.AsyncResult(task_id=task_id)
+    if async_result.successful():
+        result = async_result.result
         status = "success"
-    else:
+    elif async_result.failed():
         status = "failed"
-        reason = str(result)
+        reason = str(async_result.info)
+    else:
+        status = "running"
     return jsonify_with_data(
         APIError.OK,
-        data={"status": status, "reason": reason, "task_id": task_id, "result": ""},
+        data={"status": status, "reason": reason, "task_id": task_id, "result": result},
     )

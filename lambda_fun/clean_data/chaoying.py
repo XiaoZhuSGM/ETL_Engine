@@ -40,11 +40,32 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     :return:
     """
     columns = [
-        'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
-        'last_updated', 'foreign_item_id', 'barcode', 'item_name', 'item_unit', 'saleprice', 'quantity', 'subtotal',
-        'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
-        'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
-        'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
+        "source_id",
+        "cmid",
+        "foreign_store_id",
+        "store_name",
+        "receipt_id",
+        "consumer_id",
+        "saletime",
+        "last_updated",
+        "foreign_item_id",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "saleprice",
+        "quantity",
+        "subtotal",
+        "foreign_category_lv1",
+        "foreign_category_lv1_name",
+        "foreign_category_lv2",
+        "foreign_category_lv2_name",
+        "foreign_category_lv3",
+        "foreign_category_lv3_name",
+        "foreign_category_lv4",
+        "foreign_category_lv4_name",
+        "foreign_category_lv5",
+        "foreign_category_lv5_name",
+        "pos_id",
     ]
     cmid = source_id.split("Y")[0]
 
@@ -61,40 +82,73 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     else:
         frames_part1 = (
             header.merge(detail, how="left", on="dh")
-                .merge(store, how="left", left_on="id_gsjg", right_on="id")
-                .merge(item, how="left", left_on="id_sp", right_on="id", suffixes=("_store", "_item"))
-                .merge(lv1, how="left", left_on="id_spfl", right_on="id")
+            .merge(store, how="left", left_on="id_gsjg", right_on="id")
+            .merge(
+                item,
+                how="left",
+                left_on="id_sp",
+                right_on="id",
+                suffixes=("_store", "_item"),
+            )
+            .merge(lv1, how="left", left_on="id_spfl", right_on="id")
         )
 
-        frames_part1 = frames_part1[frames_part1["js"] == '1']
-        frames_part1["foreign_category_lv1"] = frames_part1["bm"].apply(lambda x: x if not pd.isnull(x) else "0")
-        frames_part1["foreign_category_lv1_name"] = frames_part1["mc"].apply(lambda x: x if not pd.isnull(x) else "未定义")
+        frames_part1 = frames_part1[frames_part1["js"] == "1"]
+        frames_part1["foreign_category_lv1"] = frames_part1["bm"].apply(
+            lambda x: x if not pd.isnull(x) else "0"
+        )
+        frames_part1["foreign_category_lv1_name"] = frames_part1["mc"].apply(
+            lambda x: x if not pd.isnull(x) else "未定义"
+        )
         frames_part1["foreign_category_lv2"] = ""
         frames_part1["foreign_category_lv2_name"] = None
 
         frames_part2 = (
             header.merge(detail, how="left", on="dh")
-                .merge(store, how="left", left_on="id_gsjg", right_on="id")
-                .merge(item, how="left", left_on="id_sp", right_on="id", suffixes=("_store", "_item"))
-                .merge(lv2, how="left", left_on="id_spfl", right_on="id")
-                .merge(lv1, how="left", left_on="id_1", right_on="id", suffixes=("_lv2", "_lv1"))
+            .merge(store, how="left", left_on="id_gsjg", right_on="id")
+            .merge(
+                item,
+                how="left",
+                left_on="id_sp",
+                right_on="id",
+                suffixes=("_store", "_item"),
+            )
+            .merge(lv2, how="left", left_on="id_spfl", right_on="id")
+            .merge(
+                lv1,
+                how="left",
+                left_on="id_1",
+                right_on="id",
+                suffixes=("_lv2", "_lv1"),
+            )
         )
 
-        frames_part2 = frames_part2[frames_part2["js_lv2"] == '2']
-        frames_part2["foreign_category_lv1"] = frames_part2["bm_lv1"].apply(lambda x: x if not pd.isnull(x) else "0")
+        frames_part2 = frames_part2[frames_part2["js_lv2"] == "2"]
+        frames_part2["foreign_category_lv1"] = frames_part2["bm_lv1"].apply(
+            lambda x: x if not pd.isnull(x) else "0"
+        )
         frames_part2["foreign_category_lv1_name"] = frames_part2["mc_lv1"].apply(
-            lambda x: x if not pd.isnull(x) else "未定义")
-        frames_part2["foreign_category_lv2"] = frames_part2["bm_lv2"].apply(lambda x: x if not pd.isnull(x) else "0")
+            lambda x: x if not pd.isnull(x) else "未定义"
+        )
+        frames_part2["foreign_category_lv2"] = frames_part2["bm_lv2"].apply(
+            lambda x: x if not pd.isnull(x) else "0"
+        )
         frames_part2["foreign_category_lv2_name"] = frames_part2["mc_lv2"].apply(
-            lambda x: x if not pd.isnull(x) else "未定义")
+            lambda x: x if not pd.isnull(x) else "未定义"
+        )
 
     def frame_samecolumns(frames):
         frames["source_id"] = source_id
         frames["cmid"] = cmid
         frames["last_updated"] = datetime.now(_TZINFO)
-        frames["saleprice"] = frames.apply(lambda row: row["dj_hs"] / row["zhl"], axis=1)
+        frames["saleprice"] = frames.apply(
+            lambda row: row["dj_hs"] / row["zhl"], axis=1
+        )
         frames["quantity"] = frames.apply(lambda row: row["sl"] * row["zhl"], axis=1)
-        frames["subtotal"] = frames.apply(lambda row: row["je_hs"] - row["je_yh"] - row["je_zr"] - row["je_zk"], axis=1)
+        frames["subtotal"] = frames.apply(
+            lambda row: row["je_hs"] - row["je_yh"] - row["je_zr"] - row["je_zk"],
+            axis=1,
+        )
         frames["foreign_category_lv3"] = ""
         frames["foreign_category_lv3_name"] = None
         frames["foreign_category_lv4"] = ""
@@ -102,18 +156,20 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         frames["foreign_category_lv5"] = ""
         frames["foreign_category_lv5_name"] = None
 
-        frames = frames.rename(columns={
-            "id_store": "foreign_store_id",
-            "mc_store": "store_name",
-            "dh": "receipt_id",
-            "id_hyk": "consumer_id",
-            "rq": "saletime",
-            "id_item": "foreign_item_id",
-            "barcode": "barcode",
-            "mc_item": "item_name",
-            "jldw": "item_unit",
-            "id_pos": "pos_id"
-        })
+        frames = frames.rename(
+            columns={
+                "id_store": "foreign_store_id",
+                "mc_store": "store_name",
+                "dh": "receipt_id",
+                "id_hyk": "consumer_id",
+                "rq": "saletime",
+                "id_item": "foreign_item_id",
+                "barcode": "barcode",
+                "mc_item": "item_name",
+                "jldw": "item_unit",
+                "id_pos": "pos_id",
+            }
+        )
         return frames.copy()
 
     frames_part1 = frame_samecolumns(frames_part1)
@@ -132,9 +188,20 @@ def clean_cost(source_id, date, target_table, data_frames):
     清洗成本
     """
     columns = [
-        "source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity", "total_sale",
-        "total_cost", "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3",
-        "foreign_category_lv4", "foreign_category_lv5", "cmid"
+        "source_id",
+        "foreign_store_id",
+        "foreign_item_id",
+        "date",
+        "cost_type",
+        "total_quantity",
+        "total_sale",
+        "total_cost",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+        "cmid",
     ]
     cmid = source_id.split("Y")[0]
 
@@ -149,40 +216,44 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames_part2 = pd.DataFrame(columns=columns)
     else:
         frames_part1 = (
-            cost
-                .merge(store, how="left", left_on="cost.id_gsjg", right_on="store.id")
-                .merge(item, how="left", left_on="cost.id_sp", right_on="item.id")
-                .merge(lv1, how="left", left_on="item.id_spfl", right_on="lv1.id")
+            cost.merge(store, how="left", left_on="cost.id_gsjg", right_on="store.id")
+            .merge(item, how="left", left_on="cost.id_sp", right_on="item.id")
+            .merge(lv1, how="left", left_on="item.id_spfl", right_on="lv1.id")
         )
-        frames_part1 = frames_part1[frames_part1["lv1.js"] == '1']
+        frames_part1 = frames_part1[frames_part1["lv1.js"] == "1"]
         frames_part1["foreign_category_lv2"] = ""
 
         frames_part2 = (
-            cost
-                .merge(store, how="left", left_on="cost.id_gsjg", right_on="store.id")
-                .merge(item, how="left", left_on="cost.id_sp", right_on="item.id")
-                .merge(lv2, how="left", left_on="item.id_spfl", right_on="lv2.id")
-                .merge(lv1, how="left", left_on="lv2.id_1", right_on="lv1.id")
+            cost.merge(store, how="left", left_on="cost.id_gsjg", right_on="store.id")
+            .merge(item, how="left", left_on="cost.id_sp", right_on="item.id")
+            .merge(lv2, how="left", left_on="item.id_spfl", right_on="lv2.id")
+            .merge(lv1, how="left", left_on="lv2.id_1", right_on="lv1.id")
         )
-        frames_part2 = frames_part2[frames_part2["lv2.js"] == '2']
+        frames_part2 = frames_part2[frames_part2["lv2.js"] == "2"]
         frames_part2["foreign_category_lv2"] = frames_part2["lv2.bm"]
 
     def frame_samecolumns(frames):
         frames["source_id"] = source_id
-        frames["date"] = frames["cost.ymd"].apply(lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d"))
+        frames["date"] = frames["cost.ymd"].apply(
+            lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")
+        )
         frames["cost_type"] = ""
-        frames["foreign_category_lv1"] = frames["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else "0")
+        frames["foreign_category_lv1"] = frames["lv1.bm"].apply(
+            lambda x: x if not pd.isnull(x) else "0"
+        )
         frames["foreign_category_lv3"] = ""
         frames["foreign_category_lv4"] = ""
         frames["foreign_category_lv5"] = ""
         frames["cmid"] = cmid
-        frames = frames.rename(columns={
-            "store.id": "foreign_store_id",
-            "item.id": "foreign_item_id",
-            "cost.sl_ls": "total_quantity",
-            "cost.je_hs_ls": "total_sale",
-            "cost.je_cb_hs_ls": "total_cost"
-        })
+        frames = frames.rename(
+            columns={
+                "store.id": "foreign_store_id",
+                "item.id": "foreign_item_id",
+                "cost.sl_ls": "total_quantity",
+                "cost.je_hs_ls": "total_sale",
+                "cost.je_cb_hs_ls": "total_cost",
+            }
+        )
         return frames.copy()
 
     frames_part1 = frame_samecolumns(frames_part1)
@@ -204,10 +275,28 @@ def clean_goods(source_id, date, target_table, data_frames):
     cmid = source_id.split("Y")[0]
 
     columns = [
-        "cmid", "barcode", "foreign_item_id", "item_name", "lastin_price", "sale_price", "item_unit", "item_status",
-        "foreign_category_lv1", "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "storage_time",
-        "last_updated", "isvalid", "warranty", "show_code", "foreign_category_lv5", "allot_method", "supplier_name",
-        "supplier_code", "brand_name"
+        "cmid",
+        "barcode",
+        "foreign_item_id",
+        "item_name",
+        "lastin_price",
+        "sale_price",
+        "item_unit",
+        "item_status",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "storage_time",
+        "last_updated",
+        "isvalid",
+        "warranty",
+        "show_code",
+        "foreign_category_lv5",
+        "allot_method",
+        "supplier_name",
+        "supplier_code",
+        "brand_name",
     ]
 
     def generate_item_status(x):
@@ -242,24 +331,30 @@ def clean_goods(source_id, date, target_table, data_frames):
     state = data_frames["tb_sp_state"]
     state = state[state["id_gsjg"] == 1].rename(columns=lambda x: f"attr.{x}")
     price = data_frames["tb_sp_dj"]
-    price = price[(price["id_gsjg"] == 1) & (price["dw_bs"] == 1)].rename(columns=lambda x: f"price.{x}")
+    price = price[(price["id_gsjg"] == 1) & (price["dw_bs"] == 1)].rename(
+        columns=lambda x: f"price.{x}"
+    )
     supper = data_frames["tb_gys"].rename(columns=lambda x: f"supper.{x}")
     brand = data_frames["tb_pp"].rename(columns=lambda x: f"brand.{x}")
     lv1 = data_frames["tb_spfl"].rename(columns=lambda x: f"lv1.{x}")
     lv2 = data_frames["tb_spfl"].rename(columns=lambda x: f"lv2.{x}")
 
-    frames_part1 = item.merge(state, how="left", left_on="item.id", right_on="attr.id_sp") \
-        .merge(price, how="left", left_on="item.id", right_on="price.id_sp") \
-        .merge(supper, how="left", left_on="attr.id_gys", right_on="supper.id") \
-        .merge(brand, how="left", left_on="item.id_pp", right_on="brand.id") \
+    frames_part1 = (
+        item.merge(state, how="left", left_on="item.id", right_on="attr.id_sp")
+        .merge(price, how="left", left_on="item.id", right_on="price.id_sp")
+        .merge(supper, how="left", left_on="attr.id_gys", right_on="supper.id")
+        .merge(brand, how="left", left_on="item.id_pp", right_on="brand.id")
         .merge(lv1, how="left", left_on="item.id_spfl", right_on="lv1.id")
-    frames_part1 = frames_part1[frames_part1["lv1.js"] == '1']
+    )
+    frames_part1 = frames_part1[frames_part1["lv1.js"] == "1"]
     frames_part1["foreign_category_lv2"] = ""
 
     def frame_samecolumns(frame):
         frame["cmid"] = cmid
         frame["item_status"] = frame["attr.flag_state"].apply(generate_item_status)
-        frame["foreign_category_lv1"] = frame["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
+        frame["foreign_category_lv1"] = frame["lv1.bm"].apply(
+            lambda x: x if not pd.isnull(x) else 0
+        )
         frame["foreign_category_lv3"] = ""
         frame["foreign_category_lv4"] = ""
         frame["foreign_category_lv5"] = ""
@@ -267,32 +362,38 @@ def clean_goods(source_id, date, target_table, data_frames):
         frame["isvalid"] = 1
         frame["allot_method"] = frame["attr.flag_sffs"].apply(generate_allot_method)
         frame["storage_time"] = frame["attr.rq_create"]
-        frame = frame.rename(columns={
-            "item.barcode": "barcode",
-            "item.id": "foreign_item_id",
-            "item.mc": "item_name",
-            "price.dj_jh": "lastin_price",
-            "price.dj_ls": "sale_price",
-            "item.jldw": "item_unit",
-            "item.yxq": "warranty",
-            "item.bm": "show_code",
-            "supper.bm": "supplier_name",
-            "supper.mc": "supplier_code",
-            "brand.mc": "brand_name"
-        })
+        frame = frame.rename(
+            columns={
+                "item.barcode": "barcode",
+                "item.id": "foreign_item_id",
+                "item.mc": "item_name",
+                "price.dj_jh": "lastin_price",
+                "price.dj_ls": "sale_price",
+                "item.jldw": "item_unit",
+                "item.yxq": "warranty",
+                "item.bm": "show_code",
+                "supper.bm": "supplier_name",
+                "supper.mc": "supplier_code",
+                "brand.mc": "brand_name",
+            }
+        )
         return frame.copy()
 
     frames_part1 = frame_samecolumns(frames_part1)
     frames_part1 = frames_part1[columns]
 
-    frames_part2 = item.merge(state, how="left", left_on="item.id", right_on="attr.id_sp") \
-        .merge(price, how="left", left_on="item.id", right_on="price.id_sp") \
-        .merge(supper, how="left", left_on="attr.id_gys", right_on="supper.id") \
-        .merge(brand, how="left", left_on="item.id_pp", right_on="brand.id") \
-        .merge(lv2, how="left", left_on="item.id_spfl", right_on="lv2.id") \
+    frames_part2 = (
+        item.merge(state, how="left", left_on="item.id", right_on="attr.id_sp")
+        .merge(price, how="left", left_on="item.id", right_on="price.id_sp")
+        .merge(supper, how="left", left_on="attr.id_gys", right_on="supper.id")
+        .merge(brand, how="left", left_on="item.id_pp", right_on="brand.id")
+        .merge(lv2, how="left", left_on="item.id_spfl", right_on="lv2.id")
         .merge(lv1, how="left", left_on="lv2.id_1", right_on="lv1.id")
-    frames_part2 = frames_part2[frames_part2["lv2.js"] == '2']
-    frames_part2["foreign_category_lv2"] = frames_part2["lv2.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
+    )
+    frames_part2 = frames_part2[frames_part2["lv2.js"] == "2"]
+    frames_part2["foreign_category_lv2"] = frames_part2["lv2.bm"].apply(
+        lambda x: x if not pd.isnull(x) else 0
+    )
 
     frames_part2 = frame_samecolumns(frames_part2)
     frames_part2 = frames_part2[columns]
@@ -311,11 +412,15 @@ def clean_category(source_id, date, target_table, data_frames):
     lv2 = data_frames["tb_spfl"].rename(columns=lambda x: f"lv2.{x}")
 
     category1 = lv1.copy()
-    category1 = category1[category1["lv1.js"] == '1']
+    category1 = category1[category1["lv1.js"] == "1"]
     category1["cmid"] = cmid
     category1["level"] = 1
-    category1["foreign_category_lv1"] = category1["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
-    category1["foreign_category_lv1_name"] = category1["lv1.mc"].apply(lambda x: x if not pd.isnull(x) else "未定义")
+    category1["foreign_category_lv1"] = category1["lv1.bm"].apply(
+        lambda x: x if not pd.isnull(x) else 0
+    )
+    category1["foreign_category_lv1_name"] = category1["lv1.mc"].apply(
+        lambda x: x if not pd.isnull(x) else "未定义"
+    )
     category1["foreign_category_lv2"] = ""
     category1["foreign_category_lv2_name"] = ""
     category1["foreign_category_lv3"] = ""
@@ -325,21 +430,38 @@ def clean_category(source_id, date, target_table, data_frames):
     category1["foreign_category_lv5"] = ""
     category1["foreign_category_lv5_name"] = ""
     category1["last_updated"] = datetime.now(_TZINFO)
-    category1 = category1[[
-        'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
-        'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-        'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
-        'foreign_category_lv5_name'
-    ]]
+    category1 = category1[
+        [
+            "cmid",
+            "level",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "last_updated",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+        ]
+    ]
 
     category2 = lv2.copy()
-    category2 = category2[category2["lv2.js"] == '2']
-    category2 = category2.merge(lv1.copy(), how="left", left_on="lv2.id_1", right_on="lv1.id")
+    category2 = category2[category2["lv2.js"] == "2"]
+    category2 = category2.merge(
+        lv1.copy(), how="left", left_on="lv2.id_1", right_on="lv1.id"
+    )
 
     category2["cmid"] = cmid
     category2["level"] = 2
-    category2["foreign_category_lv1"] = category2["lv1.bm"].apply(lambda x: x if not pd.isnull(x) else 0)
-    category2["foreign_category_lv1_name"] = category2["lv1.mc"].apply(lambda x: x if not pd.isnull(x) else "未定义")
+    category2["foreign_category_lv1"] = category2["lv1.bm"].apply(
+        lambda x: x if not pd.isnull(x) else 0
+    )
+    category2["foreign_category_lv1_name"] = category2["lv1.mc"].apply(
+        lambda x: x if not pd.isnull(x) else "未定义"
+    )
     category2["foreign_category_lv3"] = ""
     category2["foreign_category_lv3_name"] = ""
     category2["foreign_category_lv4"] = ""
@@ -347,16 +469,29 @@ def clean_category(source_id, date, target_table, data_frames):
     category2["foreign_category_lv5"] = ""
     category2["foreign_category_lv5_name"] = ""
     category2["last_updated"] = datetime.now(_TZINFO)
-    category2 = category2.rename(columns={
-        "lv2.bm": "foreign_category_lv2",
-        "lv2.mc": "foreign_category_lv2_name",
-    })
-    category2 = category2[[
-        'cmid', 'level', 'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2',
-        'foreign_category_lv2_name', 'foreign_category_lv3', 'foreign_category_lv3_name',
-        'last_updated', 'foreign_category_lv4', 'foreign_category_lv4_name', 'foreign_category_lv5',
-        'foreign_category_lv5_name'
-    ]]
+    category2 = category2.rename(
+        columns={
+            "lv2.bm": "foreign_category_lv2",
+            "lv2.mc": "foreign_category_lv2_name",
+        }
+    )
+    category2 = category2[
+        [
+            "cmid",
+            "level",
+            "foreign_category_lv1",
+            "foreign_category_lv1_name",
+            "foreign_category_lv2",
+            "foreign_category_lv2_name",
+            "foreign_category_lv3",
+            "foreign_category_lv3_name",
+            "last_updated",
+            "foreign_category_lv4",
+            "foreign_category_lv4_name",
+            "foreign_category_lv5",
+            "foreign_category_lv5_name",
+        ]
+    ]
 
     category = pd.concat([category1, category2])
 
@@ -371,25 +506,25 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames = data_frames["tb_gsjg"]
 
     def generate_stor_status(x):
-        if x == '1':
+        if x == "1":
             res = "正常"
         else:
             res = "闭店"
         return res
 
     def generate_stor_property(x):
-        if x == '0':
-            res = '总部'
-        elif x == '1':
-            res = '配送中心'
-        elif x == '2':
-            res = '分公司（区域中心'
-        elif x == '3':
-            res = '直营独立分店'
-        elif x == '4':
-            res = '直营托管分店'
-        elif x == '5':
-            res = '加盟店'
+        if x == "0":
+            res = "总部"
+        elif x == "1":
+            res = "配送中心"
+        elif x == "2":
+            res = "分公司（区域中心"
+        elif x == "3":
+            res = "直营独立分店"
+        elif x == "4":
+            res = "直营托管分店"
+        elif x == "5":
+            res = "加盟店"
         return res
 
     store_frames["cmid"] = cmid
@@ -405,20 +540,42 @@ def clean_store(source_id, date, target_table, data_frames):
     store_frames["area_name"] = None
     store_frames["property"] = store_frames.flag_lx.apply(generate_stor_property)
 
-    frames = store_frames.rename(columns={
-        "id": "foreign_store_id",
-        "mc": "store_name",
-        "dz": "store_address",
-        "rq_active": "create_date",
-        "bm": "show_code",
-        "tel": "phone_number",
-        "lxr": "contacts",
-        "flag_lx": "property_id"
-    })
+    frames = store_frames.rename(
+        columns={
+            "id": "foreign_store_id",
+            "mc": "store_name",
+            "dz": "store_address",
+            "rq_active": "create_date",
+            "bm": "show_code",
+            "tel": "phone_number",
+            "lxr": "contacts",
+            "flag_lx": "property_id",
+        }
+    )
     frames = frames[
-        ['cmid', 'foreign_store_id', 'store_name', 'store_address', 'address_code', 'device_id', 'store_status',
-         'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
-         'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
+        [
+            "cmid",
+            "foreign_store_id",
+            "store_name",
+            "store_address",
+            "address_code",
+            "device_id",
+            "store_status",
+            "create_date",
+            "lat",
+            "lng",
+            "show_code",
+            "phone_number",
+            "contacts",
+            "area_code",
+            "area_name",
+            "business_area",
+            "property_id",
+            "property",
+            "source_id",
+            "last_updated",
+        ]
+    ]
 
     return upload_to_s3(frames, source_id, date, target_table)
 
@@ -426,7 +583,7 @@ def clean_store(source_id, date, target_table, data_frames):
 def upload_to_s3(frame, source_id, date, target_table):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
     count = len(frame)
-    frame.to_csv(filename.name, index=False, compression="gzip", float_format='%.4f')
+    frame.to_csv(filename.name, index=False, compression="gzip", float_format="%.4f")
     filename.seek(0)
     key = CLEANED_PATH.format(
         source_id=source_id,

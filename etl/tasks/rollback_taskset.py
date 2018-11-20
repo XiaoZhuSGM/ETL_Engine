@@ -15,6 +15,8 @@ from etl.tasks.tasks import task_warehouse, task_extract_data
 import json
 from traceback import print_exc
 from flask import current_app
+from etl.etl import celery
+
 
 
 sql_service = DatasourceSqlService()
@@ -62,15 +64,14 @@ class RollbackTaskSet:
         log_service.add_log(**content)
 
     def extract_api(self, event):
-        task = task_extract_data(
-            self.source_id,
-            self.date,
-            event["task_type"],
-            event["filename"],
-            event["db_url"],
-        )
         try:
-            task(blocking=True)
+            task_extract_data(
+                self.source_id,
+                self.date,
+                event["task_type"],
+                event["filename"],
+                event["db_url"],
+            )
         except Exception as e:
             print_exc()
             return False
@@ -88,18 +89,17 @@ class RollbackTaskSet:
         )
         sync_column = target_tables[table_key]["sync_column"]
         date_column = target_tables[table_key]["date_column"]
-        task = task_warehouse(
-            event["redshift_url"],
-            event["target_table"],
-            event["data_key"],
-            sync_column,
-            date_column,
-            self.cmid,
-            self.source_id,
-            event["warehouse_type"],
-        )
         try:
-            task(blocking=True)
+            task_warehouse(
+                event["redshift_url"],
+                event["target_table"],
+                event["data_key"],
+                sync_column,
+                date_column,
+                self.cmid,
+                self.source_id,
+                event["warehouse_type"],
+            )
         except Exception as e:
             print_exc()
             return False
@@ -228,7 +228,7 @@ class RollbackTaskSet:
             db.engine.dispose()
 
 
-@huey.task()
+@celery.task(name='rollback.main')
 def task_rollback(source_id, date, erp_name, target_list):
     task_set = RollbackTaskSet(source_id, date, erp_name, target_list)
     task_set.pipeline()

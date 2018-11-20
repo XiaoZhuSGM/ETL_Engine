@@ -12,21 +12,11 @@ services:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
     restart: always
-  huey:
-    image: etl-engine
-    environment:
-      ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
-    command: huey_consumer.py etl.tasks.main.huey -k thread -w 8
-    depends_on:
-      - redis
-    stop_signal:
-      SIGINT
-    restart: always
   celery:
     image: etl-engine
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
-    command: celery -A celery_worker.celery worker -l info
+    command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history`
     depends_on:
       - redis
     stop_signal:
@@ -35,6 +25,12 @@ services:
   redis:
     image: redis:4
     restart: always
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports: 
+      - "5672:5672"
+      - "15672:15672"
   nginx-proxy:
     image: jwilder/nginx-proxy
     ports:

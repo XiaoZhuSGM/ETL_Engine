@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from etl.extensions import cache
 from etl.flask_celery import Celery
+from redis import StrictRedis
 
 
 __all__ = ["create_app"]
@@ -26,7 +27,6 @@ def create_app(config=None):
     configure_blueprints(app)
     configure_sentry(app)
     configure_extensions(app)
-    
 
     CORS(
         app,
@@ -41,16 +41,14 @@ def create_app(config=None):
 
 
 def configure_celery(app):
-    # celery.config_from_object(app.config)
-
-    # class ContextTask(celery.Task):
-    #     def __call__(self, *args, **kwargs):
-    #         with app.app_context():
-    #             return self.run(*args, **kwargs)
-
-    # celery.Task = ContextTask
-
     celery.init_app(app)
+
+
+def configure_redis(app):
+    global redis_client
+    redis_client = StrictRedis(
+        host=app.config["REDIS_HOST"], port=app.config["REDIS_PORT"]
+    )
 
 
 def configure_sentry(app):
@@ -71,14 +69,9 @@ def configure_blueprints(app):
     from etl.controllers.admin_api import etl_admin_api as admin_api
     from etl.controllers.forecast_api import forecast_api
 
-<<<<<<< HEAD
     app.register_blueprint(api, url_prefix="/etl/api")
     app.register_blueprint(admin_api, url_prefix="/etl/admin/api")
-=======
-    app.register_blueprint(api, url_prefix='/etl/api')
-    app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
-    app.register_blueprint(forecast_api, url_prefix='/forecast/api')
->>>>>>> 7c58267440ff0052d8ea0f44a6aead3758ae9e0a
+    app.register_blueprint(forecast_api, url_prefix="/forecast/api")
 
 
 def configure_extensions(app):
