@@ -21,7 +21,7 @@ ERP_DICT = {"48": "商海导航", "55": "晋中田森", "58": "美食林", "89":
 UPSERT_TABLE = ["chain_store", "chain_goods", "chain_category", "chain_verdor"]
 
 
-@celery.task(bind=True)
+@celery.task(bind=True, name='ext_history.start')
 def start_tasks(self, data):
     source_id = data.get("source_id")
     start_date = data.get("start_date")

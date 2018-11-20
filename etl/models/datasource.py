@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 from etl import db
 from .base import CRUDMixin
+from datetime import datetime, timedelta
 
 
 class ExtDatasource(CRUDMixin, db.Model):
@@ -63,5 +64,14 @@ class ExtDatasource(CRUDMixin, db.Model):
             for clean_info in self.ext_clean_infos
             if not clean_info.deleted
         ]
+        ext_time = self.ext_datasource_config.ext_time
+        cron_list = [x.lstrip("0") for x in ext_time.split(":")]
+        cron_list = [x if x else "0" for x in cron_list]
+        temp_time = datetime(2018, 6, 4, hour=int(cron_list[0]))
+        temp_time = temp_time + timedelta(hours=-8)
+        hour = temp_time.hour
+        minute = cron_list[1]
+        cron_expression = f"{minute} {hour} * * *"
+        data["crontab"] = cron_expression
         return data
 
