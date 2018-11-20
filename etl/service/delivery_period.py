@@ -1,5 +1,6 @@
 from etl.models import session_scope
 from etl.models.etl_table import DeliveryPeriod
+from common.common import ALLOWED_EXTENSIONS
 
 
 class DeliveryPeriodExist(Exception):
@@ -59,6 +60,7 @@ class DeliveryPeriodService(object):
         DeliveryPeriod.query.filter_by(id=id).update(params)
 
     def find_by_page_limit(self, page, per_page, cmid):
+
         if page == -1 and per_page == -1:
             data_list = self.find_all(cmid)
             return dict(
@@ -71,6 +73,13 @@ class DeliveryPeriodService(object):
             DeliveryPeriod.id.asc()).paginate(page, per_page=per_page, error_out=False)
         params = pagination.items
         total_page = pagination.pages
+
+        if page > total_page:
+            page = total_page
+            pagination = DeliveryPeriod.query.filter_by(cmid=cmid).order_by(
+                DeliveryPeriod.id.asc()).paginate(page, per_page=per_page, error_out=False)
+            params = pagination.items
+
         return dict(
             items=[param.to_dict() for param in params],
             cur_page=page,
@@ -84,3 +93,7 @@ class DeliveryPeriodService(object):
                 .all()
         )
         return data_list
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
