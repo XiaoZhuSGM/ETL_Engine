@@ -1,5 +1,7 @@
+import openpyxl
 from etl.models import session_scope
 from etl.models.etl_table import ExtParamPlatform
+from common.common import ALLOWED_EXTENSIONS
 
 
 class DisplayInfoExist(Exception):
@@ -88,3 +90,39 @@ class DisplayInfo:
                 .all()
         )
         return data_list
+
+    @session_scope
+    def process_file(self, file):
+        content = openpyxl.load_workbook(file)
+        for row in content[content.sheetnames[0]].rows:
+            item = dict()
+            cmid = row[0].value
+            if cmid == 'cmid':
+                continue
+            item['cmid'] = cmid
+            item['foreign_store_id'] = str(row[1].value)
+            item['foreign_item_id'] = str(row[2].value)
+            item['item_name'] = row[3].value
+            item['mini_show'] = row[4].value or 0
+            item['safety_stock_count'] = row[5].value
+            item['promotions'] = row[6].value
+            item['seasonal'] = str(row[7].value)
+            item['is_valid'] = row[8].value
+            item['specification'] = row[9].value
+            item['safety_stock_days'] = row[10].value
+            item['delivery'] = str(row[11].value)
+
+            print(item)
+
+            result = ExtParamPlatform.query.filter_by(
+                cmid=cmid,
+                foreign_store_id=item['foreign_store_id'],
+                foreign_item_id=item['foreign_item_id']
+            ).update(item)
+
+            if result == 0:
+                ExtParamPlatform(**item).save()
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
