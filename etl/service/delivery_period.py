@@ -30,7 +30,6 @@ class DeliveryPeriodService(object):
 
     @staticmethod
     def get_info_from_store_id(cmid, foreign_store_id):
-        foreign_store_id = foreign_store_id.get("foreign_store_id")
         delivery_period = DeliveryPeriod.query.filter_by(cmid=cmid,
                                                          foreign_store_id=foreign_store_id).first()
         if not delivery_period:
@@ -58,3 +57,42 @@ class DeliveryPeriodService(object):
         id = info.get("id")
         params = info.get("params")
         DeliveryPeriod.query.filter_by(id=id).update(params)
+
+    def find_by_page_limit(self, page, per_page, cmid):
+
+        if page == -1 and per_page == -1:
+            data_list = self.find_all(cmid)
+            return dict(
+                items=[data.to_dict() for data in data_list],
+                cur_page='',
+                total_page=1,
+            )
+
+        pagination = DeliveryPeriod.query.filter_by(cmid=cmid).order_by(
+            DeliveryPeriod.id.asc()).paginate(page, per_page=per_page, error_out=False)
+        params = pagination.items
+        total_page = pagination.pages
+
+        if page > total_page:
+            page = total_page
+            pagination = DeliveryPeriod.query.filter_by(cmid=cmid).order_by(
+                DeliveryPeriod.id.asc()).paginate(page, per_page=per_page, error_out=False)
+            params = pagination.items
+
+        return dict(
+            items=[param.to_dict() for param in params],
+            cur_page=page,
+            total_page=total_page
+        )
+
+    def find_all(self, cmid):
+        data_list = (
+            DeliveryPeriod.query.filter_by(cmid=cmid)
+                .order_by(DeliveryPeriod.id.asc())
+                .all()
+        )
+        return data_list
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
