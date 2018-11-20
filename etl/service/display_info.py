@@ -1,5 +1,4 @@
 from etl.models import session_scope
-from ..etl import db
 from etl.models.etl_table import ExtParamPlatform
 
 
@@ -69,6 +68,13 @@ class DisplayInfo:
             ExtParamPlatform.id.asc()).paginate(page, per_page=per_page, error_out=False)
         params = pagination.items
         total_page = pagination.pages
+
+        if page > total_page:
+            page = total_page
+            pagination = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id).order_by(
+                ExtParamPlatform.id.asc()).paginate(page, per_page=per_page, error_out=False)
+            params = pagination.items
+
         return dict(
             items=[param.to_dict() for param in params],
             cur_page=page,
