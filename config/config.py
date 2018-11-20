@@ -121,8 +121,8 @@ class DevelopmentConfig(Config):
     #     else f"redis://redis:{REDIS_PORT}/10"
     # )
 
-    CELERY_BROKER_URL = "pyamqp://guest@rabbitmq//"
-    CELERY_RESULT_BACKEND = "rpc://guest@rabbitmq//"
+***REMOVED***
+***REMOVED***
 
     AIRFLOW_DB_URL = (
 ***REMOVED***
