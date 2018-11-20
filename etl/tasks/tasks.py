@@ -1,4 +1,3 @@
-from etl.tasks.config import huey
 from lambda_fun.load_data.warehouse import Warehouser
 import lambda_fun.extract_data.extract_db_worker as worker
 from etl.etl import celery

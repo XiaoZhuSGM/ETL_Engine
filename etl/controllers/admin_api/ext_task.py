@@ -3,7 +3,6 @@ from etl.tasks.rollback_taskset import task_rollback
 from . import etl_admin_api
 from .. import jsonify_with_data, APIError
 from flask import request
-from etl.tasks.config import huey
 import json
 import boto3
 from etl.service.ext_datasource_con import ExtDatasourceConService
