@@ -190,6 +190,8 @@ class UnitestConfig(Config):
     REDIS_PORT = 6379
     REDIS_DB = 0
     REDIS_PASSWORD = None
+    CELERY_BROKER_URL = "pyamqp://guest@123.206.60.59//"
+    CELERY_RESULT_BACKEND = "rpc://guest@123.206.60.59//"
 
 
 class DockerDevConfig(DevelopmentConfig):
