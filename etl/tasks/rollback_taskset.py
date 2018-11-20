@@ -1,4 +1,3 @@
-from etl.tasks.config import huey
 from etl.service.ext_sql import DatasourceSqlService
 from config.config import config
 from etl.etl import create_app, db
