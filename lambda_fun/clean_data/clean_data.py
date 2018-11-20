@@ -34,7 +34,7 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
     for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
+        objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
     ):
         if obj.key.endswith(suffix):
             yield obj.key
@@ -55,8 +55,8 @@ def fetch_data_frames(keys, origin_table_columns, converts):
         extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
             if (
-                    table_name in origin_table_columns.keys()
-                    and table_name not in datas.keys()
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
             ):
                 datas[table_name] = records
 

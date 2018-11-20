@@ -1,18 +1,17 @@
-# -*- coding: UTF-8 -*-
-from celery import Celery
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
-from config.config import config
-import os
 from etl.extensions import cache
+from etl.flask_celery import Celery
+from redis import StrictRedis
 
-__all__ = ['create_app']
 
-DEFAULT_APP_NAME = 'etl'
+__all__ = ["create_app"]
+
+DEFAULT_APP_NAME = "etl"
 db = SQLAlchemy()
-celery = Celery(DEFAULT_APP_NAME, broker=config[os.getenv("ETL_ENVIREMENT", "dev")].CELERY_BROKER_URL)
+celery = Celery()
 sentry = Sentry()
 
 
@@ -20,11 +19,10 @@ def create_app(config=None):
     app = Flask(DEFAULT_APP_NAME, instance_relative_config=True)
     if config is not None:
         app.config.from_object(config)
-    app.config.from_pyfile('local_config.py', silent=True)  # 加载个人配置
+    app.config.from_pyfile("local_config.py", silent=True)  # 加载个人配置
     db.init_app(app)
 
     configure_celery(app)
-
     configure_path_converter(app)
     configure_blueprints(app)
     configure_sentry(app)
@@ -43,14 +41,14 @@ def create_app(config=None):
 
 
 def configure_celery(app):
-    celery.config_from_object(app.config)
+    celery.init_app(app)
 
-    class ContextTask(celery.Task):
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return self.run(*args, **kwargs)
 
-    celery.Task = ContextTask
+def configure_redis(app):
+    global redis_client
+    redis_client = StrictRedis(
+        host=app.config["REDIS_HOST"], port=app.config["REDIS_PORT"]
+    )
 
 
 def configure_sentry(app):
@@ -61,9 +59,9 @@ def configure_path_converter(app):
     from werkzeug.routing import PathConverter
 
     class EverythingConverter(PathConverter):
-        regex = '.*?'
+        regex = ".*?"
 
-    app.url_map.converters['everything'] = EverythingConverter
+    app.url_map.converters["everything"] = EverythingConverter
 
 
 def configure_blueprints(app):
@@ -71,9 +69,9 @@ def configure_blueprints(app):
     from etl.controllers.admin_api import etl_admin_api as admin_api
     from etl.controllers.forecast_api import forecast_api
 
-    app.register_blueprint(api, url_prefix='/etl/api')
-    app.register_blueprint(admin_api, url_prefix='/etl/admin/api')
-    app.register_blueprint(forecast_api, url_prefix='/forecast/api')
+    app.register_blueprint(api, url_prefix="/etl/api")
+    app.register_blueprint(admin_api, url_prefix="/etl/admin/api")
+    app.register_blueprint(forecast_api, url_prefix="/forecast/api")
 
 
 def configure_extensions(app):

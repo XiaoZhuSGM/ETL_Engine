@@ -116,3 +116,4 @@ lambda_fun/fabfile/*.zip
 .vscode/
 
 *.ipynb
+deploy_lambda.sh

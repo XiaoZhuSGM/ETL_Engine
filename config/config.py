@@ -4,6 +4,7 @@ if another app called other ,so the config file named other_config.py. and so on
 
 """
 from typing import Optional
+from kombu import Queue
 
 
 class Config(object):
@@ -23,10 +24,22 @@ class Config(object):
     REDIS_PASSWORD: Optional[str] = None
     REDSHIFT_URL = ""
 
+    CELERY_QUEUES = (
+        Queue("etl", routing_key="etl.#"),
+        Queue("rollback", routing_key="rollback.#"),
+        Queue("ext_history", routing_key="ext_history.#"),
+    )
+
+    CELERY_ROUTES = {
+        "etl.*": {"queue": "etl", "routing_key": "etl.#"},
+        "rollback.*": {"queue": "rollback", "routing_key": "rollback.#"},
+        "ext_history.*": {"queue": "ext_history", "routing_key": "ext_history.#"},
+    }
+
 
 class ProductionConfig(Config):
 ***REMOVED***
-***REMOVED***'
+***REMOVED***"
 ***REMOVED***
 ***REMOVED***
     SQLALCHEMY_ECHO = False
@@ -35,7 +48,8 @@ class ProductionConfig(Config):
         DB_USER=pgsql_db_username,
         DB_PASS=pgsql_db_password,
         DB_ADDR=pgsql_db_hostname,
-        DB_NAME=pgsql_db_name)
+        DB_NAME=pgsql_db_name,
+    )
 
     SENTRY_DSN = ""
 
@@ -46,13 +60,23 @@ class ProductionConfig(Config):
 
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
-        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
-    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
-        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+    CELERY_RESULT_BACKEND = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11"
+        if REDIS_PASSWORD
+        else f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    )
+    CELERY_BROKER_URL = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10"
+        if REDIS_PASSWORD
+        else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+    )
 
+    AIRFLOW_DB_URL = (
 ***REMOVED***
+    )
+    REDSHIFT_URL = (
 ***REMOVED***
+    )
 
     CACHE_TYPE = "redis"
     CACHE_REDIS_HOST = REDIS_HOST
@@ -67,14 +91,15 @@ class DevelopmentConfig(Config):
 
 ***REMOVED***
 ***REMOVED***
-    postgresql_db_name = 'cm_etl'
-    postgresql_db_hostname = 'cm-std.cdl8ar96w1hm.rds.cn-north-1.amazonaws.com.cn:5432'
+    postgresql_db_name = "cm_etl"
+    postgresql_db_hostname = "cm-std.cdl8ar96w1hm.rds.cn-north-1.amazonaws.com.cn:5432"
     # postgresql
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
         DB_USER=postgresql_db_username,
         DB_PASS=postgresql_db_password,
         DB_ADDR=postgresql_db_hostname,
-        DB_NAME=postgresql_db_name)
+        DB_NAME=postgresql_db_name,
+    )
 
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
 
@@ -85,12 +110,23 @@ class DevelopmentConfig(Config):
 
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/11" if REDIS_PASSWORD else \
-        f"redis://redis:{REDIS_PORT}/11"
-    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/10" if REDIS_PASSWORD else \
-        f"redis://redis:{REDIS_PORT}/10"
+    # CELERY_RESULT_BACKEND = (
+    #     f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/11"
+    #     if REDIS_PASSWORD
+    #     else f"redis://redis:{REDIS_PORT}/11"
+    # )
+    # CELERY_BROKER_URL = (
+    #     f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/10"
+    #     if REDIS_PASSWORD
+    #     else f"redis://redis:{REDIS_PORT}/10"
+    # )
 
+    CELERY_BROKER_URL = "pyamqp://guest@rabbitmq//"
+    CELERY_RESULT_BACKEND = "rpc://guest@rabbitmq//"
+
+    AIRFLOW_DB_URL = (
 ***REMOVED***
+    )
 ***REMOVED***
 
     CACHE_TYPE = "null"  # debug, disable cache
@@ -102,16 +138,17 @@ class DevelopmentConfig(Config):
 
 class LocalConfig(Config):
     DEBUG = True
-    pgsql_db_username = 'root'
-    pgsql_db_password = '123456'
-    pgsql_db_name = 'etl'
-    pgsql_db_hostname = '127.0.0.1'
+    pgsql_db_username = "root"
+    pgsql_db_password = "123456"
+    pgsql_db_name = "etl"
+    pgsql_db_hostname = "127.0.0.1"
 
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
         DB_USER=pgsql_db_username,
         DB_PASS=pgsql_db_password,
         DB_ADDR=pgsql_db_hostname,
-        DB_NAME=pgsql_db_name)
+        DB_NAME=pgsql_db_name,
+    )
 
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
@@ -120,18 +157,28 @@ class LocalConfig(Config):
 
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_RESULT_BACKEND = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11" if REDIS_PASSWORD else \
-        f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
-    CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10" if REDIS_PASSWORD else \
-        f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+    CELERY_RESULT_BACKEND = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11"
+        if REDIS_PASSWORD
+        else f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    )
+    CELERY_BROKER_URL = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10"
+        if REDIS_PASSWORD
+        else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+    )
 
+    AIRFLOW_DB_URL = (
 ***REMOVED***
+    )
 ***REMOVED***
 
 
 class TestingConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://beanan:root@123.206.60.59:5432/test'
+    SQLALCHEMY_DATABASE_URI = (
+        "postgresql+psycopg2://beanan:root@123.206.60.59:5432/test"
+    )
     SENTRY_DSN = ""
 
 
@@ -143,6 +190,8 @@ class UnitestConfig(Config):
     REDIS_PORT = 6379
     REDIS_DB = 0
     REDIS_PASSWORD = None
+    CELERY_BROKER_URL = "pyamqp://guest@123.206.60.59//"
+    CELERY_RESULT_BACKEND = "rpc://guest@123.206.60.59//"
 
 
 class DockerDevConfig(DevelopmentConfig):
@@ -154,12 +203,12 @@ class DockerProdConfig(ProductionConfig):
 
 
 config = {
-    'dev': DevelopmentConfig,
-    'testing': TestingConfig,
-    'prod': ProductionConfig,
-    'default': LocalConfig,
-    'local': LocalConfig,
-    'unittest': UnitestConfig,
-    'docker_dev': DockerDevConfig,
-    'docker_prod': DockerProdConfig,
+    "dev": DevelopmentConfig,
+    "testing": TestingConfig,
+    "prod": ProductionConfig,
+    "default": LocalConfig,
+    "local": LocalConfig,
+    "unittest": UnitestConfig,
+    "docker_dev": DockerDevConfig,
+    "docker_prod": DockerProdConfig,
 }

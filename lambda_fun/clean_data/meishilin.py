@@ -437,7 +437,7 @@ class MeiShiLinCleaner(Base):
                 "name.vendor": "supplier_name",
                 "code.vendor": "supplier_code",
                 "name.brand": "brand_name",
-                "alword" : "isvalid",
+                "alword": "isvalid",
             }
         )
         part = part[columns]
