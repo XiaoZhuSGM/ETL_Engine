@@ -1,6 +1,5 @@
 from etl.models import session_scope
 from etl.models.etl_table import DeliveryPeriod
-from common.common import ALLOWED_EXTENSIONS
 
 
 class DeliveryPeriodExist(Exception):
