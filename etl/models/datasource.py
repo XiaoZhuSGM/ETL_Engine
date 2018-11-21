@@ -66,12 +66,13 @@ class ExtDatasource(CRUDMixin, db.Model):
         ]
         ext_time = self.ext_datasource_config.ext_time
         cron_list = [x.lstrip("0") for x in ext_time.split(":")]
+        print(self.source_id)
         cron_list = [x if x else "0" for x in cron_list]
         temp_time = datetime(2018, 6, 4, hour=int(cron_list[0]))
         temp_time = temp_time + timedelta(hours=-8)
         hour = temp_time.hour
         minute = cron_list[1]
-        cron_expression = f"{minute} {hour} * * *"
-        data["crontab"] = cron_expression
+        data["crontab"] = f"{minute} {hour} * * *"
+        data["roll_back"] = self.ext_datasource_config.roll_back
         return data
 
