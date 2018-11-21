@@ -44,6 +44,12 @@ class DisplayInfo:
         if ext_display_info:
             raise DisplayInfoExist
 
+        is_valid = info.get('is_valid')
+        promotions = info.get('promotions')
+
+        info['is_valid'] = 0 if is_valid == 'false' else 1
+        info['promotions'] = 0 if promotions == 'false' else 1
+
         ExtParamPlatform(**info).save()
 
     @session_scope
