@@ -7,6 +7,8 @@ from .. import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.display_info import DisplayInfo, DisplayInfoExist
 from etl.service.delivery_period import DeliveryPeriodService, DeliveryPeriodExist, DeliveryPeriodNotExist
 
+import openpyxl
+
 display_info = DisplayInfo()
 delivery_period = DeliveryPeriodService()
 
@@ -83,6 +85,18 @@ def update_display_info():
     display_info.update_info(**data)
 
     return jsonify_with_data(APIError.OK)
+
+
+@forecast_api.route("/param/upload_file", methods=['POST'])
+def param_upload_file():
+    if 'file' not in request.files:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, 'file failed')
+    file = request.files['file']
+    if file and display_info.allowed_file(file.filename):
+        display_info.process_file(file)
+        return jsonify_with_data(APIError.OK)
+
+    return jsonify_with_error(APIError.VALIDATE_ERROR, '文件格式有误')
 
 
 @forecast_api.route("/param/delivery")
