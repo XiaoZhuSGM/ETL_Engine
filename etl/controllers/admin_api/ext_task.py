@@ -39,7 +39,7 @@ def trigger_task_extract_data():
 def get_task_extract_data_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = False
+    result = '{}'
     async_result = task_extract_data.AsyncResult(task_id=task_id)
 
     if async_result.successful():
@@ -99,10 +99,9 @@ def trigger_task_warehouse():
 def get_task_warehouse_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = False
+    result = '{}'
     async_result = task_warehouse.AsyncResult(task_id=task_id)
     if async_result.successful():
-        result = async_result.result
         status = "success"
     elif async_result.failed():
         status = "failed"
@@ -133,10 +132,9 @@ def trigger_task_rollback():
 def get_task_rollback_status():
     task_id = request.args.get("task_id")
     reason = ""
-    result = False
+    result = '{}'
     async_result = task_rollback.AsyncResult(task_id=task_id)
     if async_result.successful():
-        result = async_result.result
         status = "success"
     elif async_result.failed():
         status = "failed"
