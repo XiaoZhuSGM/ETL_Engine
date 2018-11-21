@@ -15,12 +15,11 @@ delivery_period = DeliveryPeriodService()
 
 @forecast_api.route("/param/info")
 def display_homepage():
-    page = request.args.get("page", default=-1, type=int)
-    per_page = request.args.get("per_page", default=-1, type=int)
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=20, type=int)
     cmid_list = display_info.get_cmid()
     foreign_store_id = display_info.get_store_id_from_cmid(43)
-
-    data = display_info.find_by_page_limit(page, per_page, 43, '431231')
+    data = display_info.find_by_page_limit(page, per_page, 79, '1000044')
     if data:
         return jsonify_with_data(
             APIError.OK,
@@ -46,8 +45,8 @@ def get_display_store(cmid):
 
 @forecast_api.route("/param/info/<cmid>/<store_id>")
 def get_display_info(cmid, store_id):
-    page = request.args.get("page", default=-1, type=int)
-    per_page = request.args.get("per_page", default=-1, type=int)
+    page = request.args.get("page", default=1, type=int)
+    per_page = request.args.get("per_page", default=20, type=int)
     store_data = display_info.find_by_page_limit(page, per_page, cmid, store_id)
     return jsonify_with_data(APIError.OK,
                              data={

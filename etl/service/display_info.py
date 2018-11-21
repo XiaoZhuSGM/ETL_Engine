@@ -2,6 +2,7 @@ import openpyxl
 from etl.models import session_scope
 from etl.models.etl_table import ExtParamPlatform
 from common.common import ALLOWED_EXTENSIONS
+from etl.etl import db
 
 
 class DisplayInfoExist(Exception):
@@ -12,14 +13,14 @@ class DisplayInfoExist(Exception):
 class DisplayInfo:
     @staticmethod
     def get_cmid():
-        ext_display_info = ExtParamPlatform.query.all()
-        cmid = list(set([item.cmid for item in ext_display_info]))
-        cmid.sort()
-        return list(cmid)
+        cmid = db.session.query(ExtParamPlatform.cmid).group_by(ExtParamPlatform.cmid).order_by(ExtParamPlatform.cmid).all()
+        cmid_list = [c[0] for c in cmid]
+        return cmid_list
 
     @staticmethod
     def get_store_id_from_cmid(cmid):
-        ext_display_info = ExtParamPlatform.query.filter_by(cmid=cmid).order_by(ExtParamPlatform.id.asc()).all()
+        ext_display_info = db.session.query(ExtParamPlatform.foreign_store_id).filter_by(cmid=cmid).group_by(
+            ExtParamPlatform.foreign_store_id).order_by(ExtParamPlatform.foreign_store_id).all()
         if not ext_display_info:
             return None
         foreign_store_id = list(set([item.foreign_store_id for item in ext_display_info]))
