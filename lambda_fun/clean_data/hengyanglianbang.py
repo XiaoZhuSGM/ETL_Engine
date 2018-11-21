@@ -320,7 +320,12 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods['foreign_category_lv5'] = ''
     goods['allot_method'] = ''
     goods['warranty'] = None
-    goods['item_status'] = None
+    def item_status_convert(status):
+        if status == '1':
+            return '正常'
+        else:
+            return ''
+    goods['item_status'] = goods['status'].map(item_status_convert)
     goods = goods[[
         "cmid",
         "barcode",
@@ -345,7 +350,6 @@ def clean_goods(source_id, date, target_table, data_frames):
         "supplier_code",
         "brand_name",
     ]]
-    # print(goods[goods['foreign_item_id']=='6971822940024'].T)
     return upload_to_s3(goods, source_id, date, target_table)
 
 
