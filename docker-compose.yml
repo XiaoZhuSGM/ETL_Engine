@@ -19,6 +19,7 @@ services:
     command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history
     depends_on:
       - redis
+      - rabbitmq
     stop_signal:
       SIGTERM
     restart: always
@@ -28,9 +29,6 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     restart: always
-    ports: 
-      - "5672:5672"
-      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
