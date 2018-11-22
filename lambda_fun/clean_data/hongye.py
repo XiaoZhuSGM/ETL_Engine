@@ -2976,13 +2976,12 @@ class HongYeCleaner:
             )
 
             frames_1["foreign_category_lv3"] = frames_1.apply(
-                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
                 axis=1
             )
 
             frames_1["foreign_category_lv4"] = frames_1.apply(
-                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"] + row["foreign_category_lv3"] +
-                            row["foreign_category_lv4"], axis=1
+                lambda row: row["foreign_category_lv3"] + row["foreign_category_lv4"], axis=1
             )
 
             frames_1["foreign_category_lv5"] = ''
