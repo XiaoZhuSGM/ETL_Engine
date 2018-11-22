@@ -199,24 +199,76 @@ def handler(event, context):
 
 if __name__ == "__main__":
     event1 = {
-        "source_id": "91YYYYYYYYYYYYY",
-        "erp_name": "衡阳联邦",
-        "date": "2018-11-14",
-        "target_table": "store",
+        "source_id": "34YYYYYYYYYYYYY",
+        "erp_name": "宏业",
+        "date": "2018-11-09",
+        "target_table": "requireorder",
         "origin_table_columns": {
-            "t_bd_branch_info": [
-                "branch_no",
-                "branch_name",
-                "address",
-                "branch_tel",
-                "branch_man"
+            "bil_stockapply": [
+                "billno",
+                "applydate",
+                "applymode",
+                "deptcode",
+                "flag"
+            ],
+            "bil_stockapplydtl": [
+                "applyamount",
+                "gdsincode",
+                "billno"
+            ],
+            "inf_department": [
+                "deptcode",
+                "fatherdept",
+                "type",
+                "deptname"
+            ],
+            "inf_goods": [
+                "gdsincode",
+                "stripecode",
+                "gdsname",
+                "baseunit",
+                "saleprice",
+                "buyername",
+                "classcode",
+                "lastsupplier"
+            ],
+            "inf_goodsclass": [
+                "classcode",
+                "fatherclass",
+                "classgrade"
+            ],
+            "inf_tradeunit": [
+                "unitcode",
+                "unitname"
             ]
         },
         "converts": {
-            "t_bd_branch_info": {
-                "branch_no": "str",
-                "branch_tel": "str"
-            }
+            "bil_stockapply": {
+                "deptcode": "str",
+                "lastsupplier": "str",
+            },
+            "inf_department": {
+                "deptcode": "str",
+                "fatherdept": "str",
+            },
+            "inf_goods": {
+                "vendor_show_code": "str",
+                "gdsincode": "str",
+                "lastsupplier": "str",
+                "classcode": "str",
+                "stripecode": "str",
+            },
+            "bil_stockapplydtl": {
+                "gdsincode": "str",
+            },
+            "inf_tradeunit": {
+                "unitcode": "str",
+            },
+            "inf_goodsclass": {
+                "classcode": "str",
+                "fatherclass": "str",
+                "foreign_category_lv4": "str",
+            },
         }
     }
     handler(event1, None)
