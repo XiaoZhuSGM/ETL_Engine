@@ -10,30 +10,28 @@ class DisplayInfoExist(Exception):
         return "该数据已经存在"
 
 
+class ForeignStoreIdNotExist(Exception):
+    def __str__(self):
+        return "foreign_store_id 不存在"
+
+
 class DisplayInfo:
     @staticmethod
     def get_cmid():
-        cmid = db.session.query(ExtParamPlatform.cmid).group_by(ExtParamPlatform.cmid).order_by(ExtParamPlatform.cmid).all()
+        cmid = (db.session.
+                query(ExtParamPlatform.cmid).
+                group_by(ExtParamPlatform.cmid).
+                order_by(ExtParamPlatform.cmid).all())
         cmid_list = [c[0] for c in cmid]
-        return cmid_list
 
-    @staticmethod
-    def get_store_id_from_cmid(cmid):
-        ext_display_info = db.session.query(ExtParamPlatform.foreign_store_id).filter_by(cmid=cmid).group_by(
-            ExtParamPlatform.foreign_store_id).order_by(ExtParamPlatform.foreign_store_id).all()
-        if not ext_display_info:
-            return None
-        foreign_store_id = list(set([item.foreign_store_id for item in ext_display_info]))
-        foreign_store_id.sort()
-        return foreign_store_id
+        return cmid_list
 
     @staticmethod
     def get_info_from_store_id(cmid, foreign_store_id):
         ext_display_info = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id).all()
         if not ext_display_info:
-            return None
 
-        return [item.to_dict() for item in ext_display_info]
+            raise ForeignStoreIdNotExist
 
     @session_scope
     def create(self, **info):
@@ -45,6 +43,12 @@ class DisplayInfo:
                                                             foreign_item_id=foreign_item_id).first()
         if ext_display_info:
             raise DisplayInfoExist
+
+        is_valid = info.get('is_valid')
+        promotions = info.get('promotions')
+
+        info['is_valid'] = 0 if is_valid == 'false' else 1
+        info['promotions'] = 0 if promotions == 'false' else 1
 
         ExtParamPlatform(**info).save()
 
@@ -67,8 +71,11 @@ class DisplayInfo:
                 total_page=1,
             )
 
-        pagination = ExtParamPlatform.query.filter_by(cmid=cmid, foreign_store_id=foreign_store_id).order_by(
-            ExtParamPlatform.id.asc()).paginate(page, per_page=per_page, error_out=False)
+        pagination = (ExtParamPlatform.query.
+                      filter_by(cmid=cmid, foreign_store_id=foreign_store_id).
+                      order_by(ExtParamPlatform.id.asc()).
+                      paginate(page, per_page=per_page, error_out=False))
+
         params = pagination.items
         total_page = pagination.pages
 

@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from . import forecast_api
 from .. import APIError, jsonify_with_data, jsonify_with_error
 
-from etl.service.display_info import DisplayInfo, DisplayInfoExist
+from etl.service.display_info import DisplayInfo, DisplayInfoExist, ForeignStoreIdNotExist
 from etl.service.delivery_period import DeliveryPeriodService, DeliveryPeriodExist, DeliveryPeriodNotExist
 
 import openpyxl
@@ -18,14 +18,12 @@ def display_homepage():
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=20, type=int)
     cmid_list = display_info.get_cmid()
-    foreign_store_id = display_info.get_store_id_from_cmid(43)
     data = display_info.find_by_page_limit(page, per_page, 79, '1000044')
     if data:
         return jsonify_with_data(
             APIError.OK,
             data={'cmid_list': cmid_list,
                   'store_data': data.get('items'),
-                  'foreign_store_id': foreign_store_id,
                   'total_page': data.get('total_page'),
                   'cur_page': data.get('cur_page'),
                   }
@@ -34,17 +32,13 @@ def display_homepage():
         return jsonify_with_error(APIError.VALIDATE_ERROR, reason="paramter error")
 
 
-@forecast_api.route("/param/info/<cmid>", methods=["GET"])
-def get_display_store(cmid):
-    foreign_store_id = display_info.get_store_id_from_cmid(cmid)
-    if not foreign_store_id:
-        return jsonify_with_error(APIError.VALIDATE_ERROR, "cmid 不存在")
-
-    return jsonify_with_data(APIError.OK, data={'foreign_store_id': foreign_store_id})
-
-
 @forecast_api.route("/param/info/<cmid>/<store_id>")
 def get_display_info(cmid, store_id):
+    try:
+        display_info.get_info_from_store_id(cmid, store_id)
+    except ForeignStoreIdNotExist as e:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
+
     page = request.args.get("page", default=1, type=int)
     per_page = request.args.get("per_page", default=20, type=int)
     store_data = display_info.find_by_page_limit(page, per_page, cmid, store_id)
