@@ -32,3 +32,11 @@ deploy:
     - master@airflow-datapipline/etl-engine
   script:
     - curl -v 10.1.20.226:9999
+
+deploy_prod:
+  stage: deploy
+  only:
+    - master@airflow-datapipline/etl-engine
+  script:
+***REMOVED***
+  when: manual
