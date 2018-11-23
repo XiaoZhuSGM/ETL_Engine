@@ -1131,7 +1131,7 @@ class HongYeCleaner:
                    "foreign_category_lv4", "foreign_category_lv5", "source_id", "cmid"]
         bil_send = self.data["bil_send"].rename(columns=lambda x: f"bil_send.{x}")
         warehouse = self.data["inf_department"].rename(columns=lambda x: f"warehouse.{x}")
-        bil_senddtl= self.data["bil_senddtl"].rename(columns=lambda x: f"bil_senddtl.{x}")
+        bil_senddtl = self.data["bil_senddtl"].rename(columns=lambda x: f"bil_senddtl.{x}")
         store_a = self.data["inf_department"].rename(columns=lambda x: f"store_a.{x}")
         store_b = self.data["inf_department"].rename(columns=lambda x: f"store_b.{x}")
         item = self.data["inf_goods"].rename(columns=lambda x: f"item.{x}")
@@ -1154,12 +1154,23 @@ class HongYeCleaner:
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
         )
 
-        part1 = part1[(part1["bil_send.billtype"] == 1) & (part1["store_b.type"] == 1)]
+        part1 = part1[(part1["bil_send.billtype"] == 1) & (part1["store_b.type"].isin([0, 1]))]
         if len(part1) == 0:
             part1 = pd.DataFrame(columns=columns)
         else:
             part1["delivery_type"] = "统配出"
-            part1["store_show_code"] = part1["store_b.deptcode"]
+            part1["foreign_store_id"] = (
+                part1.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part1["store_show_code"] = (
+                part1.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part1["store_name"] = (
+                part1.apply(lambda x: x["store_a.deptname"] if x["store_b.type"] == 0 else x["store_b.deptname"],
+                            axis=1)
+            )
             part1["item_show_code"] = part1["item.gdsincode"]
             part1["warehouse_show_code"] = part1["warehouse.deptcode"]
             part1["delivery_state"] = part1["bil_send.receiveflag"].apply(lambda x: "未收货" if x == 0 else "已收货")
@@ -1167,22 +1178,19 @@ class HongYeCleaner:
                 lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1
             )
             part1["foreign_category_lv3"] = part1.apply(
-                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"]
-                + row["lv.foreign_category_lv3"], axis=1
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"], axis=1
             )
             part1["foreign_category_lv4"] = part1.apply(
                 lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
-                row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+                            row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
             )
-
             part1["foreign_category_lv5"] = ""
             part1["source_id"] = self.source_id
             part1["cmid"] = self.cmid
             part1 = part1.rename(columns={
                 "bil_send.billno": "delivery_num",
                 "bil_send.recorddate": "delivery_date",
-                "store_b.deptcode": "foreign_store_id",
-                "store_b.deptname": "store_name",
                 "item.gdsincode": "foreign_item_id",
                 "item.stripecode": "barcode",
                 "item.gdsname": "item_name",
@@ -1208,12 +1216,23 @@ class HongYeCleaner:
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
         )
 
-        part2 = part2[(part2["bil_send.billtype"] == 1) & part2["store_b.type"] == 1]
+        part2 = part2[(part2["bil_send.billtype"] == 1) & (part2["store_b.type"].isin([0, 1]))]
         if len(part2) == 0:
             part2 = pd.DataFrame(columns=columns)
         else:
             part2["delivery_type"] = "统配出"
-            part2["store_show_code"] = part2["store_b.deptcode"]
+            part2["foreign_store_id"] = (
+                part2.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part2["store_show_code"] = (
+                part2.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part2["store_name"] = (
+                part2.apply(lambda x: x["store_a.deptname"] if x["store_b.type"] == 0 else x["store_b.deptname"],
+                            axis=1)
+            )
             part2["item_show_code"] = part2["item.gdsincode"]
             part2["warehouse_show_code"] = part2["warehouse.deptcode"]
             part2["delivery_state"] = part2["bil_send.receiveflag"].apply(lambda x: "未收货" if x == 0 else "已收货")
@@ -1222,7 +1241,7 @@ class HongYeCleaner:
             )
             part2["foreign_category_lv3"] = part2.apply(
                 lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
-                row["lv.foreign_category_lv3"], axis=1
+                            row["lv.foreign_category_lv3"], axis=1
             )
             part2["foreign_category_lv4"] = ""
             part2["foreign_category_lv5"] = ""
@@ -1231,8 +1250,6 @@ class HongYeCleaner:
             part2 = part2.rename(columns={
                 "bil_send.billno": "delivery_num",
                 "bil_send.recorddate": "delivery_date",
-                "store_b.deptcode": "foreign_store_id",
-                "store_b.deptname": "store_name",
                 "item.gdsincode": "foreign_item_id",
                 "item.stripecode": "barcode",
                 "item.gdsname": "item_name",
@@ -1259,12 +1276,23 @@ class HongYeCleaner:
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
         )
 
-        part3 = part3[(part3["bil_send.billtype"] == 2) & (part3["store_b.type"] == 1)]
+        part3 = part3[(part3["bil_send.billtype"] == 2) & (part3["store_b.type"].isin([0, 1]))]
         if len(part3) == 0:
             part3 = pd.DataFrame(columns=columns)
         else:
             part3["delivery_type"] = "统配出退"
-            part3["store_show_code"] = part3["store_b.deptcode"]
+            part3["foreign_store_id"] = (
+                part3.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part3["store_show_code"] = (
+                part3.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part3["store_name"] = (
+                part3.apply(lambda x: x["store_a.deptname"] if x["store_b.type"] == 0 else x["store_b.deptname"],
+                            axis=1)
+            )
             part3["item_show_code"] = part3["item.gdsincode"]
             part3["delivery_qty"] = part3["bil_senddtl.amount"].apply(lambda x: -1 * x)
             part3["rtl_amt"] = part3["bil_senddtl.salemoney"].apply(lambda x: -1 * x)
@@ -1273,14 +1301,15 @@ class HongYeCleaner:
             part3["delivery_state"] = part3["bil_send.receiveflag"].apply(lambda x: "未收货" if x == 0 else "已收货")
             part3["foreign_category_lv2"] = part3.apply(
                 lambda row: row["lv.foreign_category_lv1"] +
-                                                                    row["lv.foreign_category_lv2"], axis=1)
-            part3["foreign_category_lv3"] = part3.apply(lambda row: row["lv.foreign_category_lv1"] +
-                                                                    row["lv.foreign_category_lv2"] +
-                                                                    row["lv.foreign_category_lv3"], axis=1)
-            part3["foreign_category_lv4"] = part3.apply(lambda row: row["lv.foreign_category_lv1"] +
-                                                                    row["lv.foreign_category_lv2"] +
-                                                                    row["lv.foreign_category_lv3"] +
-                                                                    row["lv.foreign_category_lv4"], axis=1)
+                            row["lv.foreign_category_lv2"], axis=1)
+            part3["foreign_category_lv3"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"], axis=1
+            )
+            part3["foreign_category_lv4"] = part3.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"] + row["lv.foreign_category_lv4"], axis=1
+            )
 
             part3["foreign_category_lv5"] = ""
             part3["source_id"] = self.source_id
@@ -1288,8 +1317,6 @@ class HongYeCleaner:
             part3 = part3.rename(columns={
                 "bil_send.billno": "delivery_num",
                 "bil_send.recorddate": "delivery_date",
-                "store_b.deptcode": "foreign_store_id",
-                "store_b.deptname": "store_name",
                 "item.gdsincode": "foreign_item_id",
                 "item.stripecode": "barcode",
                 "item.gdsname": "item_name",
@@ -1313,23 +1340,36 @@ class HongYeCleaner:
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
         )
 
-        part4 = part4[(part4["bil_send.billtype"] == 2) & (part4["store_b.type"] == 1)]
+        part4 = part4[(part4["bil_send.billtype"] == 2) & (part4["store_b.type"].isin([0, 1]))]
         if len(part4) == 0:
             part4 = pd.DataFrame(columns=columns)
         else:
             part4["delivery_type"] = "统配出退"
-            part4["store_show_code"] = part4["store_b.deptcode"]
+            part4["foreign_store_id"] = (
+                part4.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part4["store_show_code"] = (
+                part4.apply(lambda x: x["store_a.deptcode"] if x["store_b.type"] == 0 else x["store_b.deptcode"],
+                            axis=1)
+            )
+            part4["store_name"] = (
+                part4.apply(lambda x: x["store_a.deptname"] if x["store_b.type"] == 0 else x["store_b.deptname"],
+                            axis=1)
+            )
             part4["item_show_code"] = part4["item.gdsincode"]
             part4["delivery_qty"] = part4["bil_senddtl.amount"].apply(lambda x: -1 * x)
             part4["rtl_amt"] = part4["bil_senddtl.salemoney"].apply(lambda x: -1 * x)
 
             part4["warehouse_show_code"] = part4["warehouse.deptcode"]
             part4["delivery_state"] = part4["bil_send.receiveflag"].apply(lambda x: "未收货" if x == 0 else "已收货")
-            part4["foreign_category_lv2"] = part4.apply(lambda row: row["lv.foreign_category_lv1"] +
-                                                                    row["lv.foreign_category_lv2"], axis=1)
-            part4["foreign_category_lv3"] = part4.apply(lambda row: row["lv.foreign_category_lv1"] +
-                                                                    row["lv.foreign_category_lv2"] +
-                                                                    row["lv.foreign_category_lv3"], axis=1)
+            part4["foreign_category_lv2"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"], axis=1
+            )
+            part4["foreign_category_lv3"] = part4.apply(
+                lambda row: row["lv.foreign_category_lv1"] + row["lv.foreign_category_lv2"] +
+                            row["lv.foreign_category_lv3"], axis=1
+            )
             part4["foreign_category_lv4"] = ""
             part4["foreign_category_lv5"] = ""
             part4["source_id"] = self.source_id
@@ -1337,8 +1377,6 @@ class HongYeCleaner:
             part4 = part4.rename(columns={
                 "bil_send.billno": "delivery_num",
                 "bil_send.recorddate": "delivery_date",
-                "store_b.deptcode": "foreign_store_id",
-                "store_b.deptname": "store_name",
                 "item.gdsincode": "foreign_item_id",
                 "item.stripecode": "barcode",
                 "item.gdsname": "item_name",
@@ -1972,3 +2010,160 @@ class HongYeCleaner:
         part["store_show_code"] = part["store_show_code"].apply(lambda x: x.zfill(self.store_id_len))
         part["foreign_store_id"] = part["foreign_store_id"].apply(lambda x: x.zfill(self.store_id_len))
         return part
+
+    def requireorder(self):
+        columns = ["source_id", "cmid", "order_num", "order_date", "order_type", "foreign_store_id", "store_show_code",
+                   "store_name", "foreign_item_id", "item_show_code", "barcode", "item_name", "item_unit", "order_qty",
+                   "order_price", "order_total", "vendor_id", "vendor_show_code", "vendor_name", "foreign_category_lv1",
+                   "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5",
+                   "purchaser"]
+
+        header = self.data["bil_stockapply"]
+        warehouse = self.data["inf_department"]
+        store = self.data["inf_department"]
+        detail = self.data["bil_stockapplydtl"]
+        item = self.data["inf_goods"]
+        vendor = self.data["inf_tradeunit"]
+
+        header["deptcode"] = header["deptcode"].str.strip()
+        warehouse["deptcode"] = warehouse["deptcode"].str.strip()
+        warehouse["fatherdept"] = warehouse["fatherdept"].str.strip()
+        store["fatherdept"] = store["fatherdept"].str.strip()
+        detail["gdsincode"] = detail["gdsincode"].str.strip()
+        item["gdsincode"] = item["gdsincode"].str.strip()
+        store["deptcode"] = store["deptcode"].str.strip()
+
+        lv4 = self._sub_query_category_lv4()
+        frames_1 = (
+            header
+                .merge(detail, on="billno", suffixes=(".header", ".detail"))
+                .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
+                .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
+                .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
+                .merge(lv4, left_on="classcode", right_on="foreign_category_lv4", suffixes=(".item", ".lv"))
+                .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
+        )
+
+        if len(frames_1) == 0:
+            frames_1 = pd.DataFrame(columns=columns)
+        else:
+            frames_1 = frames_1[(frames_1['type.warehouse'] == 3) & (frames_1['flag'] != 4)]
+
+            frames_1["source_id"] = self.source_id
+            frames_1["cmid"] = self.cmid
+
+            frames_1 = frames_1.rename(columns={
+                "billno": "order_num",
+                "applydate": "order_date",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+                "applyamount": "order_qty",
+                "saleprice": "order_price",
+                "deptcode.store": "foreign_store_id",
+                "applymode": "order_type",
+                "gdsincode": "foreign_item_id",
+                "unitcode": "vendor_id",
+                "deptname.warehouse": "store_name",
+                "unitname": "vendor_name",
+                "buyername": "purchaser",
+            })
+
+            frames_1["foreign_category_lv2"] = frames_1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"], axis=1
+            )
+
+            frames_1["foreign_category_lv3"] = frames_1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1
+            )
+
+            frames_1["foreign_category_lv4"] = frames_1.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"] + row["foreign_category_lv3"] +
+                            row["foreign_category_lv4"], axis=1
+            )
+
+            frames_1["foreign_category_lv5"] = ''
+
+            def generate_require_type(row):
+                if row == 0:
+                    return "正常要货"
+                elif row == 1:
+                    return "促销要货"
+
+            frames_1["order_type"] = frames_1["order_type"].apply(generate_require_type)
+            frames_1["store_show_code"] = frames_1["foreign_store_id"]
+            frames_1["order_total"] = frames_1["order_qty"] * frames_1["order_price"]
+            frames_1["foreign_store_id"] = frames_1["foreign_store_id"].str.strip()
+            frames_1["store_show_code"] = frames_1["store_show_code"].str.strip()
+            frames_1["foreign_item_id"] = frames_1["foreign_item_id"].str.strip()
+            frames_1["item_show_code"] = frames_1["foreign_item_id"]
+            frames_1["vendor_id"] = frames_1["vendor_id"].str.strip()
+            frames_1["vendor_show_code"] = frames_1["vendor_id"]
+            frames_1 = frames_1[columns]
+
+        lv3 = self._sub_query_category_lv3()
+        frames_2 = (
+            header
+                .merge(detail, on="billno", suffixes=(".header", ".detail"))
+                .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
+                .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
+                .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
+                .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
+                .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
+        )
+
+        if len(frames_2) == 0:
+            frames_2 = pd.DataFrame(columns=columns)
+        else:
+            frames_2 = frames_2[(frames_2['type.warehouse'] == 3) & (frames_2['flag'] != 4)]
+
+            frames_2["source_id"] = self.source_id
+            frames_2["cmid"] = self.cmid
+            frames_2 = frames_2.rename(columns={
+                "billno": "order_num",
+                "applydate": "order_date",
+                "stripecode": "barcode",
+                "gdsname": "item_name",
+                "baseunit": "item_unit",
+                "applyamount": "order_qty",
+                "saleprice": "order_price",
+                "deptcode.store": "foreign_store_id",
+                "applymode": "order_type",
+                "gdsincode": "foreign_item_id",
+                "unitcode": "vendor_id",
+                "deptname.store": "store_name",
+                "unitname": "vendor_name",
+                "buyername": "purchaser",
+            })
+
+            frames_2["foreign_category_lv2"] = frames_2.apply(
+                lambda row: row["foreign_category_lv1"] + row["foreign_category_lv2"], axis=1
+            )
+
+            frames_2["foreign_category_lv3"] = frames_2.apply(
+                lambda row: row["foreign_category_lv2"] + row["foreign_category_lv3"],
+                axis=1
+            )
+            frames_2["foreign_category_lv4"] = ''
+            frames_2["foreign_category_lv5"] = ''
+
+            def generate_require_type(row):
+                if row == 0:
+                    return "正常要货"
+                elif row == 1:
+                    return "促销要货"
+
+            frames_2["order_type"] = frames_2["order_type"].apply(generate_require_type)
+            frames_2["store_show_code"] = frames_2["foreign_store_id"]
+
+            frames_2["order_total"] = frames_2["order_qty"] * frames_2["order_price"]
+            frames_2["foreign_store_id"] = frames_2["foreign_store_id"].str.strip()
+            frames_2["store_show_code"] = frames_2["store_show_code"].str.strip()
+            frames_2["foreign_item_id"] = frames_2["foreign_item_id"].str.strip()
+            frames_2["item_show_code"] = frames_2["foreign_item_id"]
+            frames_2["vendor_id"] = frames_2["vendor_id"].str.strip()
+            frames_2["vendor_show_code"] = frames_2["vendor_id"]
+
+            frames_2 = frames_2[columns]
+        return pd.concat([frames_1, frames_2])

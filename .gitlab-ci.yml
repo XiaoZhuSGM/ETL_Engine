@@ -31,4 +31,4 @@ deploy:
   except:
     - master@airflow-datapipline/etl-engine
   script:
-    - curl -v 172.31.16.17:9999
+    - curl -v 10.1.20.226:9999

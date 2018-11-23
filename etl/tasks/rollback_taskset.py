@@ -17,7 +17,6 @@ from flask import current_app
 from etl.etl import celery
 
 
-
 sql_service = DatasourceSqlService()
 datasource_service = DatasourceService()
 cleaninfo_service = ExtCleanInfoService()
@@ -227,7 +226,7 @@ class RollbackTaskSet:
             db.engine.dispose()
 
 
-@celery.task(name='rollback.main')
+@celery.task(name="rollback.main")
 def task_rollback(source_id, date, erp_name, target_list):
     task_set = RollbackTaskSet(source_id, date, erp_name, target_list)
     task_set.pipeline()

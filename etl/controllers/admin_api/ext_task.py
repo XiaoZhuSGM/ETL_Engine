@@ -102,8 +102,8 @@ def get_task_warehouse_status():
     result = False
     async_result = task_warehouse.AsyncResult(task_id=task_id)
     if async_result.successful():
-        result = async_result.result
         status = "success"
+        result = async_result.result
     elif async_result.failed():
         status = "failed"
         reason = str(async_result.info)
@@ -136,8 +136,8 @@ def get_task_rollback_status():
     result = False
     async_result = task_rollback.AsyncResult(task_id=task_id)
     if async_result.successful():
-        result = async_result.result
         status = "success"
+        result = async_result.result
     elif async_result.failed():
         status = "failed"
         reason = str(async_result.info)

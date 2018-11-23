@@ -60,16 +60,19 @@ class ProductionConfig(Config):
 
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_RESULT_BACKEND = (
-        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11"
-        if REDIS_PASSWORD
-        else f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
-    )
-    CELERY_BROKER_URL = (
-        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10"
-        if REDIS_PASSWORD
-        else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
-    )
+    # CELERY_RESULT_BACKEND = (
+    #     f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11"
+    #     if REDIS_PASSWORD
+    #     else f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
+    # )
+    # CELERY_BROKER_URL = (
+    #     f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10"
+    #     if REDIS_PASSWORD
+    #     else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
+    # )
+
+    CELERY_BROKER_URL = "pyamqp://guest@localhost//"
+    CELERY_RESULT_BACKEND = "rpc://guest@localhost//"
 
     AIRFLOW_DB_URL = (
 ***REMOVED***
