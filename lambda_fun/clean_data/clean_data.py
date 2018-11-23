@@ -194,81 +194,53 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "衡阳联邦":
         from hengyanglianbang import clean_lianbang
+
         return clean_lianbang(source_id, date, target_table, data_frames)
 
 
 if __name__ == "__main__":
-    event1 = {
-        "source_id": "34YYYYYYYYYYYYY",
+
+    event = {
+        "source_id": "89YYYYYYYYYYYYY",
         "erp_name": "宏业",
-        "date": "2018-11-09",
-        "target_table": "requireorder",
+        "date": "2018-11-22",
+        "target_table": "goodsflow",
         "origin_table_columns": {
-            "bil_stockapply": [
-                "billno",
-                "applydate",
-                "applymode",
+            "bil_goodsflow": [
                 "deptcode",
-                "flag"
-            ],
-            "bil_stockapplydtl": [
-                "applyamount",
                 "gdsincode",
-                "billno"
-            ],
-            "inf_department": [
-                "deptcode",
-                "fatherdept",
-                "type",
-                "deptname"
+                "flowno",
+                "recorddate",
+                "amount",
+                "actualpay",
             ],
             "inf_goods": [
                 "gdsincode",
                 "stripecode",
                 "gdsname",
                 "baseunit",
-                "saleprice",
-                "buyername",
                 "classcode",
-                "lastsupplier"
             ],
-            "inf_goodsclass": [
-                "classcode",
-                "fatherclass",
-                "classgrade"
-            ],
-            "inf_tradeunit": [
-                "unitcode",
-                "unitname"
-            ]
+            "inf_goodsclass": ["fatherclass", "classcode", "classgrade", "classname"],
+            "inf_shop_message": ["deptcode", "shotname"],
         },
         "converts": {
-            "bil_stockapply": {
+            "bil_goodsflow": {
                 "deptcode": "str",
-                "lastsupplier": "str",
-            },
-            "inf_department": {
-                "deptcode": "str",
-                "fatherdept": "str",
+                "flowno": "str",
+                "gdsincode": "str",
+                "recorddate": "str",
             },
             "inf_goods": {
-                "vendor_show_code": "str",
-                "gdsincode": "str",
-                "lastsupplier": "str",
+                "baseunit": "str",
                 "classcode": "str",
+                "gdsincode": "str",
+                "gdsname": "str",
                 "stripecode": "str",
             },
-            "bil_stockapplydtl": {
-                "gdsincode": "str",
-            },
-            "inf_tradeunit": {
-                "unitcode": "str",
-            },
-            "inf_goodsclass": {
-                "classcode": "str",
-                "fatherclass": "str",
-                "foreign_category_lv4": "str",
-            },
-        }
+            "inf_goodsclass": {"classcode": "str", "fatherclass": "str"},
+            "inf_shop_message": {"deptcode": "str", "shotname": "str"},
+        },
     }
-    handler(event1, None)
+
+    handler(event, None)
