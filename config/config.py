@@ -71,8 +71,8 @@ class ProductionConfig(Config):
     #     else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
     # )
 
-    CELERY_BROKER_URL = "pyamqp://guest@localhost//"
-    CELERY_RESULT_BACKEND = "rpc://guest@localhost//"
+***REMOVED***
+***REMOVED***
 
     AIRFLOW_DB_URL = (
 ***REMOVED***
