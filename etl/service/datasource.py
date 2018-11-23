@@ -6,6 +6,10 @@ from ..models import session_scope
 from ..models.datasource import ExtDatasource
 from ..models.etl_table import ExtCleanInfo
 
+import pytz
+
+_TZINFO = pytz.timezone("Asia/Shanghai")
+
 
 class ExtDatasourceNotExist(Exception):
     def __str__(self):
@@ -145,7 +149,7 @@ class DatasourceService(object):
             raise ExtDatasourceNotExist()
 
         delta = datasource.delta
-        now = datetime.now()
+        now = datetime.now(_TZINFO)
         query_date = (now + timedelta(days=-delta)).strftime("%Y-%m-%d")
 
         # 2. 得到db_url

@@ -36,7 +36,7 @@ class Config(object):
         "ext_history.*": {"queue": "ext_history", "routing_key": "ext_history.#"},
     }
 
-    BROKER_POOL_LIMIT = None
+    # BROKER_POOL_LIMIT = None
 
 
 class ProductionConfig(Config):
