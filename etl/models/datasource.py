@@ -6,6 +6,7 @@ from .base import CRUDMixin
 from datetime import datetime, timedelta
 
 
+
 class ExtDatasource(CRUDMixin, db.Model):
     source_id = db.Column(db.String(15), unique=True, nullable=False)
     cmid = db.Column(JSONB, nullable=False)
