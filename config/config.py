@@ -95,7 +95,7 @@ class DevelopmentConfig(Config):
 ***REMOVED***
 ***REMOVED***
     postgresql_db_name = "cm_etl"
-    postgresql_db_hostname = "cm-std.cdl8ar96w1hm.rds.cn-north-1.amazonaws.com.cn:5432"
+***REMOVED***
     # postgresql
     SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
         DB_USER=postgresql_db_username,
