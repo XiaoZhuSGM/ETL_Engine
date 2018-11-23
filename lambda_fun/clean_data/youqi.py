@@ -155,28 +155,20 @@ class YouQiCleaner:
     def goods(self):
 
         goods = self.data["product"]
+        goodsdtl = self.data["goodsdtl"]
+        goodsbusgate = self.data["goodsbusgate"].drop_duplicates()
         cls = self.data["tdepset"]
         vendor = self.data["tsuppset"]
 
         frames = (
             goods
+            .merge(goodsdtl, how="left", left_on="pid", right_on="gid")
+            .merge(goodsbusgate, how="left", left_on="busgate", right_on="gid", suffixes=("_goodsdtl", "_goodsbusgate"))
             .merge(cls, how="left", on="depcode")
             .merge(vendor, how="left", on="suppcode")
         )
 
         frames["cmid"] = self.cmid
-        frames["item_status"] = (
-            frames.apply(
-                lambda row:
-                ("禁采" if row["fnocg"] == 1 else "") +
-                ("禁销" if row["fnosale"] == 1 else "") +
-                ("禁要" if row["fnoyh"] == 1 else "") +
-                ("禁促" if row["fnopromotion"] == 1 else "") +
-                ("禁退" if row["fnoth"] == 1 else "") +
-                ("禁厨打" if row["fnocd"] == 1 else ""),
-                axis=1
-            )
-        )
         frames["foreign_category_lv1"] = frames.depcode.apply(lambda x: None if pd.isnull(x) else x[:2])
         frames["foreign_category_lv2"] = frames.depcode.apply(lambda x: None if pd.isnull(x) else x[:4])
         frames["foreign_category_lv4"] = None
@@ -197,6 +189,7 @@ class YouQiCleaner:
             "prodcode": "show_code",
             "suppname": "supplier_name",
             "suppcode": "supplier_code",
+            "name": "item_status"
         })
         frames = frames[[
             "cmid", "barcode", "foreign_item_id", "item_name", "lastin_price", "sale_price", "item_unit", "item_status",
