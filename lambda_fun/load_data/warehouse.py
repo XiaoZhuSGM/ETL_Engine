@@ -136,12 +136,12 @@ class Warehouser:
 if __name__ == "__main__":
     event = {
 ***REMOVED***
-        "data_key": "ext-etl-data/clean_data/source_id=79YYYYYYYYYYYYY/clean_date=2018-09-30/target_table=goodsflow/dump=2018-10-01 08:28:27.380358+08:00&rowcount=105016.csv.gz",
-        "target_table": "goodsflow_79YYYYYYYYYYYYY",
-        "data_date": "2018-09-30",
-        "warehouse_type": "copy",
-        "cmid": "79",
-        "source_id": "79YYYYYYYYYYYYY",
+        "data_key": "ext-etl-data/clean_data/source_id=88YYYYYYYYYYYYY/clean_date=2018-11-04/target_table=goods/dump=2018-11-06 15:47:16.286396+08:00&rowcount=8904.csv.gz",
+        "target_table": "chain_goods",
+        "data_date": "2018-11-04",
+        "warehouse_type": "upsert",
+        "cmid": "88",
+        "source_id": "88YYYYYYYYYYYYY",
     }
     
     event1 = {

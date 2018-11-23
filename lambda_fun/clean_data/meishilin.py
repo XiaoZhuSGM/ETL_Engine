@@ -420,7 +420,7 @@ class MeiShiLinCleaner(Base):
         part["cmid"] = self.cmid
         part["storage_time"] = datetime.now(_TZINFO)
         part["last_updated"] = datetime.now(_TZINFO)
-        part["isvalid"] = 1
+        # part["isvalid"] = 1
         part["lastin_price"] = None
 
         part = part.rename(
@@ -437,6 +437,7 @@ class MeiShiLinCleaner(Base):
                 "name.vendor": "supplier_name",
                 "code.vendor": "supplier_code",
                 "name.brand": "brand_name",
+                "alword": "isvalid",
             }
         )
         part = part[columns]

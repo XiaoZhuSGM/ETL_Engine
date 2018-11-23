@@ -6,7 +6,7 @@ exam app runserver
 import os
 
 from flask_migrate import MigrateCommand, Migrate
-from etl import create_app, db
+from etl import create_app, db, celery # noqa
 from config.config import config
 from flask_script import Manager, Server
 

@@ -135,7 +135,7 @@ def handler(event, context):
 
         cleaner = ZhiBaiWeiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
-    elif erp_name == "商海导航":
+    elif erp_name in ("商海导航", "商海（连锁版）"):
         from shanghaidaohang import ShangHaiDaoHangCleaner
 
         cleaner = ShangHaiDaoHangCleaner(source_id, date, data_frames)
@@ -182,58 +182,93 @@ def handler(event, context):
 
         return clean_chaoying(source_id, date, target_table, data_frames)
 
+    elif erp_name == "科脉御商v9":
+        from kemaiyushang_v9 import clean_kemaiyushang
+
+        return clean_kemaiyushang(source_id, date, target_table, data_frames)
+
+    elif erp_name == "友琪":
+        from youqi import YouQiCleaner
+
+        cleaner = YouQiCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+    elif erp_name == "衡阳联邦":
+        from hengyanglianbang import clean_lianbang
+        return clean_lianbang(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
-    event = {
-        "source_id": "88YYYYYYYYYYYYY",
-        "erp_name": "超赢",
-        "date": "2018-10-28",
-        "target_table": "cost",
+    event1 = {
+        "source_id": "34YYYYYYYYYYYYY",
+        "erp_name": "宏业",
+        "date": "2018-11-09",
+        "target_table": "requireorder",
         "origin_table_columns": {
-            "tb_gsjg": [
-                "id",
-                "bm"
+            "bil_stockapply": [
+                "billno",
+                "applydate",
+                "applymode",
+                "deptcode",
+                "flag"
             ],
-            "tb_sp": [
-                "id",
-                "bm",
-                "id_spfl"
+            "bil_stockapplydtl": [
+                "applyamount",
+                "gdsincode",
+                "billno"
             ],
-            "tb_spfl": [
-                "id",
-                "id_1",
-                "bm"
+            "inf_department": [
+                "deptcode",
+                "fatherdept",
+                "type",
+                "deptname"
             ],
-            "v_tz_rj_sp_gys_jxc": [
-                "sl_ls",
-                "je_hs_ls",
-                "je_cb_hs_ls",
-                "id_gsjg",
-                "id_sp",
-                "ymd"
+            "inf_goods": [
+                "gdsincode",
+                "stripecode",
+                "gdsname",
+                "baseunit",
+                "saleprice",
+                "buyername",
+                "classcode",
+                "lastsupplier"
+            ],
+            "inf_goodsclass": [
+                "classcode",
+                "fatherclass",
+                "classgrade"
+            ],
+            "inf_tradeunit": [
+                "unitcode",
+                "unitname"
             ]
         },
         "converts": {
-            "v_tz_rj_sp_gys_jxc": {
-                "id_gsjg": "str",
-                "id_sp": "str",
-                "ymd": "str"
+            "bil_stockapply": {
+                "deptcode": "str",
+                "lastsupplier": "str",
             },
-            "tb_gsjg": {
-                "bm": "str",
-                "id": "str"
+            "inf_department": {
+                "deptcode": "str",
+                "fatherdept": "str",
             },
-            "tb_sp": {
-                "bm": "str",
-                "id": "str",
-                "id_spfl": "str"
+            "inf_goods": {
+                "vendor_show_code": "str",
+                "gdsincode": "str",
+                "lastsupplier": "str",
+                "classcode": "str",
+                "stripecode": "str",
             },
-            "tb_spfl": {
-                "bm": "str",
-                "id": "str",
-                "id_1": "str"
-            }
-        },
+            "bil_stockapplydtl": {
+                "gdsincode": "str",
+            },
+            "inf_tradeunit": {
+                "unitcode": "str",
+            },
+            "inf_goodsclass": {
+                "classcode": "str",
+                "fatherclass": "str",
+                "foreign_category_lv4": "str",
+            },
+        }
     }
-
-    handler(event, None)
+    handler(event1, None)
