@@ -6,6 +6,7 @@ services:
     build: .
     depends_on:
       - redis
+      - nginx-proxy
     stop_signal:
       SIGTERM
     environment:
@@ -38,6 +39,4 @@ services:
       - "${PORT:-5000}:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock
-    depends_on:
-      - gunicorn
     restart: always
