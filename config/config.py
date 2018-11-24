@@ -37,6 +37,7 @@ class Config(object):
     }
 
     # BROKER_POOL_LIMIT = None
+    BROKER_HEARTBEAT = 0
 
 
 class ProductionConfig(Config):
