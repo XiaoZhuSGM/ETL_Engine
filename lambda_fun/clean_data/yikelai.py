@@ -2167,3 +2167,123 @@ class HongYeCleaner:
 
             frames_2 = frames_2[columns]
         return pd.concat([frames_1, frames_2])
+
+    def move_warehouse(self):
+        columns = [
+            "source_id", "cmid", "move_num", "move_date", "move_type", "from_warehouse_id", "from_warehouse_show_code",
+            "from_warehouse_name", "to_warehouse_id", "to_warehouse_show_code", "to_warehouse_name", "foreign_item_id",
+            "item_show_code", "item_name", "move_qty", "price", "move_amount", "status", "foreign_category_lv1",
+            "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5",
+            "barcode", "item_unit"
+        ]
+
+        header = self.data["bil_move"]
+        detail = self.data["bil_movedtl"]
+        from_warehouse = self.data["inf_department"]
+        to_warehouse = self.data["inf_department"]
+        item = self.data["inf_goods"]
+
+        header.deptcode = header.deptcode.map(str.strip)
+        header.otherdeptcode = header.otherdeptcode.map(str.strip)
+        detail.gdsincode = detail.gdsincode.map(str.strip)
+        from_warehouse.deptcode = from_warehouse.deptcode.map(str.strip)
+        to_warehouse.deptcode = to_warehouse.deptcode.map(str.strip)
+        item.gdsincode = item.gdsincode.map(str.strip)
+
+        def generate_common(part):
+            part["source_id"] = self.source_id
+            part["cmid"] = self.cmid
+            part["move_type"] = part.iotype.map(lambda x: "调入" if x == "I" else "调出" if x == "O" else None)
+            part["move_qty"] = (
+                part.apply(
+                    lambda row: row.amount if row.iotype == "I" else -1 * row.amount if row.iotype == "O" else None,
+                    axis=1
+                )
+            )
+            part["move_amount"] = (
+                part.apply(
+                    lambda row: row.inmoney if row.iotype == "I" else -1 * row.inmoney if row.iotype == "O" else None,
+                    axis=1
+                )
+            )
+            part["status"] = part.dealflag.map(lambda x: "已审核" if x == 1 else "未审核")
+            part["foreign_category_lv2"] = (
+                part.apply(
+                    lambda row: row.foreign_category_lv1 + row.foreign_category_lv2, axis=1
+                )
+            )
+            part["foreign_category_lv3"] = (
+                part.apply(
+                    lambda row: row.foreign_category_lv2 + row.foreign_category_lv3, axis=1
+                )
+            )
+            part["foreign_category_lv5"] = ""
+            part["from_warehouse_show_code"] = part.deptcode_from_warehouse
+            part["to_warehouse_show_code"] = part.deptcode_to_warehouse
+            part["item_show_code"] = part.gdsincode
+            part = part.rename(columns={
+                "billno": "move_num",
+                "movedate": "move_date",
+                "deptcode_from_warehouse": "from_warehouse_id",
+                "deptname_from_warehouse": "from_warehouse_name",
+                "deptcode_to_warehouse": "to_warehouse_id",
+                "deptname_to_warehouse": "to_warehouse_name",
+                "gdsincode": "foreign_item_id",
+                "gdsname": "item_name",
+                "saleprice": "price",
+                "stripecode": "barcode",
+                "baseunit": "item_unit",
+            })
+            part["barcode"] = part.barcode.map(lambda x: "" if pd.isnull(x) else int(x))
+            return part
+
+        lv = self._sub_query_category_lv4()
+        part1 = (
+            header
+            .merge(detail, on="billno")
+            .merge(from_warehouse, on="deptcode", suffixes=("_header", "_from_warehouse"))
+            .merge(
+                to_warehouse,
+                left_on="otherdeptcode",
+                right_on="deptcode",
+                suffixes=("_from_warehouse", "_to_warehouse")
+            )
+            .merge(item, on="gdsincode")
+            .merge(lv, left_on="classcode", right_on="foreign_category_lv4")
+        )
+        part1 = part1[part1.type_from_warehouse == 4]
+        if len(part1) == 0:
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1 = generate_common(part1)
+            part1["foreign_category_lv4"] = (
+                part1.apply(
+                    lambda row: row.foreign_category_lv3 + row.foreign_category_lv4, axis=1
+                )
+            )
+            part1 = part1[columns]
+
+        lv = self._sub_query_category_lv3()
+        part2 = (
+            header
+            .merge(detail, on="billno")
+            .merge(from_warehouse, on="deptcode", suffixes=("_header", "_from_warehouse"))
+            .merge(
+                to_warehouse,
+                left_on="otherdeptcode",
+                right_on="deptcode",
+                suffixes=("_from_warehouse", "_to_warehouse")
+            )
+            .merge(item, on="gdsincode")
+            .merge(lv, left_on="classcode", right_on="foreign_category_lv3")
+        )
+        part2 = part2[part2.type_from_warehouse == 4]
+        if len(part2) == 0:
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2 = generate_common(part2)
+            part2["foreign_category_lv4"] = ""
+            part2 = part2[columns]
+
+        return pd.concat([part1, part2])
+
