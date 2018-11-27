@@ -2938,12 +2938,12 @@ class HongYeCleaner:
         lv4 = self._sub_query_category_lv4()
         frames_1 = (
             header
-                .merge(detail, on="billno", suffixes=(".header", ".detail"))
-                .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
-                .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
-                .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
-                .merge(lv4, left_on="classcode", right_on="foreign_category_lv4", suffixes=(".item", ".lv"))
-                .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
+            .merge(detail, on="billno", suffixes=(".header", ".detail"))
+            .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
+            .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
+            .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
+            .merge(lv4, left_on="classcode", right_on="foreign_category_lv4", suffixes=(".item", ".lv"))
+            .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
         )
 
         if len(frames_1) == 0:
@@ -3006,12 +3006,12 @@ class HongYeCleaner:
         lv3 = self._sub_query_category_lv3()
         frames_2 = (
             header
-                .merge(detail, on="billno", suffixes=(".header", ".detail"))
-                .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
-                .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
-                .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
-                .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
-                .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
+            .merge(detail, on="billno", suffixes=(".header", ".detail"))
+            .merge(warehouse, on="deptcode", suffixes=(".header", ".warehouse"))
+            .merge(store, left_on="fatherdept", right_on="deptcode", suffixes=(".warehouse", ".store"))
+            .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
+            .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
+            .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
         )
 
         if len(frames_2) == 0:
@@ -3098,11 +3098,11 @@ class HongYeCleaner:
 
         frames_1 = (
             header
-                .merge(detail, on="billno", suffixes=(".header", ".detail"))
-                .merge(store, how="left", on="deptcode", suffixes=(".header", ".store"))
-                .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
-                .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
-                .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
+            .merge(detail, on="billno", suffixes=(".header", ".detail"))
+            .merge(store, how="left", on="deptcode", suffixes=(".header", ".store"))
+            .merge(item, how="left", on="gdsincode", suffixes=(".detail", "item"))
+            .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
+            .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
         )
 
         if len(frames_1) == 0:
