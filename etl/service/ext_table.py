@@ -3,7 +3,7 @@ from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
 from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
-from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import arrow
 from threading import Thread
@@ -63,7 +63,7 @@ class ExtTableService(object):
             inspector = inspect(engine)
             with engine.connect():
                 pass
-        except OperationalError as e:
+        except SQLAlchemyError as e:
             raise ExtDatasourceConnError(e)
 
         return engine, inspector
