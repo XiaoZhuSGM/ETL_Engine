@@ -36,6 +36,8 @@ class DatasourceSqlService(object):
             temp_tables = data["origin_table"].keys()
             original_table.extend(temp_tables)
 
+        original_table = [table.lower() for table in original_table]
+        
         return self.generate_table_sql(source_id, original_table, extract_date)
 
     def generate_full_sql(self, source_id, extract_date):
