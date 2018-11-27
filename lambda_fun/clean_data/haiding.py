@@ -932,7 +932,10 @@ class HaiDingCleaner:
                 }
             )
             part2 = part2[columns]
-        return pd.concat([part1, part2])
+        result = pd.concat([part1, part2])
+        result = result[(result['total_quantity'] != 0) | (result['total_sale'] != 0) | (result['total_cost'] != 0)]
+
+        return result
 
     def requireorder(self):
         columns = [
