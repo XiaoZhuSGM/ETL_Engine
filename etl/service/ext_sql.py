@@ -13,6 +13,9 @@ from common.common import (
 )
 from etl import db
 from ..models import ExtDatasource, ExtTableInfo, ExtCleanInfo
+from etl.service.ext_clean_info import ExtCleanInfoService
+
+clean_info_service = ExtCleanInfoService()
 
 
 class DatasourceSqlService(object):
@@ -25,6 +28,15 @@ class DatasourceSqlService(object):
             pass
         else:
             pass
+
+    def generate_rollback_sql(self, source_id, extract_date, targets):
+        original_table = []
+        for target in targets:
+            data = clean_info_service.get_ext_clean_info_target(source_id, target)
+            temp_tables = data["origin_table"].keys()
+            original_table.extend(temp_tables)
+
+        return self.generate_table_sql(source_id, original_table, extract_date)
 
     def generate_full_sql(self, source_id, extract_date):
         """
@@ -53,14 +65,10 @@ class DatasourceSqlService(object):
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return file_name
 
-    def generate_table_sql(self, source_id, table_names, extract_date):
+    def generate_table_sql(self, source_id, targets, extract_date):
         tables = (
             db.session.query(ExtTableInfo)
-            .filter(
-                ExtTableInfo.source_id == source_id,
-                ExtTableInfo.weight == 1,
-                ExtTableInfo.table_name.in_(table_names.split(",")),
-            )
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
             .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
@@ -68,13 +76,23 @@ class DatasourceSqlService(object):
             "type": "tables",
             "query_date": extract_date,
             "source_id": source_id,
-            "sqls": self._generate_by_correct_mould(tables, extract_date),
         }
+
+        total_sqls = {
+            table_name.split(".")[-1]: sqls
+            for table_name, sqls in self._generate_by_correct_mould(
+                tables, extract_date
+            ).items()
+        }
+
+        target_sqls = {target: total_sqls[target] for target in targets}
+
+        tables_sqls["sqls"] = target_sqls
 
         file_name = str(now_timestamp()) + ".json"
         key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
-        return tables_sqls
+        return file_name
 
     def _generate_by_correct_mould(self, tables, extract_date):
         sqls = defaultdict(list)
@@ -181,7 +199,7 @@ class DatasourceSqlService(object):
             .filter(
                 ExtCleanInfo.source_id == source_id,
                 ExtCleanInfo.deleted == False,
-                ExtCleanInfo.target_table.in_(target_table)
+                ExtCleanInfo.target_table.in_(target_table),
             )
             .all()
         )
@@ -193,14 +211,12 @@ class DatasourceSqlService(object):
         for table_name in origin_table:
             tables = (
                 db.session.query(ExtTableInfo)
-                .filter(
-                    ExtTableInfo.source_id == source_id,
-                    ExtTableInfo.weight == 1)
+                .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
                 .filter(
                     or_(
                         ExtTableInfo.table_name.ilike(f"%.{table_name}"),
                         ExtTableInfo.table_name.ilike(table_name),
-                        ExtTableInfo.alias_table_name == table_name
+                        ExtTableInfo.alias_table_name == table_name,
                     )
                 )
                 .options(joinedload(ExtTableInfo.datasource))

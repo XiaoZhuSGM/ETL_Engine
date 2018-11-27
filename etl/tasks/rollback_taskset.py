@@ -1,6 +1,6 @@
 from etl.service.ext_sql import DatasourceSqlService
 from config.config import config
-from etl.etl import create_app, db
+from etl.etl import db
 from etl.service.datasource import DatasourceService
 from etl.service.ext_clean_info import ExtCleanInfoService
 import os
@@ -47,7 +47,6 @@ class RollbackTaskSet:
         self.erp_name = erp_name
         self.target_list = target_list
         self.cmid = self.source_id.split("Y", 1)[0]
-        self.app = create_app(setting)
 
     def record_log(self, content):
         content["start_time"] = datetime.fromtimestamp(content["start_time"]).strftime(
@@ -106,34 +105,42 @@ class RollbackTaskSet:
 
     @property
     def sql_file(self):
-        return sql_service.generate_full_sql(self.source_id, self.date)
+        return sql_service.generate_rollback_sql(
+            self.source_id, self.date, self.target_list
+        )
 
     def extract_data(self):
         start_time = time.time()
         event = datasource_service.generator_extract_event(self.source_id)
         event["query_date"] = self.date
         event["filename"] = self.sql_file
-        res = lambda_invoker("extract_db_worker", event, qualifier="$LATEST")
+        print("本次生成的rollback sql是\t", event["filename"])
+        invoke_flag = True
+        try:
+            res = lambda_invoker("extract_db_worker", event, qualifier="$LATEST")
+            print("调用lambda抓数的结果为\t", res["Payload"])
+        except Exception as e:
+            print(f"调用lambda的过程中程序显式抛出异常", e)
+            invoke_flag = False
+
         end_time = time.time()
-        payload = res["Payload"]
         task_status = {
             "start_time": start_time,
             "end_time": end_time,
             "cost_time": int(end_time - start_time),
             "task_type": 13,
         }
-        if "FunctionError" in res:
+
+        if not invoke_flag or "FunctionError" in res:
             print("抓数 lambda 失败，调用抓数任务")
             res = self.extract_api(event)
             if not res:
                 task_status.update({"result": 0, "remark": "[回滚]抓数失败"})
                 self.record_log(task_status)
-                raise RuntimeError(f"抓数失败：{payload}")
+                raise RuntimeError(f"抓数失败")
 
         task_status.update({"result": 1, "remark": "[回滚]抓数成功"})
         self.record_log(task_status)
-        print(payload)
-        return payload
 
     def clean_data(self, target):
         start_time = time.time()
@@ -212,18 +219,16 @@ class RollbackTaskSet:
         return payload
 
     def pipeline(self):
-        with self.app.app_context():
-            print("开始抓数")
-            extracted_files = self.extract_data()
-            print(f"抓取完成：{extracted_files}")
-            for target in self.target_list:
-                print(f"开始清洗：{target}")
-                cleaned_file = self.clean_data(target)
-                print(f"清洗完成：{cleaned_file}")
-                print(f"开始入库：{target}")
-                self.warehouse_data(target, cleaned_file)
-                print(f"入库完成：{target}")
-            db.engine.dispose()
+        print("开始抓数")
+        self.extract_data()
+        for target in self.target_list:
+            print(f"开始清洗：{target}")
+            cleaned_file = self.clean_data(target)
+            print(f"清洗完成：{cleaned_file}")
+            print(f"开始入库：{target}")
+            self.warehouse_data(target, cleaned_file)
+            print(f"入库完成：{target}")
+        db.engine.dispose()
 
 
 @celery.task(name="rollback.main")
