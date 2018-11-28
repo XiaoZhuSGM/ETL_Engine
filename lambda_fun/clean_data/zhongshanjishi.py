@@ -28,6 +28,8 @@ def clean_jishi(source_id, date, target_table, data_frames):
         return clean_goods(source_id, date, target_table, data_frames)
     elif target_table == "category":
         return clean_category(source_id, date, target_table, data_frames)
+    elif target_table == 'requireorder':
+        return clean_requireorder(source_id, date, target_table, data_frames)
 
 
 def clean_goodsflow(source_id, date, target_table, data_frames):
@@ -128,7 +130,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames = frames.merge(lv3, how="left", on="clsid")
         frames = frames[(frames["orgcode"] != "00") & (frames["clscode"].map(len) == 6)]
 
-        frames = frames.groupby(["orgcode", "pluid", "rptdate", "clscode"], as_index=False)\
+        frames = frames.groupby(["orgcode", "pluid", "rptdate", "clscode"], as_index=False) \
             .agg({"xscount": sum, "hxtotal": sum, "hjcost": sum})
 
         frames["source_id"] = source_id
@@ -348,6 +350,74 @@ def clean_store(source_id, date, target_table, data_frames):
          'create_date', 'lat', 'lng', 'show_code', 'phone_number', 'contacts', 'area_code', 'area_name',
          'business_area', 'property_id', 'property', 'source_id', 'last_updated']]
 
+    return upload_to_s3(frames, source_id, date, target_table)
+
+
+def clean_requireorder(source_id, date, target_table, data_frames):
+    "门店要货清洗"
+    cmid = source_id.split("Y")[0]
+    head = data_frames['tordyhhead']
+    detail = data_frames['tordyhbody']
+    item = data_frames['tskuplu']
+    lv = data_frames['tcatcategory']
+    frames = head.merge(
+        detail, how='inner', on='billno').merge(
+        item, how='inner', on='pluid').merge(
+        lv, how='inner', on='clsid')
+    frames = frames[frames['isactive'] == '1']
+    frames['source_id'] = source_id
+    frames['cmid'] = cmid
+    frames['order_type'] = '门店要货'
+    frames['store_show_code'] = frames['etpcode']
+    frames = frames.rename(columns={
+        'billno': 'order_num',
+        'jzdate': 'order_date',
+        'etpcode': 'foreign_store_id',
+        'etpname': 'store_name',
+        'pluid': 'foreign_item_id',
+        'plucode': 'item_show_code',
+        'pluname': 'item_name',
+        'unit': 'item_unit',
+        'yhcount': 'order_qty',
+        'psprice': 'order_price',
+        'pssum': 'order_total'
+    })
+    frames['vendor_id'] = ''
+    frames['vendor_show_code'] = ''
+    frames['vendor_name'] = ''
+    frames['foreign_category_lv1'] = frames['clscode'].apply(lambda x: x[:2])
+    frames["foreign_category_lv2"] = frames['clscode'].apply(lambda x: x[:4])
+    frames["foreign_category_lv3"] = frames['clscode']
+    frames["foreign_category_lv4"] = ''
+    frames['foreign_category_lv5'] = ''
+    frames['purchaser'] = ''
+    frames=frames[[
+            "source_id",
+            "cmid",
+            "order_num",
+            "order_date",
+            "order_type",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_show_code",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "order_qty",
+            "order_price",
+            "order_total",
+            "vendor_id",
+            "vendor_show_code",
+            "vendor_name",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+            "purchaser",
+        ]]
     return upload_to_s3(frames, source_id, date, target_table)
 
 
