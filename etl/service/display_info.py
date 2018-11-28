@@ -120,8 +120,6 @@ class DisplayInfo:
             item['safety_stock_days'] = row[10].value
             item['delivery'] = str(row[11].value)
 
-            print(item)
-
             result = ExtParamPlatform.query.filter_by(
                 cmid=cmid,
                 foreign_store_id=item['foreign_store_id'],
