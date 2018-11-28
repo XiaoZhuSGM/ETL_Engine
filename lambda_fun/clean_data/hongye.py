@@ -244,7 +244,7 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 
 class HongYeCleaner:
-    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4}
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4}
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
