@@ -1192,8 +1192,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_92(self):
         inf_goods = self.data["inf_goods"]
@@ -1359,8 +1359,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_attribute(self):
         spec = self.data["inf_goods_more"]
