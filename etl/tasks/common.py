@@ -3,7 +3,7 @@ import boto3
 from botocore.client import Config
 
 lambda_client = boto3.client(
-    "lambda", config=Config(connect_timeout=310, read_timeout=310)
+    "lambda", config=Config(connect_timeout=930, read_timeout=930, retries=dict(max_attempts=0))
 )
 
 

@@ -399,15 +399,14 @@ def clean_delivery(source_id, date, target_table, data_frames):
     store = data_frames["t_br_master"].rename(columns=lambda x: f"store.{x}")
     goods = data_frames["t_bi_master"].rename(columns=lambda x: f"goods.{x}")
 
-    if len(header[(header["header.fsheet_type"] == 'DS') | (header["header.fsheet_type"] == 'DR')]) == 0:
-        frames_part1 = pd.DataFrame(columns=columns)
-        frames_part2 = pd.DataFrame(columns=columns)
-    else:
-        frames_part1 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
-            .merge(store, how="inner", left_on="header.fd_brh_no", right_on="store.fbrh_no") \
-            .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
+    frames_part1 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
+        .merge(store, how="inner", left_on="header.fd_brh_no", right_on="store.fbrh_no") \
+        .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
 
-        frames_part1 = frames_part1[frames_part1["header.fsheet_type"] == 'DS']
+    frames_part1 = frames_part1[frames_part1["header.fsheet_type"] == 'DS']
+    if not len(frames_part1):
+        frames_part1 = pd.DataFrame(columns=columns)
+    else:
         frames_part1["foreign_category_lv1"] = frames_part1["goods.fitem_clsno"].apply(lambda x: x[:2])
         frames_part1["foreign_category_lv2"] = frames_part1["goods.fitem_clsno"].apply(lambda x: x[:4])
         frames_part1["foreign_category_lv3"] = frames_part1["goods.fitem_clsno"]
@@ -437,14 +436,16 @@ def clean_delivery(source_id, date, target_table, data_frames):
             "detail.famt": "rtl_amt",
             "header.fwh_no": "warehouse_id"
         })
-
         frames_part1 = frames_part1[columns]
 
-        frames_part2 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
-            .merge(store, how="inner", left_on="header.fbrh_no", right_on="store.fbrh_no") \
-            .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
+    frames_part2 = header.merge(detail, how="inner", left_on="header.fsheet_no", right_on="detail.fsheet_no") \
+        .merge(store, how="inner", left_on="header.fbrh_no", right_on="store.fbrh_no") \
+        .merge(goods, how="inner", left_on="detail.fitem_id", right_on="goods.fitem_id")
 
-        frames_part2 = frames_part2[frames_part2["header.fsheet_type"] == 'DR']
+    frames_part2 = frames_part2[frames_part2["header.fsheet_type"] == 'DR']
+    if not len(frames_part2):
+        frames_part2 = pd.DataFrame(columns=columns)
+    else:
         frames_part2["foreign_category_lv1"] = frames_part2["goods.fitem_clsno"].apply(lambda x: x[:2])
         frames_part2["foreign_category_lv2"] = frames_part2["goods.fitem_clsno"].apply(lambda x: x[:4])
         frames_part2["foreign_category_lv3"] = frames_part2["goods.fitem_clsno"]
@@ -478,7 +479,6 @@ def clean_delivery(source_id, date, target_table, data_frames):
 
     frames = pd.concat([frames_part1, frames_part2])
     return upload_to_s3(frames, source_id, date, target_table)
-
 
 def upload_to_s3(frame, source_id, date, target_table):
     filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")

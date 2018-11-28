@@ -194,81 +194,61 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "衡阳联邦":
         from hengyanglianbang import clean_lianbang
+
         return clean_lianbang(source_id, date, target_table, data_frames)
 
 
 if __name__ == "__main__":
-    event1 = {
-        "source_id": "34YYYYYYYYYYYYY",
-        "erp_name": "宏业",
-        "date": "2018-11-09",
-        "target_table": "requireorder",
+
+    event = {
+        "source_id": "67YYYYYYYYYYYYY",
+        "erp_name": "海鼎",
+        "date": "2018-11-23",
+        "target_table": "cost",
         "origin_table_columns": {
-            "bil_stockapply": [
-                "billno",
-                "applydate",
-                "applymode",
-                "deptcode",
-                "flag"
+            "goods": ["sort", "gid"],
+            "rpt_storesaldrpt": [
+                "cls",
+                "fildate",
+                "orgkey",
+                "pdkey",
+                "saleamt",
+                "salecamt",
+                "salectax",
+                "saleqty",
+                "saletax",
             ],
-            "bil_stockapplydtl": [
-                "applyamount",
-                "gdsincode",
-                "billno"
+            "sdrpts": [
+                "amt",
+                "cls",
+                "fildate",
+                "gdgid",
+                "iamt",
+                "itax",
+                "ocrdate",
+                "qty",
+                "snd",
+                "tax",
             ],
-            "inf_department": [
-                "deptcode",
-                "fatherdept",
-                "type",
-                "deptname"
-            ],
-            "inf_goods": [
-                "gdsincode",
-                "stripecode",
-                "gdsname",
-                "baseunit",
-                "saleprice",
-                "buyername",
-                "classcode",
-                "lastsupplier"
-            ],
-            "inf_goodsclass": [
-                "classcode",
-                "fatherclass",
-                "classgrade"
-            ],
-            "inf_tradeunit": [
-                "unitcode",
-                "unitname"
-            ]
+            "sort": ["code"],
         },
         "converts": {
-            "bil_stockapply": {
-                "deptcode": "str",
-                "lastsupplier": "str",
+            "goods": {"gid": "str", "sort": "str"},
+            "rpt_storesaldrpt": {
+                "cls": "str",
+                "fildate": "str",
+                "orgkey": "str",
+                "pdkey": "str",
             },
-            "inf_department": {
-                "deptcode": "str",
-                "fatherdept": "str",
+            "sdrpts": {
+                "cls": "str",
+                "fildate": "str",
+                "gdgid": "str",
+                "ocrdate": "str",
+                "snd": "str",
             },
-            "inf_goods": {
-                "vendor_show_code": "str",
-                "gdsincode": "str",
-                "lastsupplier": "str",
-                "classcode": "str",
-                "stripecode": "str",
-            },
-            "bil_stockapplydtl": {
-                "gdsincode": "str",
-            },
-            "inf_tradeunit": {
-                "unitcode": "str",
-            },
-            "inf_goodsclass": {
-                "classcode": "str",
-                "fatherclass": "str",
-                "foreign_category_lv4": "str",
-            },
-        }
+            "sort": {"code": "str"},
+        },
     }
-    handler(event1, None)
+
+    handler(event, None)
