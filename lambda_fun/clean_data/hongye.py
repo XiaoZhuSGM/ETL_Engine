@@ -1192,8 +1192,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_92(self):
         inf_goods = self.data["inf_goods"]
@@ -1359,8 +1359,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_attribute(self):
         spec = self.data["inf_goods_more"]
@@ -1896,7 +1896,7 @@ class HongYeCleaner:
         return subquery
 
     def delivery(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.delivery_92()
         else:
             return self.delivery_other()
@@ -2908,7 +2908,7 @@ class HongYeCleaner:
         return part
 
     def requireorder(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.requireorder_92()
         else:
             return self.requireorder_other()

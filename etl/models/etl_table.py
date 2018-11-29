@@ -145,6 +145,7 @@ class ExtParamPlatform(CRUDMixin, db.Model):
     specification = Column(Integer)
     safety_stock_days = Column(Integer)
     delivery = Column(String(24))
+    expiration_date = Column(Integer, default=0)
 
 
 class DeliveryPeriod(CRUDMixin, db.Model):

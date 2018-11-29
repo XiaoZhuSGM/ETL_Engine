@@ -119,8 +119,7 @@ class DisplayInfo:
             item['specification'] = row[9].value
             item['safety_stock_days'] = row[10].value
             item['delivery'] = str(row[11].value)
-
-            print(item)
+            item['expiration_date'] = int(row[12].value)
 
             result = ExtParamPlatform.query.filter_by(
                 cmid=cmid,
