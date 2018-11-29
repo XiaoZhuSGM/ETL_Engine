@@ -27,7 +27,7 @@ services = ExtCleanInfoService()
 @validate_arg(GetEXtCleanInfos)
 def get_ext_clean_infos():
     """
-    获得source_id下所有的配置的目标表信息
+    获得source_id下所有的配置的目标表
     :return:
     """
     source_id = request.args.get("source_id")
@@ -114,7 +114,7 @@ def get_ext_clean_info_table(source_id):
 @validate_arg(CopyExtCleanInfo)
 def copy_ext_clean_info():
     """
-    将某个source_id的目标表配置copy复制到另一个source_id下，用于同个erp类型
+    将某个source_id的所有目标表配置copy复制到另一个source_id所有目标表，用于同个erp类型
     :return:
     """
     data = request.get_json()
@@ -138,3 +138,28 @@ def get_ext_clean_info_target():
     except (ExtCleanInfoParameterError, ExtCleanInfoNotFound) as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
     return jsonify_with_data(APIError.OK, data={"target": data})
+
+
+@etl_admin_api.route("/ext_clean_info/table/copy", methods=["POST"])
+def copy_ext_clean_info_table():
+    """
+    将某个source_id的单个目标表配置copy复制到另一个source_id单个目标表，用于同个erp类型
+    :return:
+    """
+    data = request.get_json()
+    try:
+        services.copy_ext_clean_info_table(data)
+    except (ExtDatasourceNotExist, TableNotExist) as e:
+        return jsonify_with_error(APIError.NOTFOUND, str(e))
+    return jsonify_with_data(APIError.OK, data={})
+
+
+@etl_admin_api.route("/ext_clean_info/template/target_table/<source_id>", methods=["GET"])
+def get_ext_clean_info_target_tables(source_id):
+    """
+    获取某个source_id下所有生效的的目标表的表名称
+    :param source_id:
+    :return:
+    """
+    data = services.get_ext_clean_info_template_target_tables(source_id)
+    return jsonify_with_data(APIError.OK, data={"tables": data})
