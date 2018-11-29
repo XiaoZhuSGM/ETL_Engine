@@ -30,6 +30,8 @@ def clean_jishi(source_id, date, target_table, data_frames):
         return clean_category(source_id, date, target_table, data_frames)
     elif target_table == 'requireorder':
         return clean_requireorder(source_id, date, target_table, data_frames)
+    elif target_table == 'delivery':
+        return clean_delivery(source_id, date, target_table, data_frames)
 
 
 def clean_goodsflow(source_id, date, target_table, data_frames):
@@ -391,34 +393,98 @@ def clean_requireorder(source_id, date, target_table, data_frames):
     frames["foreign_category_lv4"] = ''
     frames['foreign_category_lv5'] = ''
     frames['purchaser'] = ''
-    frames=frames[[
-            "source_id",
-            "cmid",
-            "order_num",
-            "order_date",
-            "order_type",
-            "foreign_store_id",
-            "store_show_code",
-            "store_name",
-            "foreign_item_id",
-            "item_show_code",
-            "barcode",
-            "item_name",
-            "item_unit",
-            "order_qty",
-            "order_price",
-            "order_total",
-            "vendor_id",
-            "vendor_show_code",
-            "vendor_name",
-            "foreign_category_lv1",
-            "foreign_category_lv2",
-            "foreign_category_lv3",
-            "foreign_category_lv4",
-            "foreign_category_lv5",
-            "purchaser",
-        ]]
+    frames = frames[[
+        "source_id",
+        "cmid",
+        "order_num",
+        "order_date",
+        "order_type",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "foreign_item_id",
+        "item_show_code",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "order_qty",
+        "order_price",
+        "order_total",
+        "vendor_id",
+        "vendor_show_code",
+        "vendor_name",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+        "purchaser",
+    ]]
     return upload_to_s3(frames, source_id, date, target_table)
+
+
+def clean_delivery(source_id, date, target_table, data_frames):
+    cmid = source_id.split("Y")[0]
+    head = data_frames['tdstpshead']
+    detail = data_frames['tdstpsbody']
+    frame = head.merge(detail, how='inner', on='billno')
+    frame['cmid'] = cmid
+    frame['source_id'] = source_id
+    frame['delivery_type'] = '统配出'
+    frame['foreign_category_lv1'] = frame['clscode'].apply(lambda x: x[:2])
+    frame["foreign_category_lv2"] = frame['clscode'].apply(lambda x: x[:4])
+    frame["foreign_category_lv3"] = frame['clscode']
+    frame["foreign_category_lv4"] = ''
+    frame['foreign_category_lv5'] = ''
+    frame['delivery_state'] = ''
+    frame['store_show_code'] = frame['shorgcode']
+    frame['warehouse_show_code'] = frame['orgcode']
+    frame = frame.rename(columns={
+        'billno': 'delivery_num',
+        'jzdate': 'delivery_date',
+        'shorgcode': 'foreign_store_id',
+        'shorgname': 'store_name',
+        'pluid': 'foreign_item_id',
+        "plucode": "item_show_code",
+        "barcode": "barcode",
+        "pluname": "item_name",
+        "unit": "item_unit",
+        "pscount": "delivery_qty",
+        "psprice": "rtl_price",
+        "pstotal": "rtl_amt",
+        "orgcode": "warehouse_id",
+        "orgname": "warehouse_name",
+        "htname": "src_type"
+    })
+    frame = frame[[
+        "delivery_num",
+        "delivery_date",
+        "delivery_type",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "foreign_item_id",
+        "item_show_code",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "delivery_qty",
+        "rtl_price",
+        "rtl_amt",
+        "warehouse_id",
+        "warehouse_show_code",
+        "warehouse_name",
+        "src_type",
+        "delivery_state",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+        "source_id",
+        "cmid",
+    ]]
+    return upload_to_s3(frame, source_id, date, target_table)
 
 
 def upload_to_s3(frame, source_id, date, target_table):
