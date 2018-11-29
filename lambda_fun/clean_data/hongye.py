@@ -1896,7 +1896,7 @@ class HongYeCleaner:
         return subquery
 
     def delivery(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.delivery_92()
         else:
             return self.delivery_other()
@@ -2908,7 +2908,7 @@ class HongYeCleaner:
         return part
 
     def requireorder(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.requireorder_92()
         else:
             return self.requireorder_other()
