@@ -6,7 +6,7 @@ from flask import url_for
 class TestExtTableCheck:
     def test_get_ext_check(self, client, token):
         res = client.get(
-            url_for("admin_api.get_ext_check", source_id="99YYYYY"), headers={"token": token}
+            url_for("admin_api.get_ext_check", source_id="99YYYYY", target_table='cost'), headers={"token": token}
         )
 
         assert res.json["meta"]["code"] == 200 or res.json["meta"]["code"] == 404
@@ -15,6 +15,7 @@ class TestExtTableCheck:
         data = {
             "sql": "sql",
             "source_id": "32YYYYY",
+            "target_table": "cost",
         }
         res = client.post(
             url_for("admin_api.create_sql"),
