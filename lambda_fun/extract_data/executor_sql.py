@@ -10,7 +10,7 @@ from enum import Enum
 import boto3
 import pandas as pd
 import pytz
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.pool import NullPool
 from csv import QUOTE_NONNUMERIC
 
@@ -57,7 +57,7 @@ def handler(event, context):
     os.environ["NLS_LANG"] = "SIMPLIFIED CHINESE_CHINA.UTF8"
     engine = create_engine(db_url, echo=False, poolclass=NullPool)
     try:
-        sql_data_frame = pd.read_sql(sql, engine)
+        sql_data_frame = pd.read_sql(text(sql), engine)
         sql_data_frame.columns = [c.lower() for c in sql_data_frame.columns]
 
         # if _type.lower() == Method.sync.name:

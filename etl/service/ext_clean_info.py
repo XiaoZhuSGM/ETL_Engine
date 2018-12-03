@@ -7,12 +7,12 @@ from etl.models import session_scope
 
 class ExtCleanInfoParameterError(Exception):
     def __str__(self):
-        return "parameter error"
+        return "参数错误，请重新确认"
 
 
 class ExtCleanInfoNotFound(Exception):
     def __str__(self):
-        return "ext_clean_info not found"
+        return "目标表不存在"
 
 
 class ExtCleanInfoTableNotFound(Exception):
@@ -20,7 +20,7 @@ class ExtCleanInfoTableNotFound(Exception):
         self.table = table
 
     def __str__(self):
-        return f"table:{self.table}is not exist in ext_table_info"
+        return f"table:{self.table}不存在"
 
 
 class ExtCleanInfoColumnNotFound(Exception):
@@ -42,7 +42,7 @@ class ExtTableInfoNotFound(Exception):
 
 class ErpNotMatch(Exception):
     def __str__(self):
-        return "datasrouce's erp_vendor is not match"
+        return "erp类型不一致"
 
 
 class ExtDatasourceNotExist(Exception):
@@ -50,12 +50,12 @@ class ExtDatasourceNotExist(Exception):
         self.source_id = source_id
 
     def __str__(self):
-        return f"source_id:{self.source_id} is not exist"
+        return f"source_id:{self.source_id}不存在"
 
 
 class TableNotExist(Exception):
     def __str__(self):
-        return "not found table by source_id"
+        return "没有找到对应的表"
 
 
 class ExtCleanInfoService:
@@ -194,7 +194,8 @@ class ExtCleanInfoService:
 
         ext_clean_info.update(origin_table=origin_table, covert_str=covert_str)
 
-    def get_ext_clean_info_table(self, source_id):
+    @staticmethod
+    def get_ext_clean_info_table(source_id):
         tables = []
 
         ext_table_infos = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
@@ -207,21 +208,41 @@ class ExtCleanInfoService:
                 tables.append(table_name)
         return tables
 
-    def get_ext_clean_info_target_table(self, source_id):
+    @staticmethod
+    def get_ext_clean_info_target_table(source_id):
         ext_clean_info_models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
         ext_clean_tables = [model.target_table for model in ext_clean_info_models]
         ext_target_info_models = ExtTargetInfo.query.filter(ExtTargetInfo.target_table.notin_(ext_clean_tables)).all()
-        tables = [model.target_table for model in ext_target_info_models]
+        tables = sorted([model.target_table for model in ext_target_info_models])
         return tables
 
-    @session_scope
     def copy_ext_clean_info(self, data):
         """
             实现同个erp下数据表配置一键复制功能
         """
         template_source_id = data.get("template_source_id")
         target_source_id = data.get("target_source_id")
+        if not all([template_source_id, target_source_id]):
+            raise ExtCleanInfoParameterError()
+        self._copy_ext_clean_info(template_source_id, target_source_id)
 
+    def copy_ext_clean_info_table(self, data):
+        """
+            copy同个erp下单张目标表
+        """
+        template_source_id = data.get("template_source_id")
+        target_source_id = data.get("target_source_id")
+        table_name = data.get("target_tables")
+        if not all([template_source_id, target_source_id, table_name]):
+            raise ExtCleanInfoParameterError()
+        self._copy_ext_clean_info(template_source_id, target_source_id, table_name)
+
+    @session_scope
+    def _copy_ext_clean_info(self, template_source_id, target_source_id, target_tables=None):
+        """
+        copy同个erp下的目标表配置
+        :return:
+        """
         template_datasource = ExtDatasource.query.filter_by(source_id=template_source_id).first()
         target_datasource = ExtDatasource.query.filter_by(source_id=target_source_id).first()
         if not all([template_datasource, target_datasource]):
@@ -230,35 +251,37 @@ class ExtCleanInfoService:
         if template_datasource.erp_vendor != target_datasource.erp_vendor:
             raise ErpNotMatch()
 
-        template_table_infos = ExtCleanInfo.query.filter_by(source_id=template_source_id, deleted=False).all()
-        target_table_infos = ExtCleanInfo.query.filter_by(source_id=target_source_id, deleted=False).all()
-        if not all([template_table_infos, target_table_infos]):
-            raise TableNotExist()
+        query = ExtCleanInfo.query.filter_by(source_id=template_source_id, deleted=False)
+        if target_tables is not None:
+            query = query.filter(ExtCleanInfo.in_(target_tables))
+
+        template_models = query.all()
 
         # 同步同样表名的配置
-        for template_table in template_table_infos:
+        for model in template_models:
 
-            target_table = ExtCleanInfo.query.filter_by(
-                source_id=target_source_id,
-                target_table=template_table.target_table,
-            ).first()
-            if not target_table:
+            info = {
+                "origin_table": model.origin_table,
+                "covert_str": model.covert_str,
+                "deleted": model.deleted
+            }
+            resutl = (
+                ExtCleanInfo.query
+                .filter_by(source_id=target_source_id, target_table=model.target_table)
+                .update(info)
+            )
+
+            if resutl == 0:
                 ExtCleanInfo.create(
                     source_id=target_source_id,
-                    target_table=template_table.target_table,
-                    origin_table=template_table.origin_table,
-                    covert_str=template_table.covert_str,
-                    deleted=template_table.deleted
+                    target_table=model.target_table,
+                    origin_table=model.origin_table,
+                    covert_str=model.covert_str,
+                    deleted=model.deleted
                 )
-                continue
-            info = {
-                "origin_table": template_table.origin_table,
-                "covert_str": template_table.covert_str,
-                "deleted": template_table.deleted
-            }
-            target_table.update(**info)
 
-    def get_ext_clean_info_target(self, source_id, target):
+    @staticmethod
+    def get_ext_clean_info_target(source_id, target):
         if not all([source_id, target]):
             raise ExtCleanInfoParameterError()
         target_table = ExtCleanInfo.query.filter_by(source_id=source_id, target_table=target, deleted=False).first()
@@ -266,3 +289,14 @@ class ExtCleanInfoService:
             raise ExtCleanInfoNotFound()
         data = target_table.to_dict()
         return data
+
+    @staticmethod
+    def get_ext_clean_info_template_target_tables(source_id):
+        """
+        获取某个source_id下所有生效的的目标表的表名称
+        :param source_id:
+        :return:
+        """
+        models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
+        table_names = [model.target_table for model in models]
+        return table_names

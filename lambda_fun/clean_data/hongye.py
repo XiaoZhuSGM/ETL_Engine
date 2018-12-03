@@ -244,7 +244,7 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 
 class HongYeCleaner:
-    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4}
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4}
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
@@ -1192,8 +1192,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_92(self):
         inf_goods = self.data["inf_goods"]
@@ -1359,8 +1359,8 @@ class HongYeCleaner:
         result = pd.concat([part1, part2])
 
         result["supplier_code"] = result["supplier_code"].str.strip()
-
-        return pd.concat([part1, part2])
+        result["warranty"] = result.warranty.map(lambda x: "" if pd.isnull(x) else int(x))
+        return result
 
     def goods_attribute(self):
         spec = self.data["inf_goods_more"]
@@ -1896,7 +1896,7 @@ class HongYeCleaner:
         return subquery
 
     def delivery(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.delivery_92()
         else:
             return self.delivery_other()
@@ -2908,7 +2908,7 @@ class HongYeCleaner:
         return part
 
     def requireorder(self):
-        if self.source_id == '92YYYYYYYYYYYYY':
+        if self.source_id == '92YYYYYYYYYYYYY' or self.source_id == '94YYYYYYYYYYYYY':
             return self.requireorder_92()
         else:
             return self.requireorder_other()

@@ -1,5 +1,4 @@
-from flask import request
-from werkzeug.utils import secure_filename
+from flask import request, send_from_directory
 
 from . import forecast_api
 from .. import APIError, jsonify_with_data, jsonify_with_error
@@ -7,7 +6,7 @@ from .. import APIError, jsonify_with_data, jsonify_with_error
 from etl.service.display_info import DisplayInfo, DisplayInfoExist, ForeignStoreIdNotExist
 from etl.service.delivery_period import DeliveryPeriodService, DeliveryPeriodExist, DeliveryPeriodNotExist
 
-import openpyxl
+import os
 
 display_info = DisplayInfo()
 delivery_period = DeliveryPeriodService()
@@ -90,6 +89,12 @@ def param_upload_file():
         return jsonify_with_data(APIError.OK)
 
     return jsonify_with_error(APIError.VALIDATE_ERROR, '文件格式有误')
+
+
+@forecast_api.route("/param/download/<path:filename>")
+def param_download(filename):
+    dirpath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../service'))
+    return send_from_directory(dirpath, filename, as_attachment=True)
 
 
 @forecast_api.route("/param/delivery")

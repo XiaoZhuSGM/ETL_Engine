@@ -11,16 +11,17 @@ import arrow
 ext_check_table = ExtCheckTable()
 
 
-@etl_admin_api.route("/ext/check/<source_id>")
-def get_ext_check(source_id):
+@etl_admin_api.route("/ext/check/<source_id>/<target_table>")
+def get_ext_check(source_id, target_table):
     date = request.args.get("date")
     if date is None:
         date = arrow.now().shift(days=-1).format('YYYY-MM-DD')
 
     source_id = source_id.upper()
+    target_table = target_table.lower()
 
     # 查看本地数据库是否有数
-    my_data = ExtCheckNum.query.filter_by(source_id=source_id, date=date).first()
+    my_data = ExtCheckNum.query.filter_by(source_id=source_id, date=date, target_table=target_table).first()
     if my_data and my_data.num > 500:
         return jsonify_with_data(APIError.OK, data={'num': my_data.num})
 
@@ -38,12 +39,12 @@ def get_ext_check(source_id):
     error = ext_check_table.connect_test(**data_source)
     if error:
         return jsonify_with_error(APIError.BAD_REQUEST, "对方数据库连接失败！")
-    num = ext_check_table.get_target_num(source_id, date)
+    num = ext_check_table.get_target_num(source_id, target_table, date)
     if not num:
         return jsonify_with_error(APIError.NOTFOUND, "sql not found")
 
     num = list(num[0].values())[0]
-    ext_check_table.create_check_num(source_id, num, date)
+    ext_check_table.create_check_num(source_id, target_table, num, date)
 
     return jsonify_with_data(APIError.OK, data={'num': num})
 
@@ -81,9 +82,10 @@ def create_sql():
 def ext_save_sql():
     data = request.json
     sql = data.get('sql')
+    target_table = data.get('target_table')
     source_id = data.get('source_id')
     if not all([sql, source_id]):
         return jsonify_with_error(APIError.VALIDATE_ERROR, '参数有误')
 
-    ext_check_table.create_test_query(source_id, sql)
+    ext_check_table.create_test_query(source_id, sql, target_table)
     return jsonify_with_data(APIError.OK, data={'result': '{}保存成功'.format(source_id)})
