@@ -91,8 +91,8 @@ class ExtCheckTable(object):
         }
         return data_dict
 
-    def get_target_num(self, source_id, date):
-        ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table="cost").first()
+    def get_target_num(self, source_id, target_table, date):
+        ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table=target_table).first()
         if ext_test_query:
             sql = ext_test_query.query_sql
             if "{yyyymm}" in sql:
@@ -113,17 +113,17 @@ class ExtCheckTable(object):
             return None
 
     @session_scope
-    def create_check_num(self, source_id, num, date):
-        ext_check_num = ExtCheckNum.query.filter_by(source_id=source_id, date=date).first()
+    def create_check_num(self, source_id, target_table, num, date):
+        ext_check_num = ExtCheckNum.query.filter_by(source_id=source_id, date=date, target_table=target_table).first()
         if ext_check_num:
             ext_check_num.update(num=num)
         else:
-            ExtCheckNum(source_id=source_id, num=num, date=date).save()
+            ExtCheckNum(source_id=source_id, num=num, date=date, target_table=target_table).save()
 
     @session_scope
-    def create_test_query(self, source_id, sql):
+    def create_test_query(self, source_id, sql, target_table):
         ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table='cost').first()
         if ext_test_query:
             ext_test_query.update(query_sql=sql)
         else:
-            ExtTestQuery(source_id=source_id, target_table='cost', query_sql=sql).save()
+            ExtTestQuery(source_id=source_id, query_sql=sql, target_table=target_table).save()
