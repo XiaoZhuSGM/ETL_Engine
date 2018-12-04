@@ -130,6 +130,7 @@ class ExtCheckNum(CRUDMixin, db.Model):
     source_id = Column(String(15))
     date = Column(DateTime)
     num = Column(Integer)
+    target_table = Column(String(12), default='cost')
 
 
 class ExtParamPlatform(CRUDMixin, db.Model):
