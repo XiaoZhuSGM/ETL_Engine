@@ -2042,7 +2042,6 @@ class HaiDingCleaner:
         part["foreign_category_lv4"] = ""
         part["foreign_category_lv5"] = ""
         part["cmid"] = self.cmid
-        part["storage_time"] = datetime.now(_TZINFO)
         part["last_updated"] = datetime.now(_TZINFO)
         part["isvalid"] = 1
 
@@ -2061,12 +2060,12 @@ class HaiDingCleaner:
                 "name.vendor": "supplier_name",
                 "code.vendor": "supplier_code",
                 "name.brand": "brand_name",
+                "createdate":"storage_time"
             }
         )
         part = part[columns]
 
         part['warranty'] = part.apply(lambda row: int(row['warranty']), axis=1)
-
         return part
 
     def category(self):
