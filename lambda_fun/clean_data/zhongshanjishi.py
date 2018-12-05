@@ -331,7 +331,12 @@ def clean_store(source_id, date, target_table, data_frames):
     frames["store_address"] = ""
     frames["address_code"] = None
     frames["device_id"] = None
-    frames["store_status"] = ""
+    def store_status(value):
+        if value == '0':
+            return '闭店'
+        if value == '1':
+            return '正常'
+    frames["store_status"] = frames['stores.isenable'].apply(store_status)
     frames["create_date"] = datetime.now(_TZINFO)
     frames["last_updated"] = datetime.now(_TZINFO)
     frames["lat"] = None
