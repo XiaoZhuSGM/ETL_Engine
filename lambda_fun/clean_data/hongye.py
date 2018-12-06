@@ -613,14 +613,14 @@ class HongYeCleaner:
                 right_on=["lv1.classcode"]
             )
         )
+        part1 = part1[
+            (~part1["flowno"].str.contains("NNN", regex=False))
+            & (part1["deptcode"].notnull())
+            & (part1["gdsincode"].notnull())
+            ]
         if not len(part1):
             part1 = pd.DataFrame(columns=columns)
         else:
-            part1 = part1[
-                (~part1["flowno"].str.contains("NNN", regex=False))
-                & (part1["deptcode"].notnull())
-                & (part1["gdsincode"].notnull())
-                ]
             part1["cmid"] = self.cmid
             part1["source_id"] = self.source_id
             part1["consumer_id"] = ""
@@ -683,15 +683,15 @@ class HongYeCleaner:
                 suffixes=("", ".lv"),
             )
         )
+        part2 = part2[
+            (~part2["flowno"].str.contains("NNN", regex=False))
+            & (part2["deptcode"].notnull())
+            & (part2["gdsincode"].notnull())
+            ]
 
         if not len(part2):
             part2 = pd.DataFrame(columns=columns)
         else:
-            part2 = part2[
-                (~part2["flowno"].str.contains("NNN", regex=False))
-                & (part2["deptcode"].notnull())
-                & (part2["gdsincode"].notnull())
-                ]
             part2["cmid"] = self.cmid
             part2["source_id"] = self.source_id
             part2["consumer_id"] = ""
