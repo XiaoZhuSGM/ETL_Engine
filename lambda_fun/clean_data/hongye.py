@@ -1914,9 +1914,10 @@ class HongYeCleaner:
         item = self.data["inf_goods"].rename(columns=lambda x: f"item.{x}")
 
         bil_send["bil_send.deptcode"] = bil_send["bil_send.deptcode"].str.strip()
-        bil_send["bil_send.otherdeptcode_sub"] = bil_send.apply(
-            lambda row: (row["bil_send.otherdeptcode"]).strip()[:4], axis=1
-        )
+        if len(bil_send):
+            bil_send["bil_send.otherdeptcode"] = bil_send.apply(
+                lambda row: (row["bil_send.otherdeptcode"]).strip()[:4], axis=1
+            )
         warehouse["warehouse.deptcode"] = warehouse["warehouse.deptcode"].str.strip()
         store["store.deptcode"] = store["store.deptcode"].str.strip()
 
@@ -1926,7 +1927,7 @@ class HongYeCleaner:
             bil_send
             .merge(warehouse, how="left", left_on="bil_send.deptcode", right_on="warehouse.deptcode")
             .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
-            .merge(store, how="left", left_on="bil_send.otherdeptcode_sub", right_on="store.deptcode")
+            .merge(store, how="left", left_on="bil_send.otherdeptcode", right_on="store.deptcode")
             .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
         )
@@ -1971,13 +1972,14 @@ class HongYeCleaner:
             part1 = part1[columns]
 
         lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
-        bil_send["bil_send.deptcode_sub"] = bil_send["bil_send.deptcode"].apply(lambda x: x[:4])
+        if len(bil_send):
+            bil_send["bil_send.deptcode"] = bil_send["bil_send.deptcode"].apply(lambda x: x[:4])
 
         part2 = (
             bil_send
             .merge(warehouse, how="left", left_on="bil_send.otherdeptcode", right_on="warehouse.deptcode")
             .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
-            .merge(store, how="left", left_on="bil_send.deptcode_sub", right_on="store.deptcode")
+            .merge(store, how="left", left_on="bil_send.deptcode", right_on="store.deptcode")
             .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
             .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
         )
