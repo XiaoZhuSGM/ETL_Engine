@@ -81,6 +81,8 @@ def clean_kemaiyunding(source_id, date, target_table, data_frames):
         return clean_category(source_id, date, target_table, data_frames)
     elif target_table == "delivery":
         return clean_delivery(source_id, date, target_table, data_frames)
+    elif target_table == "requireorder":
+        return clean_requireorder(source_id, date, target_table, data_frames)
     else:
         pass
 
@@ -697,3 +699,73 @@ def frame3(cmid, source_id, frames):
     temp3 = temp3[columns]
 
     return temp3
+
+def clean_requireorder(source_id,date,target_table,frames):
+    """
+    清洗门店要货单
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param frames:
+    :return:
+    """
+    columns = ["source_id", "cmid", "order_num", "order_date", "order_type", "foreign_store_id", "store_show_code",
+               "store_name", "foreign_item_id", "item_show_code", "barcode", "item_name", "item_unit", "order_qty",
+               "order_price", "order_total", "vendor_id", "vendor_show_code", "vendor_name", "foreign_category_lv1",
+               "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5",
+               "purchaser"]
+    cmid = source_id.split("Y")[0]
+    header = frames["t_rd_master"]
+    detail = frames["t_rd_detail"]
+    store = frames["t_br_master"]
+    item = frames["t_bi_master"]
+    prc = frames["t_bi_price"]
+    sup = frames["t_bs_master"]
+
+    frames = header.merge(detail, how="inner", on="fsheet_no") \
+        .merge(store, how="inner", on="fbrh_no") \
+        .merge(item, how="inner", on="fitem_id") \
+        .merge(prc, how="left", on="fitem_id") \
+        .merge(sup, how="left", on="fsup_no")
+
+    def generate_ordertype(x):
+        if x == '0':
+            res = '手工要货'
+        elif x == '1':
+            res = '分货单'
+        else:
+            res = ''
+        return res
+
+    if not len(frames):
+        frames = pd.DataFrame(columns=columns)
+    else:
+        frames["cmid"] = cmid
+        frames["source_id"] = source_id
+        frames["order_type"] = frames["fsrc_type"].apply(generate_ordertype)
+        frames["purchaser"] = ''
+        frames["vendor_show_code"] = frames["fsup_no"]
+        frames["store_show_code"] = frames["fbrh_no"]
+        frames["item_show_code"] = frames["fitem_no"]
+        frames["foreign_category_lv1"] = frames["fitem_clsno"].apply(lambda x: str(x)[:2] if x is not None else '')
+        frames["foreign_category_lv2"] = frames["fitem_clsno"].apply(lambda x: str(x)[:4] if x is not None else '')
+        frames["foreign_category_lv3"] = frames["fitem_clsno"]
+        frames["foreign_category_lv4"] = ''
+        frames["foreign_category_lv5"] = ''
+        frames = frames.rename(columns={
+            "fsheet_no": "order_num",
+            "fap_date": "order_date",
+            "fitem_subno": "barcode",
+            "fitem_name": "item_name",
+            "funit_no": "item_unit",
+            "fqty": "order_qty",
+            "fsale_price": "order_price",
+            "fsale_amt": "order_total",
+            "fbrh_no": "foreign_store_id",
+            "fitem_id": "foreign_item_id",
+            "fsup_no": "vendor_id",
+            "fbrh_name": "store_name",
+            "fsup_name": "vendor_name",
+        })
+        frames = frames[columns]
+    return upload_to_s3(frames, source_id, date, target_table)
