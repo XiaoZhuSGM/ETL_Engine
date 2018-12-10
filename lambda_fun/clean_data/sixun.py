@@ -26,7 +26,7 @@ category_dict = {
     '56YYYYYYYYYYYYY': (2, 4, 6),
     '57YYYYYYYYYYYYY': (2, 4, 6),
     '74YYYYYYYYYYYYY': (2, 4, 6),
-    '83YYYYYYYYYYYYY': (2, 4, 6),
+    '83YYYYYYYYYYYYY': (2, 4, 6)
 }
 
 branch_dict = {
@@ -55,6 +55,8 @@ def clean_sixun(source_id, date, target_table, data_frames):
         return sales_target(source_id, date, target_table, data_frames)
     elif target_table == 'goods_loss':
         return clean_goods_loss(source_id, date, target_table, data_frames)
+    elif target_table == 'requireorder':
+        return clean_requireorder(source_id, date, target_table, data_frames)
 
 
 # 门店表
@@ -488,7 +490,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     # 销售
     sale_flow_frame['branch_no_1'] = sale_flow_frame['branch_no'].str.slice(0, branch_no_len)
 
-
     # 门店
     result_frame = pd.merge(sale_flow_frame, branch_info_frame, left_on='branch_no_1', right_on='branch_no', how='left',
                             suffixes=('_s1', '_store'))
@@ -648,7 +649,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
 
 
 def clean_cost(source_id, date, target_table, data_frames):
-
     columns = [
         'source_id',
         'foreign_store_id',
@@ -734,7 +734,6 @@ def clean_cost(source_id, date, target_table, data_frames):
         result_frame['foreign_category_lv1'] = result_frame['item_clsno_c1']
     else:
         result_frame['foreign_category_lv1'] = result_frame['item_clsno_lv1']
-
 
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
@@ -1020,6 +1019,78 @@ def sales_target(source_id, date, target_table, data_frames):
         "foreign_category_lv5",
         "last_updated",
     ]]
+
+    return upload_to_s3(result, source_id, date, target_table)
+
+
+def clean_requireorder(source_id, date, target_table, data_frames):
+    columns = [
+        "source_id",
+        "cmid",
+        "order_num",
+        "order_date",
+        "order_type",
+        "foreign_store_id",
+        "store_show_code",
+        "store_name",
+        "foreign_item_id",
+        "item_show_code",
+        "barcode",
+        "item_name",
+        "item_unit",
+        "order_qty",
+        "order_price",
+        "order_total",
+        "vendor_id",
+        "vendor_show_code",
+        "vendor_name",
+        "foreign_category_lv1",
+        "foreign_category_lv2",
+        "foreign_category_lv3",
+        "foreign_category_lv4",
+        "foreign_category_lv5",
+        "purchaser",
+    ]
+    cmid = source_id.split("Y")[0]
+    lv1_len, lv2_len, lv3_len = category_dict[source_id]
+    master = data_frames['t_pm_sheet_master']
+    detail = data_frames['t_pm_sheet_detail']
+    store = data_frames['t_bd_branch_info']
+    goods = data_frames['t_bd_item_info']
+    sup = data_frames['t_bd_supcust_info']
+    master = master[master['trans_no'] == 'YH']
+    result = master.merge(
+        detail, how='left', on='sheet_no').merge(
+        store, how='left', on='branch_no').merge(
+        goods, how='left', on='item_no').merge(
+        sup, how='left', on='supcust_no')
+    result['foreign_category_lv1'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv1_len else x[:lv1_len])
+    result['foreign_category_lv2'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv2_len else x[:lv2_len])
+    result['foreign_category_lv3'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv3_len else x[:lv3_len])
+    result['cmid'] = cmid
+    result['source_id'] = source_id
+    result['store_show_code'] = result['branch_no']
+    result['item_show_code'] = result['item_no']
+    result['barcode'] = result['item_no']
+    result['vendor_show_code'] = result['supcust_no']
+    result['foreign_category_lv4'] = ''
+    result['foreign_category_lv5'] = ''
+    result['purchaser'] = ''
+    result['order_type'] = '门店要货'
+    result = result.rename(columns={
+        'sheet_no': 'order_num',
+        'oper_date': 'order_date',
+        'branch_no': 'foreign_store_id',
+        'branch_name': 'store_name',
+        'item_no': 'foreign_item_id',
+        'unit_no': 'item_unit',
+        'real_qty': 'order_qty',
+        'valid_price': 'order_price',
+        'sub_amt': 'order_total',
+        'supcust_no': 'vendor_id',
+        'sup_name': 'vendor_name'
+    })
+    result = result[columns]
 
     return upload_to_s3(result, source_id, date, target_table)
 
