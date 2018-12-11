@@ -101,6 +101,9 @@ class DatasourceService(object):
 
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)
+    
+    def find_datasource_by_status(self, status):
+        return self.__datasourceDao.find_datasource_by_status(status)
 
     def generator_full_crontab_expression(self, source_id):
         """

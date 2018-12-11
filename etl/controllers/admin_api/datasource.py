@@ -19,6 +19,8 @@ DATASOURCE_API_UPDATE = "/datasource/<int:datasource_id>"
 DATASOURCE_API_TEST = "/datasource/test"
 DATASOURCE_API_GET_BY_ERP = "/datasource/erp/<string:erp_vendor>"
 
+DATASOURCE_API_GET_BY_STATUS = "/datasource/status/<int:status>"
+
 DATASOURCE_API_GENERATOR_CRON = "/crontab/full/<string:source_id>"
 DATASOURCE_API_GENERATOR_EXTRACT_EVENT = "/extract/event/<string:source_id>"
 DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE = "/datasources/online"
@@ -26,6 +28,13 @@ DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE = "/datasources/online"
 datasource_service = DatasourceService()
 table_service = ExtTableService()
 
+@etl_admin_api.route(DATASOURCE_API_GET_BY_STATUS, methods=['GET'])
+def get_datasource_by_status(status):
+    datasource_list = datasource_service.find_datasource_by_status(status)
+    return jsonify_with_data(
+        APIError.OK,
+        data=[datasource.to_dict_and_config() for datasource in datasource_list],
+    )
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE, methods=["GET"])
 def generate_online_enterprice():
