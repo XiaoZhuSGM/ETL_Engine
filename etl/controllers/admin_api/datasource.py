@@ -4,7 +4,11 @@ from . import etl_admin_api
 from .. import jsonify_with_error, jsonify_with_data, APIError
 from ...service.datasource import DatasourceService
 from ...service.datasource import ExtDatasourceNotExist, ExtDatasourceConfigNotExist
-from ...service.ext_table import ExtTableService, ExtDatasourceParaMiss, ExtDatasourceConnError
+from ...service.ext_table import (
+    ExtTableService,
+    ExtDatasourceParaMiss,
+    ExtDatasourceConnError,
+)
 from ...validators.validator import (
     validate_arg,
     JsonDatasourceAddInput,
@@ -19,12 +23,35 @@ DATASOURCE_API_UPDATE = "/datasource/<int:datasource_id>"
 DATASOURCE_API_TEST = "/datasource/test"
 DATASOURCE_API_GET_BY_ERP = "/datasource/erp/<string:erp_vendor>"
 
+DATASOURCE_API_GET_BY_STATUS = "/datasource/status/<int:status>"
+
+DATASOURCE_API_GET_BY_FILTER = "/datasource/filter"
+
 DATASOURCE_API_GENERATOR_CRON = "/crontab/full/<string:source_id>"
 DATASOURCE_API_GENERATOR_EXTRACT_EVENT = "/extract/event/<string:source_id>"
 DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE = "/datasources/online"
 
 datasource_service = DatasourceService()
 table_service = ExtTableService()
+
+
+@etl_admin_api.route(DATASOURCE_API_GET_BY_FILTER, methods=["GET"])
+def get_datasource_by_filter():
+    args = request.args
+    datasource_list = datasource_service.find_datasource_by_filter(args)
+    return jsonify_with_data(
+        APIError.OK,
+        data=[datasource.to_dict_and_config() for datasource in datasource_list],
+    )
+
+
+@etl_admin_api.route(DATASOURCE_API_GET_BY_STATUS, methods=["GET"])
+def get_datasource_by_status(status):
+    datasource_list = datasource_service.find_datasource_by_status(status)
+    return jsonify_with_data(
+        APIError.OK,
+        data=[datasource.to_dict_and_config() for datasource in datasource_list],
+    )
 
 
 @etl_admin_api.route(DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE, methods=["GET"])

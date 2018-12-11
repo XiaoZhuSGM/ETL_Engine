@@ -3,6 +3,7 @@ from etl.service.ext_sql import DatasourceSqlService
 from etl.service.datasource import DatasourceService
 from datetime import timedelta
 import lambda_fun.extract_data.extract_db_worker as worker
+from lambda_fun.load_data.warehouse import handler as load_warehouse
 from common.common import get_content, SQL_PREFIX, S3_BUCKET, LAMBDA
 from etl.models.etl_table import ExtCleanInfo, ExtHistoryTask, ExtHistoryLog
 from etl.models.datasource import ExtDatasource
@@ -253,8 +254,14 @@ def load_one_table(source_id, end_date, table, app):
 
     if 'FunctionError' in invoke_response:
         remark = base64.b64decode(invoke_response['LogResult'])
-        print(f"入库失败，{table},errmsg:{remark}")
-        return False, f"{table}入库失败"
+        print(f"lambda入库失败，{table},errmsg:{remark}")
+        print("开始调用接口入库")
+        try:
+            load_warehouse(event, None)
+        except Exception as e:
+            print(f'调用接口入库失败，失败原因:{str(e)}')
+            return False, f"{table}入库失败"
+
     print(f"{table}入库成功")
 
     return True, table
