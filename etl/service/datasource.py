@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
-
+from etl import db
 from ..dao.datasource import DatasourceDao
 from ..dao.datasource_config import DatasourceConfigDao
 from ..models import session_scope
 from ..models.datasource import ExtDatasource
 from ..models.etl_table import ExtCleanInfo
+from sqlalchemy import asc
 
 import pytz
 
@@ -101,7 +102,7 @@ class DatasourceService(object):
 
     def find_datasource_by_erp(self, erp_vendor):
         return self.__datasourceDao.find_datasource_by_erp(erp_vendor)
-    
+
     def find_datasource_by_status(self, status):
         return self.__datasourceDao.find_datasource_by_status(status)
 
@@ -188,3 +189,14 @@ class DatasourceService(object):
         )
 
         return database_url
+
+
+    def find_datasource_by_filter(self, match_term):
+        query = db.session.query(ExtDatasource)
+        if "erp_vendor" in match_term:
+            query = query.filter(ExtDatasource.erp_vendor == match_term["erp_vendor"])
+
+        if "status" in match_term:
+            query = query.filter(ExtDatasource.status == match_term["status"])
+
+        return query.order_by(asc(ExtDatasource.source_id)).all()
