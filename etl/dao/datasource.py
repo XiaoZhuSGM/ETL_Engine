@@ -34,3 +34,10 @@ class DatasourceDao(Dao):
             .order_by(ExtDatasource.source_id.asc())
             .all()
         )
+    
+    def find_datasource_by_status(self, status):
+        return (
+            self.model.query.filter_by(status=status)
+            .order_by(ExtDatasource.source_id.asc())
+            .all()
+        )
