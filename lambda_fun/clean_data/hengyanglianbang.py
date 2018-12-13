@@ -57,6 +57,7 @@ def clean_store(source_id, date, target_table, data_frames):
     store['cmid'] = cmid
     store['source_id'] = source_id
     store['show_code'] = store['branch_no']
+    store = store[store["trade_type"] != '5']
 
     def area_type_convert(area_code):
         if area_code == '00':
