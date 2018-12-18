@@ -172,8 +172,8 @@ def handler(event, context):
         cleaner = HongYeCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
 
-    elif erp_name == "中山及时中间库":
-        from zhongshanjishi import clean_jishi
+    elif erp_name == "海信商定天下v5":
+        from haixinv5 import clean_haixin
 
         return clean_jishi(source_id, date, target_table, data_frames)
 
