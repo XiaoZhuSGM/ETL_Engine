@@ -175,7 +175,7 @@ def handler(event, context):
     elif erp_name == "海信商定天下v5":
         from haixinv5 import clean_haixin
 
-        return clean_jishi(source_id, date, target_table, data_frames)
+        return clean_haixin(source_id, date, target_table, data_frames)
 
     elif erp_name == "超赢":
         from chaoying import clean_chaoying
