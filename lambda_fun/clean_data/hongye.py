@@ -1099,7 +1099,10 @@ class HongYeCleaner:
                 axis=1,
             )
             part1["foreign_category_lv5"] = ""
-            part1["storage_time"] = datetime.now(_TZINFO)
+            if self.source_id == '34YYYYYYYYYYYYY':
+                part1["storage_time"] = part1["moveindate"]
+            else:
+                part1["storage_time"] = datetime.now(_TZINFO)
             part1["last_updated"] = datetime.now(_TZINFO)
             part1["isvalid"] = "1"
             part1["show_code"] = part1["gdsincode"]
@@ -1167,7 +1170,10 @@ class HongYeCleaner:
             )
             part2["foreign_category_lv4"] = ""
             part2["foreign_category_lv5"] = ""
-            part2["storage_time"] = datetime.now(_TZINFO)
+            if self.source_id == '34YYYYYYYYYYYYY':
+                part2["storage_time"] = part2["moveindate"]
+            else:
+                part2["storage_time"] = datetime.now(_TZINFO)
             part2["last_updated"] = datetime.now(_TZINFO)
             part2["isvalid"] = "1"
             part2["show_code"] = part2["gdsincode"]

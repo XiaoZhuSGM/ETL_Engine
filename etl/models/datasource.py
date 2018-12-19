@@ -75,5 +75,6 @@ class ExtDatasource(CRUDMixin, db.Model):
         minute = cron_list[1]
         data["crontab"] = f"{minute} {hour} * * *"
         data["roll_back"] = self.ext_datasource_config.roll_back
+        data['delta'] = self.delta if self.delta else 1
         return data
 

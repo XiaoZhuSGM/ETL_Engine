@@ -1064,6 +1064,7 @@ def clean_requireorder(source_id, date, target_table, data_frames):
         store, how='left', on='branch_no').merge(
         goods, how='left', on='item_no').merge(
         sup, how='left', on='supcust_no')
+    result['item_clsno'] = result['item_clsno'].fillna('')
     result['foreign_category_lv1'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv1_len else x[:lv1_len])
     result['foreign_category_lv2'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv2_len else x[:lv2_len])
     result['foreign_category_lv3'] = result['item_clsno'].apply(lambda x: '' if len(x) < lv3_len else x[:lv3_len])

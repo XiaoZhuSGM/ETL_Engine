@@ -17,7 +17,7 @@ S3 = boto3.resource("s3")
 CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
 
-def clean_jishi(source_id, date, target_table, data_frames):
+def clean_haixin(source_id, date, target_table, data_frames):
     if target_table == "goodsflow":
         return clean_goodsflow(source_id, date, target_table, data_frames)
     elif target_table == "cost":
