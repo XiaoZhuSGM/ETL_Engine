@@ -15,6 +15,7 @@ import json
 from traceback import print_exc
 from flask import current_app
 from etl.etl import celery
+from etl.tasks.unload_s3 import UploadS3
 
 
 sql_service = DatasourceSqlService()
@@ -220,6 +221,8 @@ class RollbackTaskSet:
 
     def pipeline(self):
         print("开始抓数")
+        up = UploadS3(self.source_id)
+        dates = up.get_all_date(start=self.date, end=self.date)
         self.extract_data()
         for target in self.target_list:
             print(f"开始清洗：{target}")
@@ -228,6 +231,9 @@ class RollbackTaskSet:
             print(f"开始入库：{target}")
             self.warehouse_data(target, cleaned_file)
             print(f"入库完成：{target}")
+            print(f"开始上传s3：{target}")
+            up.loop(dates, target)
+            print(f"上传s3完成：{target}")
         db.engine.dispose()
 
 
