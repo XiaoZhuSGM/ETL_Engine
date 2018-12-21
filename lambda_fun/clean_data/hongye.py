@@ -990,6 +990,68 @@ class HongYeCleaner:
             part1["cost_type"] = ""
             part1["foreign_category_lv5"] = ""
 
+            part1 = part1.rename(
+                columns={
+                    "gdsincode": "foreign_item_id",
+                    "recorddate": "date",
+                    "totalamount": "total_quantity",
+                    "totalsalemoney": "total_sale",
+                    "totalinmoney": "total_cost",
+                }
+            )
+            part1 = part1[columns]
+
+        subquery2 = self._goodsclass_subquery_2()
+        part2 = rep_goods_sale.merge(
+            inf_goods, how="left", on=["gdsincode"], suffixes=("", ".inf_goods")
+        ).merge(
+            subquery2,
+            how="inner",
+            left_on=["classcode"],
+            right_on=["foreign_category_lv3"],
+            suffixes=("", ".lv"),
+        )
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2 = part2.groupby(
+                [
+                    "deptcode",
+                    "gdsincode",
+                    "recorddate",
+                    "foreign_category_lv1",
+                    "foreign_category_lv2",
+                    "foreign_category_lv3",
+                ],
+                as_index=False,
+            ).agg(
+                {
+                    "totalamount": np.sum,
+                    "totalsalemoney": np.sum,
+                    "totalinmoney": np.sum,
+                }
+            )
+
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
+            part2["foreign_store_id"] = part2.apply(
+                lambda row: row["deptcode"][: self.store_id_len], axis=1
+            )
+            part2["cost_type"] = ""
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2 = part2.rename(
+                columns={
+                    "gdsincode": "foreign_item_id",
+                    "recorddate": "date",
+                    "totalamount": "total_quantity",
+                    "totalsalemoney": "total_sale",
+                    "totalinmoney": "total_cost",
+                }
+            )
+            part2 = part2[columns]
+        return pd.concat([part1, part2])
+
     def goods(self):
         if self.source_id == "92YYYYYYYYYYYYY":
             return self.goods_92()
@@ -2816,12 +2878,12 @@ class HongYeCleaner:
         lv = self._sub_query_category_lv4().rename(columns=lambda x: f"lv.{x}")
         part1 = (
             bil_send
-                .merge(warehouse, how="left", left_on="bil_send.deptcode", right_on="warehouse.deptcode")
-                .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
-                .merge(store_a, how="left", left_on="bil_send.otherdeptcode", right_on="store_a.deptcode")
-                .merge(store_b, how="left", left_on="store_a.fatherdept", right_on="store_b.deptcode")
-                .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
-                .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
+            .merge(warehouse, how="left", left_on="bil_send.deptcode", right_on="warehouse.deptcode")
+            .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
+            .merge(store_a, how="left", left_on="bil_send.otherdeptcode", right_on="store_a.deptcode")
+            .merge(store_b, how="left", left_on="store_a.fatherdept", right_on="store_b.deptcode")
+            .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv4")
         )
 
         part1 = part1[(part1["bil_send.billtype"] == 1) & (part1["store_b.type"].isin([0, 1]))]
@@ -2870,12 +2932,12 @@ class HongYeCleaner:
         lv = self._sub_query_category_lv3().rename(columns=lambda x: f"lv.{x}")
         part2 = (
             bil_send
-                .merge(warehouse, how="left", left_on="bil_send.deptcode", right_on="warehouse.deptcode")
-                .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
-                .merge(store_a, how="left", left_on="bil_send.otherdeptcode", right_on="store_a.deptcode")
-                .merge(store_b, how="left", left_on="store_a.fatherdept", right_on="store_b.deptcode")
-                .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
-                .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
+            .merge(warehouse, how="left", left_on="bil_send.deptcode", right_on="warehouse.deptcode")
+            .merge(bil_senddtl, how="left", left_on="bil_send.billno", right_on="bil_senddtl.billno")
+            .merge(store_a, how="left", left_on="bil_send.otherdeptcode", right_on="store_a.deptcode")
+            .merge(store_b, how="left", left_on="store_a.fatherdept", right_on="store_b.deptcode")
+            .merge(item, how="left", left_on="bil_senddtl.gdsincode", right_on="item.gdsincode")
+            .merge(lv, left_on="item.classcode", right_on="lv.foreign_category_lv3")
         )
 
         part2 = part2[(part2["bil_send.billtype"] == 1) & (part2["store_b.type"].isin([0, 1]))]
@@ -5050,4 +5112,3 @@ class HongYeCleaner:
             part2 = part2[columns]
 
         return pd.concat([part1, part2])
-
