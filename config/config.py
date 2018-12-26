@@ -5,6 +5,7 @@ if another app called other ,so the config file named other_config.py. and so on
 """
 from typing import Optional
 from kombu import Queue
+import os
 
 
 class Config(object):
@@ -80,9 +81,7 @@ class ProductionConfig(Config):
     AIRFLOW_DB_URL = (
 ***REMOVED***
     )
-    REDSHIFT_URL = (
-***REMOVED***
-    )
+    REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
 
     CACHE_TYPE = "redis"
     CACHE_REDIS_HOST = REDIS_HOST
@@ -133,7 +132,7 @@ class DevelopmentConfig(Config):
     AIRFLOW_DB_URL = (
 ***REMOVED***
     )
-***REMOVED***
+    REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
 
     CACHE_TYPE = "null"  # debug, disable cache
     CACHE_REDIS_HOST = REDIS_HOST
@@ -177,7 +176,7 @@ class LocalConfig(Config):
     AIRFLOW_DB_URL = (
 ***REMOVED***
     )
-***REMOVED***
+    REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
 
 
 class TestingConfig(Config):

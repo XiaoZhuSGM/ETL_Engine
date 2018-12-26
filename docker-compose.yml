@@ -12,6 +12,7 @@ services:
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
+      REDSHIFT_URL: "${REDSHIFT_URL}"
     restart: always
   celery:
     image: etl-engine
