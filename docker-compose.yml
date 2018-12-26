@@ -18,6 +18,7 @@ services:
     image: etl-engine
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
+      REDSHIFT_URL: "${REDSHIFT_URL}"
     command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history
     depends_on:
       - redis
