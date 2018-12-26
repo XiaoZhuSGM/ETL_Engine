@@ -2389,7 +2389,8 @@ class HongYeCleaner:
             on=["dis_code"],
             suffixes=("", ".inf_whole_district"),
         )
-        part = part[part["depttype"] == 1]
+        part = part[(part["depttype"] == 1) | (part["depttype"] == '1')]
+
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
         part["address_code"] = None
@@ -2419,7 +2420,6 @@ class HongYeCleaner:
         part["foreign_store_id"] = part["foreign_store_id"].str.strip()
         part["show_code"] = part["show_code"].str.strip()
         part["area_code"] = part["area_code"].str.strip()
-
         return part
 
     def _sub_query_category_lv4(self):
