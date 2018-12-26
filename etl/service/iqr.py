@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from typing import Dict
 from config.config import config
 
-REDSHIFT_URL = config['prod']['SQLALCHEMY_DATABASE_URI']
+REDSHIFT_URL = config['prod'].SQLALCHEMY_DATABASE_URI
 GOODSFLOW_SQL_TEMPLATE = """
 select to_char(saletime, 'yyyy-MM-dd'), count(*)
 from goodsflow_{source_id}

@@ -11,7 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from config.config import config
 
-REDSHIFT_URL = config['prod']['SQLALCHEMY_DATABASE_URI']
+REDSHIFT_URL = config['prod'].SQLALCHEMY_DATABASE_URI
 
 GOODSFLOW_SQL_TEMPLATE = """
 unload ('select * from goodsflow_{source_id} where saletime >= \\'{start_date}\\' and saletime < \\'{end_date}\\'')
