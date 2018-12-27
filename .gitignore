@@ -117,3 +117,4 @@ lambda_fun/fabfile/*.zip
 
 *.ipynb
 deploy_lambda.sh
+.git.bfg-report

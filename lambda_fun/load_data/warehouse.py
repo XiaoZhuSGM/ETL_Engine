@@ -134,26 +134,4 @@ class Warehouser:
 
 
 if __name__ == "__main__":
-    event = {
-***REMOVED***
-        "data_key": "ext-etl-data/clean_data/source_id=88YYYYYYYYYYYYY/clean_date=2018-11-04/target_table=goods/dump=2018-11-06 15:47:16.286396+08:00&rowcount=8904.csv.gz",
-        "target_table": "chain_goods",
-        "data_date": "2018-11-04",
-        "warehouse_type": "upsert",
-        "cmid": "88",
-        "source_id": "88YYYYYYYYYYYYY",
-    }
-    
-    event1 = {
-***REMOVED***
-        "target_table": "chain_sales_target",
-        "warehouse_type": "copy",
-        "cmid": "57",
-        "data_date": "2018-09-10",
-        "data_key": "ext-etl-data/clean_data/source_id=57YYYYYYYYYYYYY/clean_date=2018-09-10/target_table=sales_target/dump=2018-09-11 23:01:10.434793+08:00&rowcount=35.csv.gz",
-        "source_id": "57YYYYYYYYYYYYY",
-    }
-
-    begin = time.time()
-    handler(event, None)
-    print(time.time() - begin)
+   pass
