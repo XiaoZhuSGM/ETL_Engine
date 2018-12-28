@@ -197,57 +197,57 @@ def handler(event, context):
 
         return clean_lianbang(source_id, date, target_table, data_frames)
 
+    elif erp_name == "昂捷-中间库":
+        from liuyi import LiuYiCleaner
+
+        cleaner = LiuYiCleaner(source_id, date, data_frames)
+        return cleaner.clean(target_table)
+
 
 if __name__ == "__main__":
 
     event = {
-        "source_id": "67YYYYYYYYYYYYY",
-        "erp_name": "海鼎",
-        "date": "2018-11-23",
-        "target_table": "cost",
+        "source_id": "93YYYYYYYYYYYYY",
+        "erp_name": "昂捷-中间库",
+        "date": "2018-12-18",
+        "target_table": "goodsflow",
         "origin_table_columns": {
-            "goods": ["sort", "gid"],
-            "rpt_storesaldrpt": [
-                "cls",
-                "fildate",
-                "orgkey",
-                "pdkey",
-                "saleamt",
-                "salecamt",
-                "salectax",
-                "saleqty",
-                "saletax",
+            "tb_pos_flow_goods": [
+                "c_no",
+                "c_sale_time",
+                "c_gcode",
+                "c_barcode",
+                "c_name",
+                "c_basic_unit",
+                "c_pro_status",
+                "c_price_sale",
+                "c_price_sale_disc",
+                "c_qty_sum",
+                "c_amount",
+                "c_pos",
+                "c_store_id",
+                "c_ccode"
             ],
-            "sdrpts": [
-                "amt",
-                "cls",
-                "fildate",
-                "gdgid",
-                "iamt",
-                "itax",
-                "ocrdate",
-                "qty",
-                "snd",
-                "tax",
+            "tb_store": [
+                "c_id",
+                "c_name"
             ],
-            "sort": ["code"],
+            "tbgoodscategory": [
+                "categorycode",
+                "categoryname",
+                "parentcategorycode",
+                "categoryitemcode",
+                "categorylevel"
+            ]
         },
         "converts": {
-            "goods": {"gid": "str", "sort": "str"},
-            "rpt_storesaldrpt": {
-                "cls": "str",
-                "fildate": "str",
-                "orgkey": "str",
-                "pdkey": "str",
+            "tb_pos_flow_goods": {
+                "c_barcode": "str",
+                "c_ccode": "str"
             },
-            "sdrpts": {
-                "cls": "str",
-                "fildate": "str",
-                "gdgid": "str",
-                "ocrdate": "str",
-                "snd": "str",
-            },
-            "sort": {"code": "str"},
+            "tbgoodscategory": {
+                "categorycode": "str"
+            }
         },
     }
 

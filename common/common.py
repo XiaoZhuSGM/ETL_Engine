@@ -12,7 +12,7 @@ import boto3
 from botocore.client import Config
 
 S3 = boto3.resource('s3')
-LAMBDA = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910))
+LAMBDA = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910, retries=dict(max_attempts=0)))
 
 
 def timestamp2format_time(timestamp):
