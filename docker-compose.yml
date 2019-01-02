@@ -13,12 +13,26 @@ services:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
       VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
       REDSHIFT_URL: "${REDSHIFT_URL}"
+      SQLALCHEMY_DATABASE_URI: "${SQLALCHEMY_DATABASE_URI}"
+      CELERY_BROKER_URL: "${CELERY_BROKER_URL}"
+      CELERY_RESULT_BACKEND: "${CELERY_RESULT_BACKEND}"
+      AIRFLOW_DB_URL: "${AIRFLOW_DB_URL}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION}"
     restart: always
   celery:
     image: etl-engine
     environment:
       ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
       REDSHIFT_URL: "${REDSHIFT_URL}"
+      SQLALCHEMY_DATABASE_URI: "${SQLALCHEMY_DATABASE_URI}"
+      CELERY_BROKER_URL: "${CELERY_BROKER_URL}"
+      CELERY_RESULT_BACKEND: "${CELERY_RESULT_BACKEND}"
+      AIRFLOW_DB_URL: "${AIRFLOW_DB_URL}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION}"
     command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history
     depends_on:
       - redis

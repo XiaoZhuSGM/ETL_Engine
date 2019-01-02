@@ -5,9 +5,6 @@ LABEL Name=etl-engine Version=0.0.1
 
 EXPOSE 5000
 
-***REMOVED***
-***REMOVED***
-ENV AWS_DEFAULT_REGION=cn-north-1
 ENV PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
 
 RUN apt-get update \
