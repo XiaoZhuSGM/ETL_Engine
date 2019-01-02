@@ -1,4 +1,3 @@
-
 stages:
   - build
   - test
@@ -10,6 +9,8 @@ cache:
 
 build:
   stage: build
+  only:
+    - merge_requests
   script:
     - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
     - python -m venv .venv
@@ -17,6 +18,8 @@ build:
 
 pytest:
   stage: test
+  only:
+    - merge_requests
   script:
     - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
 
