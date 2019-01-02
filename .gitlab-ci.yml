@@ -34,5 +34,5 @@ deploy_prod:
   only:
     - master@airflow-datapipline/etl-engine
   script:
-***REMOVED***
+    - curl -v 172.31.16.24:9999
   when: manual
