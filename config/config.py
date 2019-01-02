@@ -42,150 +42,44 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-***REMOVED***
-***REMOVED***"
-***REMOVED***
-***REMOVED***
     SQLALCHEMY_ECHO = False
-
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
-        DB_USER=pgsql_db_username,
-        DB_PASS=pgsql_db_password,
-        DB_ADDR=pgsql_db_hostname,
-        DB_NAME=pgsql_db_name,
-    )
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     SENTRY_DSN = ""
-
-    REDIS_HOST = "localhost"
-    REDIS_PORT = 6379
-    REDIS_DB = 0
-***REMOVED***
-
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-***REMOVED***
-***REMOVED***
-
-    AIRFLOW_DB_URL = (
-***REMOVED***
-    )
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+    AIRFLOW_DB_URL = os.environ.get("AIRFLOW_DB_URL")
     REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
-
-    CACHE_TYPE = "redis"
-    CACHE_REDIS_HOST = REDIS_HOST
-    CACHE_REDIS_PORT = REDIS_PORT
-    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
-    CACHE_REDIS_DB = REDIS_DB
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
-
-***REMOVED***
-***REMOVED***
-    postgresql_db_name = "cm_etl"
-***REMOVED***
-    # postgresql
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
-        DB_USER=postgresql_db_username,
-        DB_PASS=postgresql_db_password,
-        DB_ADDR=postgresql_db_hostname,
-        DB_NAME=postgresql_db_name,
-    )
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
-
-    REDIS_HOST = "localhost"
-    REDIS_PORT = 6379
-    REDIS_DB = 0
-    REDIS_PASSWORD = None
-
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    # CELERY_RESULT_BACKEND = (
-    #     f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/11"
-    #     if REDIS_PASSWORD
-    #     else f"redis://redis:{REDIS_PORT}/11"
-    # )
-    # CELERY_BROKER_URL = (
-    #     f"redis://:{REDIS_PASSWORD}@redis:{REDIS_PORT}/10"
-    #     if REDIS_PASSWORD
-    #     else f"redis://redis:{REDIS_PORT}/10"
-    # )
-
-***REMOVED***
-***REMOVED***
-
-    AIRFLOW_DB_URL = (
-***REMOVED***
-    )
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+    AIRFLOW_DB_URL = os.environ.get("AIRFLOW_DB_URL")
     REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
-
-    CACHE_TYPE = "null"  # debug, disable cache
-    CACHE_REDIS_HOST = REDIS_HOST
-    CACHE_REDIS_PORT = REDIS_PORT
-    CACHE_REDIS_PASSWORD = REDIS_PASSWORD
-    CACHE_REDIS_DB = REDIS_DB
 
 
 class LocalConfig(Config):
-    DEBUG = True
-    pgsql_db_username = "root"
-    pgsql_db_password = "123456"
-    pgsql_db_name = "etl"
-    pgsql_db_hostname = "127.0.0.1"
-
-    SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_ADDR}/{DB_NAME}".format(
-        DB_USER=pgsql_db_username,
-        DB_PASS=pgsql_db_password,
-        DB_ADDR=pgsql_db_hostname,
-        DB_NAME=pgsql_db_name,
-    )
-
-    REDIS_HOST = "localhost"
-    REDIS_PORT = 6379
-    REDIS_DB = 0
-    REDIS_PASSWORD = None
-
-    CELERYD_CONCURRENCY = 6
-    CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_RESULT_BACKEND = (
-        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/11"
-        if REDIS_PASSWORD
-        else f"redis://{REDIS_HOST}:{REDIS_PORT}/11"
-    )
-    CELERY_BROKER_URL = (
-        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/10"
-        if REDIS_PASSWORD
-        else f"redis://{REDIS_HOST}:{REDIS_PORT}/10"
-    )
-
-    AIRFLOW_DB_URL = (
-***REMOVED***
-    )
-    REDSHIFT_URL = os.environ.get('REDSHIFT_URL')
+    pass
 
 
 class TestingConfig(Config):
-    DEBUG = True
-    SQLALCHEMY_DATABASE_URI = (
-        "postgresql+psycopg2://beanan:root@123.206.60.59:5432/test"
-    )
-    SENTRY_DSN = ""
+    pass
 
 
 class UnitestConfig(Config):
     TESTING = True
     SENTRY_DSN = ""
-***REMOVED***
-    REDIS_HOST = "localhost"
-    REDIS_PORT = 6379
-    REDIS_DB = 0
-    REDIS_PASSWORD = None
-    CELERY_BROKER_URL = "pyamqp://guest@123.206.60.59//"
-    CELERY_RESULT_BACKEND = "rpc://guest@123.206.60.59//"
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
 
 
 class DockerDevConfig(DevelopmentConfig):

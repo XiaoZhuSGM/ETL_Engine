@@ -44,13 +44,6 @@ def configure_celery(app):
     celery.init_app(app)
 
 
-def configure_redis(app):
-    global redis_client
-    redis_client = StrictRedis(
-        host=app.config["REDIS_HOST"], port=app.config["REDIS_PORT"]
-    )
-
-
 def configure_sentry(app):
     sentry.init_app(app, dsn=app.config["SENTRY_DSN"])
 
