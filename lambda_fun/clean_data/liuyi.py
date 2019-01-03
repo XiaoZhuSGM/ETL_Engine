@@ -243,43 +243,36 @@ class LiuYiCleaner:
             "storage_time", "last_updated", "isvalid", "warranty", "show_code", "foreign_category_lv5", "allot_method",
             "supplier_name", "supplier_code", "brand_name"
         ]
-        goods = self.data['tbgoods']
-        brand = self.data['tbgoodsbrand']
-        state = self.data['tbgoodsworkstate']
+        goods = self.data['tb_gds']
         vendor = self.data['tbsupplier']
-        df = (
-            goods.merge(brand, how='left', left_on='goodsbrand', right_on='brandcode')
-            .merge(state, how='left', on='workstatecode')
-            .merge(vendor, how='left', on='suppliercode')
-        )
+        df = goods.merge(vendor, how='left', left_on='c_provider', right_on='suppliercode')
+        df = df[df['c_ccode'] != '**']
         if df.shape[0] == 0:
             return pd.DataFrame(columns=columns)
-        df['foreign_category_lv1'] = df['categorycode'].apply(lambda x: x[:1])
-        df['foreign_category_lv2'] = df['categorycode'].apply(lambda x: x[:3])
-        df['foreign_category_lv3'] = df['categorycode'].apply(lambda x: x[:5])
+        df['foreign_category_lv1'] = df['c_ccode'].apply(lambda x: x[:1])
+        df['foreign_category_lv2'] = df['c_ccode'].apply(lambda x: x[:3])
+        df['foreign_category_lv3'] = df['c_ccode'].apply(lambda x: x[:5])
         df = df.rename(columns={
-            'basebarcode': 'barcode',
-            'goodscode': 'foreign_item_id',
-            'goodsname': 'item_name',
-            'purchprice': 'lastin_price',
-            'saleprice': 'sale_price',
-            'basemeasureunit': 'item_unit',
-            'workstatename': 'item_status',
-            'categorycode': 'foreign_category_lv4',
-            'durability': 'warranty',
+            'c_barcode': 'barcode',
+            'c_gcode': 'foreign_item_id',
+            'c_name': 'item_name',
+            'c_price': 'sale_price',
+            'c_basic_unit': 'item_unit',
+            'c_status': 'item_status',
+            'c_ccode': 'foreign_category_lv4',
+            'c_introduce_date': 'storage_time',
+            'c_sale_frequency': 'isvalid',
+            'c_od_day': 'warranty',
+            'c_delivery_type': 'allot_method',
             'suppliername': 'supplier_name',
             'suppliercode': 'supplier_code',
-            'brandname': 'brand_name',
+            'c_brand': 'brand_name',
         })
         df['cmid'] = self.cmid
+        df['lastin_price'] = ''
         df['foreign_category_lv5'] = ''
         df['last_updated'] = datetime.now(_TZINFO)
-        df['isvalid'] = None
         df['show_code'] = df['foreign_item_id']
-        df['allot_method'] = ''
-        df['storage_time'] = df['builddate'].apply(
-            lambda x: datetime.strptime(str(x), '%Y%m%d') if not pd.isnull(x) else None
-        )
         df = df[columns]
 
         return df
