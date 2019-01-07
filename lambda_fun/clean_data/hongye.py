@@ -14,7 +14,7 @@ CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table=
 
 
 class HongYeCleaner:
-    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4, "95": 3, "97": 3}
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4, "95": 3, "97": 3, "98": 3}
 
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame]) -> None:
         self.source_id = source_id
@@ -2325,6 +2325,8 @@ class HongYeCleaner:
             on=["dis_code"],
             suffixes=("", ".inf_whole_district"),
         )
+        if str(self.source_id) == '98YYYYYYYYYYYYY':
+            part = part[part['depttype'].astype('str') == '1']
         part["cmid"] = self.cmid
         part["source_id"] = self.source_id
         part["address_code"] = None
@@ -4330,7 +4332,8 @@ class HongYeCleaner:
             .merge(lv4, left_on="classcode", right_on="foreign_category_lv4", suffixes=(".item", ".lv"))
             .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
         )
-
+        if str(self.source_id) == '98YYYYYYYYYYYYY':
+            frames_1 = frames_1[frames_1['applyamount'] != 0]
         if len(frames_1) == 0:
             frames_1 = pd.DataFrame(columns=columns)
         else:
@@ -4398,6 +4401,8 @@ class HongYeCleaner:
             .merge(lv3, left_on="classcode", right_on="foreign_category_lv3", suffixes=(".item", ".lv3"))
             .merge(vendor, how="left", left_on="lastsupplier", right_on="unitcode", suffixes=(".item", ".vendor"))
         )
+        if str(self.source_id) == '98YYYYYYYYYYYYY':
+            frames_2 = frames_2[frames_2['applyamount'] != 0]
 
         if len(frames_2) == 0:
             frames_2 = pd.DataFrame(columns=columns)
@@ -5112,3 +5117,34 @@ class HongYeCleaner:
             part2 = part2[columns]
 
         return pd.concat([part1, part2])
+
+    def message_visitors(self):
+        columns = ['cmid', 'date', 'foreign_store_id', 'count_visitors', 'avg_price', 'count_active_sku']
+
+        visit = self.data['rep_class_guest']
+        cost = self.data['rep_goods_sale']
+        cost['deptcode'] = cost['deptcode'].apply(lambda x: x[:3])
+        cost = cost.groupby(['deptcode'], as_index=False).agg({'gdsincode': 'nunique', 'totalsalemoney': 'sum'})
+        cost = cost.rename(columns={
+            'deptcode': 'store_id',
+            'gdsincode': 'total_sku',
+            'totalsalemoney': 'total_sale',
+        })
+
+        df = visit.merge(cost, how='left', left_on='shopcode', right_on='store_id')
+        df = df[(df['classcode'] == 0) & (df['passengerflow'] != 0)]
+        if df.shape[0] == 0:
+            df = df[columns]
+            return df
+        df['avg_price'] = df.apply(
+            lambda row: row.total_sale / row.passengerflow if row.passengerflow != 0 else 0,
+            axis=1
+        )
+        df['cmid'] = self.cmid
+        df = df.rename(columns={
+            'recorddate': 'date',
+            'shopcode': 'foreign_store_id',
+            'passengerflow': 'count_visitors',
+            'total_sku': 'count_active_sku',
+        })
+        return df[columns]
