@@ -24,10 +24,10 @@ def start_task():
     :return:
     """
     try:
-        service.start_task()
+        data = service.start_task()
     except (ExtHistoryParameterMiss, ExtHistoryDateError) as e:
         return jsonify_with_error(APIError.VALIDATE_ERROR, reason=str(e))
-    return jsonify_with_data(APIError.OK, data={})
+    return jsonify_with_data(APIError.OK, data=data)
 
 
 @etl_admin_api.route("/ext/history/task/stop", methods=["GET"])

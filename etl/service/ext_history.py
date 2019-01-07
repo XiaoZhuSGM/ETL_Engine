@@ -52,8 +52,9 @@ class ExtHistoryServices:
         if not(start_date <= end_date) or not(end_date <= datetime.now().strftime('%Y-%m-%d')):
             raise ExtHistoryDateError()
 
-        start_tasks.delay(dict(source_id=source_id, task_type=task_type, start_date=start_date,
+        task = start_tasks.delay(dict(source_id=source_id, task_type=task_type, start_date=start_date,
                                end_date=end_date, target_tables=target_tables))
+        return {'id': task.id}
 
     def get_tasks(self):
         """获取任务记录"""
