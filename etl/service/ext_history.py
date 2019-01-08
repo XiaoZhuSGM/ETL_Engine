@@ -101,9 +101,16 @@ class ExtHistoryServices:
             else:
                 self.set_task_status(model.task_id, 1)
                 continue
-            data.append({"state": task.state, "percentage": percentage, "source_id": model.source_id,
-                         "task_id": model.task_id, "ext_start": model.ext_start, "ext_end": model.ext_end,
-                         "task_type": model.task_type})
+            data.append({
+                "state": task.state,
+                "percentage": percentage,
+                "source_id": model.source_id,
+                "task_id": model.task_id,
+                "ext_start": model.ext_start,
+                "ext_end": model.ext_end,
+                "task_type": model.task_type,
+                "target_table": model.target_table,
+            })
 
         return data
 
@@ -138,8 +145,8 @@ class ExtHistoryServices:
             query = query.filter_by(ext_date=ext_date)
 
         if per_page != -1:
-            pagination = query.order_by(ExtHistoryLog.created_at.desc()).paginate(page=page, per_page=per_page,
-                                                                            error_out=False)
+            pagination = query.order_by(ExtHistoryLog.created_at.desc()).paginate(
+                page=page, per_page=per_page, error_out=False)
             items = pagination.items
             total = pagination.total
         else:
