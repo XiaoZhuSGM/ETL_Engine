@@ -323,12 +323,12 @@ class ExtTableService(object):
         source_id = '87YYYYYYYYYYYYY'
         date, year = arrow.now().format('YYYYMM'), arrow.now().format('YYYY')
         last_date = arrow.now().shift(months=-1).format("YYYYMM")
-        last_year = arrow.now().shift(months=-1).format("YYYY")
+        # last_year = arrow.now().shift(months=-1).format("YYYY")
         re_list = [
             dict(comp='FSYB(\d{5})', last_comp='FSYB(\d{5})'),
             dict(comp='FSYH\d{5}', last_comp='FSYH\d{5}'),
             dict(comp='SaleProd(\d{5})%s' % date, last_comp='SaleProd(\d{5})%s' % last_date),
-            dict(comp='Detail(\d{5})\d{4}%s' % year, last_comp='Detail(\d{5})\d{4}%s' % last_year),
+            dict(comp='Detail(\d{5})\d{4}%s' % year, last_comp='Detail(\d{5})\d{4}\d{4}'),
         ]
         all_complex = re.compile('|'.join([f'^{re_comp["comp"]}$' for re_comp in re_list]))
         table_complexs = [
@@ -343,10 +343,14 @@ class ExtTableService(object):
         data = self.get_datasource_by_source_id(source_id)
         if not data:
             print(f'数据源信息不存在')
-        engine, inspector = self.connect_test(data)
+
+        schema = 'dbo'
         ext_tables = []
-        for schema in ['dbo', 'yqpos']:
+        for db in ['YQMIS', 'YQPOS']:
+            data['db_name']['database'] = db
+            engine, inspector = self.connect_test(data)
             ext_tables.extend(self._get_tables(inspector, schema))
+
         ext_tables = set(filter(all_complex.match, ext_tables))
 
         models = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
@@ -391,3 +395,4 @@ class ExtTableService(object):
             if special_column:
                 info['special_column'] = special_column
 
+            ExtTableInfo.create(**info).save()
