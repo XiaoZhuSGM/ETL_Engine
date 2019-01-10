@@ -53,10 +53,20 @@ def download_date_table():
     """
     抓取和时间相关的表，在每个月1，2，3号运行
     """
-    ext_table_service = ExtTableService()
 
-    task = Thread(target=ext_table_service.download_about_date_table,
+    task = Thread(target=service.download_about_date_table,
                   args=(current_app._get_current_object(),))
 
+    task.start()
+    return jsonify_with_data(APIError.OK, data={})
+
+
+@etl_admin_api.route("/tables/download/date_table/87", methods=["GET"])
+def download_table_87():
+    """
+    获取87新增的表，并配置好表结构
+    """
+    task = Thread(target=service.download_table_87,
+                  args=(current_app._get_current_object(),))
     task.start()
     return jsonify_with_data(APIError.OK, data={})
