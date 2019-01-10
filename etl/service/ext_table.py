@@ -1,3 +1,5 @@
+import arrow
+import re
 from sqlalchemy import create_engine, inspect
 from etl.dao.dao import session_scope
 from etl.models.datasource import ExtDatasource
@@ -5,7 +7,6 @@ from etl.models.ext_table_info import ExtTableInfo
 from etl.service.datasource import DatasourceService
 from sqlalchemy.exc import SQLAlchemyError
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
-import arrow
 from threading import Thread
 from flask import current_app, request
 
@@ -117,7 +118,8 @@ class ExtTableService(object):
             'password': datasource.password,
             'host': datasource.host,
             'port': datasource.port,
-            'erp_vendor': datasource.erp_vendor
+            'erp_vendor': datasource.erp_vendor,
+            'status': datasource.status
         }
         return data_dict
 
@@ -278,41 +280,119 @@ class ExtTableService(object):
             print(f"etl db not exist {source_id}")
             return
 
-        engine, insector = self.connect_test(data)
-        ext_table = self._get_tables(insector, schema)
+        engine, insepctor = self.connect_test(data)
+        ext_table = self._get_tables(insepctor, schema)
 
+        table_models = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
+        tables_dict = {model.table_name: model for model in table_models}
         for table in tables:
             current_table_name = table.format(date=current_month)
+            table_name = f"{schema}.{current_table_name}"
+
             print(source_id, schema, current_table_name)
 
-            current_table = (
-                ExtTableInfo.query
-                .filter_by(source_id=source_id, weight=1, table_name=f"{schema}.{current_table_name}")
-                .first()
-            )
-            if current_table:
-                print(f"etl db exist {current_table.table_name}, break")
+            if table_name in tables_dict:
+                print(f"etl db exist {table_name}, break")
                 continue
 
             if current_table_name in ext_table:
                 print(f"source_id db exist {current_table_name}，insert to etl db")
                 # 获取相似表的配置，存储到ext_table_info里，并将2月前的表配置为不抓
-                last_one_table = (
-                    ExtTableInfo.query
-                    .filter_by(source_id=source_id, weight=1,
-                               table_name=f"{schema}.{table.format(date=last_one_month)}")
-                    .first()
-                )
-                if last_one_table:
-                    info = last_one_table.to_dict()
+                last_one_table = f"{schema}.{table.format(date=last_one_month)}"
+                if last_one_table in tables_dict.keys():
+
+                    info = tables_dict[last_one_table].to_dict()
                     del info["id"], info["created_at"], info["updated_at"]
 
                     info["table_name"] = f"{schema}.{current_table_name}"
-                    ExtTableInfo.create(**info)
+                    ExtTableInfo.create(**info).save()
                     print(f"{current_table_name} insert etl db success")
 
-                ExtTableInfo.query\
-                    .filter_by(source_id=source_id,
-                               weight=1,
-                               table_name=f"{schema}.{table.format(date=last_two_month)}")\
-                    .update({"weight": 2})
+                    (
+                        ExtTableInfo.query
+                        .filter_by(source_id=source_id, table_name=f"{schema}.{table.format(date=last_two_month)}")
+                        .update({"weight": 2})
+                    )
+
+    def download_table_87(self, app):
+        """
+        获取87新增的表，并配置好表结构
+
+        [dbo.FSYB00000, dbo.FSYH00000,dbo.SaleProd2,yqpos.dbo.Detail]
+        """
+        source_id = '87YYYYYYYYYYYYY'
+        date, year = arrow.now().format('YYYYMM'), arrow.now().format('YYYY')
+        last_date = arrow.now().shift(months=-1).format("YYYYMM")
+        # last_year = arrow.now().shift(months=-1).format("YYYY")
+        re_list = [
+            dict(comp='FSYB(\d{5})', last_comp='FSYB(\d{5})'),
+            dict(comp='FSYH\d{5}', last_comp='FSYH\d{5}'),
+            dict(comp='SaleProd(\d{5})%s' % date, last_comp='SaleProd(\d{5})%s' % last_date),
+            dict(comp='Detail(\d{5})\d{4}%s' % year, last_comp='Detail(\d{5})\d{4}\d{4}'),
+        ]
+        all_complex = re.compile('|'.join([f'^{re_comp["comp"]}$' for re_comp in re_list]))
+        table_complexs = [
+            {'complex': re.compile(re_comp['comp']), 'last_comp': re.compile(re_comp['last_comp'])}
+            for re_comp in re_list
+        ]
+        with app.app_context():
+            self._insert_download_table_87(source_id, all_complex, table_complexs)
+
+    @session_scope
+    def _insert_download_table_87(self, source_id, all_complex, table_complexs):
+        data = self.get_datasource_by_source_id(source_id)
+        if not data:
+            print(f'数据源信息不存在')
+
+        schema = 'dbo'
+        ext_tables = []
+        for db in ['YQMIS', 'YQPOS']:
+            data['db_name']['database'] = db
+            engine, inspector = self.connect_test(data)
+            ext_tables.extend(self._get_tables(inspector, schema))
+
+        ext_tables = set(filter(all_complex.match, ext_tables))
+
+        models = ExtTableInfo.query.filter_by(source_id=source_id, weight=1).all()
+        table_names = {model.table_name.split('.')[-1] for model in models}
+        for re_comp in table_complexs:
+            for model in models:
+                if re_comp['last_comp'].match(model.table_name.split('.')[-1]):
+                    model = model.to_dict()
+                    del model["id"], model["created_at"], model["updated_at"]
+                    re_comp['model'] = model
+                    break
+        ext_tables = ext_tables - table_names
+        print(len(ext_tables))
+        print(ext_tables)
+
+        for table in ext_tables:
+            table = table.split('.')[-1]
+            info, table_name, filters, special_column = None, None, None, None
+            if table_complexs[0]['complex'].match(table):
+                store_id = table_complexs[0]['complex'].match(table).group(1)
+                info = table_complexs[0].get('model')
+                filters = (
+                    f"inner join dbo.fsyh{store_id} h on dbo.fsyb{store_id}.formno = h.formno "
+                    f"where h.formdate = '{{recorddate}}'"
+                )
+            elif table_complexs[1]['complex'].match(table):
+                info = table_complexs[1].get('model')
+            elif table_complexs[2]['complex'].match(table):
+                store_id = table_complexs[2]['complex'].match(table).group(1)
+                special_column = f"'{store_id}' as store_id,*"
+                info = table_complexs[2].get('model')
+            elif table_complexs[3]['complex'].match(table):
+                table_name = f'yqpos.dbo.{table}'
+                store_id = table_complexs[3]['complex'].match(table).group(1)
+                info = table_complexs[3].get('model')
+                special_column = f"'{store_id}' as store_id,*"
+            if info is None:
+                continue
+            info['table_name'] = table_name if table_name else f'dbo.{table}'
+            if filters:
+                info['filter'] = filters
+            if special_column:
+                info['special_column'] = special_column
+
+            ExtTableInfo.create(**info).save()
