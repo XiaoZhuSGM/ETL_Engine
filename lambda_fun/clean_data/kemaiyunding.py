@@ -754,7 +754,7 @@ def clean_requireorder(source_id,date,target_table,frames):
         frames["foreign_category_lv5"] = ''
         frames = frames.rename(columns={
             "fsheet_no": "order_num",
-            "fap_date": "order_date",
+            "fcr_datetime": "order_date",
             "fitem_subno": "barcode",
             "fitem_name": "item_name",
             "funit_no": "item_unit",
