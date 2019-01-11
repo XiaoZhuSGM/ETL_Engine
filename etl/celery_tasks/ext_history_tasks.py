@@ -305,6 +305,7 @@ def check_ext_result(source_id, extract_date, filename, extract_data):
     for key, values in sqls.items():
         if (not extract_data) or (extract_data.get(key) is None) or (len(extract_data[key]) != len(values)):
             return False
+    return True
 
 
 def invoke_lambda(functionname, event):
