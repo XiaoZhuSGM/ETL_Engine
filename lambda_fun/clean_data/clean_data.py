@@ -207,48 +207,74 @@ def handler(event, context):
 if __name__ == "__main__":
 
     event = {
-        "source_id": "93YYYYYYYYYYYYY",
-        "erp_name": "昂捷-中间库",
-        "date": "2018-12-18",
-        "target_table": "goodsflow",
+        "source_id": "58YYYYYYYYYYYYY",
+        "erp_name": "美食林",
+        "date": "2019-01-13",
+        "target_table": "purchase_warehouse",
         "origin_table_columns": {
-            "tb_pos_flow_goods": [
-                "c_no",
-                "c_sale_time",
-                "c_gcode",
-                "c_barcode",
-                "c_name",
-                "c_basic_unit",
-                "c_pro_status",
-                "c_price_sale",
-                "c_price_sale_disc",
-                "c_qty_sum",
-                "c_amount",
-                "c_pos",
-                "c_store_id",
-                "c_ccode"
+            "skcmvendor": ["gid", "code", "name"],
+            "skcmbrand": ["code", "name"],
+            "skcmmodulestat": ["statname", "no"],
+            "skcmstkin": ["num", "fildate", "cls", "vendor", "stat"],
+            "skcmstkinbck": ["num", "fildate", "cls", "vendor", "stat"],
+            "skcmstkinbckdtl": [
+                "qty",
+                "price",
+                "qpc",
+                "total",
+                "num",
+                "cls",
+                "gdgid",
+                "wrh",
             ],
-            "tb_store": [
-                "c_id",
-                "c_name"
+            "skcmstkindtl": [
+                "qty",
+                "price",
+                "qpc",
+                "total",
+                "num",
+                "cls",
+                "gdgid",
+                "wrh",
             ],
-            "tbgoodscategory": [
-                "categorycode",
-                "categoryname",
-                "parentcategorycode",
-                "categoryitemcode",
-                "categorylevel"
-            ]
+            "skcmwarehouse": ["code", "name", "gid"],
+            "skgoods": ["brand", "code", "code2", "gid", "munit", "name", "sort"],
         },
         "converts": {
-            "tb_pos_flow_goods": {
-                "c_barcode": "str",
-                "c_ccode": "str"
+            "skcmvendor": {"code": "str", "gid": "str", "name": "str"},
+            "skcmbrand": {"code": "str", "name": "str"},
+            "skcmmodulestat": {"no": "str", "statname": "str"},
+            "skcmstkin": {
+                "cls": "str",
+                "fildate": "str",
+                "num": "str",
+                "stat": "str",
+                "vendor": "str",
             },
-            "tbgoodscategory": {
-                "categorycode": "str"
-            }
+            "skcmstkinbck": {
+                "cls": "str",
+                "fildate": "str",
+                "num": "str",
+                "stat": "str",
+                "vendor": "str",
+            },
+            "skcmstkinbckdtl": {
+                "cls": "str",
+                "gdgid": "str",
+                "num": "str",
+                "wrh": "str",
+            },
+            "skcmstkindtl": {"cls": "str", "gdgid": "str", "num": "str", "wrh": "str"},
+            "skcmwarehouse": {"code": "str", "gid": "str", "name": "str"},
+            "skgoods": {
+                "brand": "str",
+                "code": "str",
+                "code2": "str",
+                "gid": "str",
+                "munit": "str",
+                "name": "str",
+                "sort": "str",
+            },
         },
     }
-
     handler(event, None)

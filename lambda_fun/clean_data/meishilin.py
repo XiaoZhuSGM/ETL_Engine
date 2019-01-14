@@ -1218,36 +1218,39 @@ class MeiShiLinCleaner(Base):
             lambda row: row["price"] / row["qpc"], axis=1
         )
 
-        part1["foreign_category_lv1"] = part1.apply(lambda row: row["sort"][:2], axis=1)
-        part1["foreign_category_lv2"] = part1.apply(lambda row: row["sort"][:4], axis=1)
-        part1["foreign_category_lv3"] = part1.apply(lambda row: row["sort"][:6], axis=1)
-        part1["foreign_category_lv4"] = ""
-        part1["foreign_category_lv5"] = ""
-        part1["cmid"] = self.cmid
-        part1["source_id"] = self.source_id
-        part1 = part1.rename(
-            columns={
-                "num": "purchase_num",
-                "fildate": "purchase_date",
-                "cls": "purchase_type",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "qty": "purchase_qty",
-                "total": "purchase_total",
-                "gid": "vendor_id",
-                "code": "vendor_show_code",
-                "name": "vendor_name",
-                "code.brand": "brand_code",
-                "name.brand": "brand_name",
-                "code.warehouseh": "warehouse_code",
-                "name.warehouseh": "warehouse_name",
-                "statname": "bill_status",
-            }
-        )
-        part1 = part1[columns]
+        if not len(part1):
+            part1 = pd.DataFrame(columns=columns)
+        else:
+            part1["foreign_category_lv1"] = part1.apply(lambda row: row["sort"][:2], axis=1)
+            part1["foreign_category_lv2"] = part1.apply(lambda row: row["sort"][:4], axis=1)
+            part1["foreign_category_lv3"] = part1.apply(lambda row: row["sort"][:6], axis=1)
+            part1["foreign_category_lv4"] = ""
+            part1["foreign_category_lv5"] = ""
+            part1["cmid"] = self.cmid
+            part1["source_id"] = self.source_id
+            part1 = part1.rename(
+                columns={
+                    "num": "purchase_num",
+                    "fildate": "purchase_date",
+                    "cls": "purchase_type",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "qty": "purchase_qty",
+                    "total": "purchase_total",
+                    "gid": "vendor_id",
+                    "code": "vendor_show_code",
+                    "name": "vendor_name",
+                    "code.brand": "brand_code",
+                    "name.brand": "brand_name",
+                    "code.warehouseh": "warehouse_code",
+                    "name.warehouseh": "warehouse_name",
+                    "statname": "bill_status",
+                }
+            )
+            part1 = part1[columns]
 
         part2 = (
             stkinbck.merge(
@@ -1292,40 +1295,44 @@ class MeiShiLinCleaner(Base):
                 suffixes=("", ".warehouseh"),
             )
         )
-        part2["purchase_qty"] = part2.apply(lambda row: -1 * row["qty"], axis=1)
-        part2["purchase_total"] = part2.apply(lambda row: -1 * row["total"], axis=1)
-        part2["purchase_price"] = part2.apply(
-            lambda row: row["price"] / row["qpc"], axis=1
-        )
-        part2["foreign_category_lv1"] = part2.apply(lambda row: row["sort"][:2], axis=1)
-        part2["foreign_category_lv2"] = part2.apply(lambda row: row["sort"][:4], axis=1)
-        part2["foreign_category_lv3"] = part2.apply(lambda row: row["sort"][:6], axis=1)
-        part2["foreign_category_lv4"] = ""
-        part2["foreign_category_lv5"] = ""
-        part2["cmid"] = self.cmid
-        part2["source_id"] = self.source_id
+        
+        if not len(part2):
+            part2 = pd.DataFrame(columns=columns)
+        else:
+            part2["purchase_qty"] = part2.apply(lambda row: -1 * row["qty"], axis=1)
+            part2["purchase_total"] = part2.apply(lambda row: -1 * row["total"], axis=1)
+            part2["purchase_price"] = part2.apply(
+                lambda row: row["price"] / row["qpc"], axis=1
+            )
+            part2["foreign_category_lv1"] = part2.apply(lambda row: row["sort"][:2], axis=1)
+            part2["foreign_category_lv2"] = part2.apply(lambda row: row["sort"][:4], axis=1)
+            part2["foreign_category_lv3"] = part2.apply(lambda row: row["sort"][:6], axis=1)
+            part2["foreign_category_lv4"] = ""
+            part2["foreign_category_lv5"] = ""
+            part2["cmid"] = self.cmid
+            part2["source_id"] = self.source_id
 
-        part2 = part2.rename(
-            columns={
-                "num": "purchase_num",
-                "fildate": "purchase_date",
-                "cls": "purchase_type",
-                "gid.goods": "foreign_item_id",
-                "code.goods": "item_show_code",
-                "code2": "barcode",
-                "name.goods": "item_name",
-                "munit": "item_unit",
-                "gid": "vendor_id",
-                "code": "vendor_show_code",
-                "name": "vendor_name",
-                "code.brand": "brand_code",
-                "name.brand": "brand_name",
-                "code.warehouseh": "warehouse_code",
-                "name.warehouseh": "warehouse_name",
-                "statname": "bill_status",
-            }
-        )
-        part2 = part2[columns]
+            part2 = part2.rename(
+                columns={
+                    "num": "purchase_num",
+                    "fildate": "purchase_date",
+                    "cls": "purchase_type",
+                    "gid.goods": "foreign_item_id",
+                    "code.goods": "item_show_code",
+                    "code2": "barcode",
+                    "name.goods": "item_name",
+                    "munit": "item_unit",
+                    "gid": "vendor_id",
+                    "code": "vendor_show_code",
+                    "name": "vendor_name",
+                    "code.brand": "brand_code",
+                    "name.brand": "brand_name",
+                    "code.warehouseh": "warehouse_code",
+                    "name.warehouseh": "warehouse_name",
+                    "statname": "bill_status",
+                }
+            )
+            part2 = part2[columns]
         return pd.concat([part1, part2])
 
     """
