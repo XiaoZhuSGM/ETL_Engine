@@ -816,11 +816,14 @@ class ZhiBaiWeiCleaner(Base):
             "foreign_category_lv5",
         ]
         loss = self.data["ic_t_check_master"]
-        
+
         if not len(loss):
             return pd.DataFrame(columns=filter_columns)
 
         detail = self.data["ic_t_check_detail"]
+        
+        if not len(detail):
+            return pd.DataFrame(columns=filter_columns)
 
         detail["balance_qty"] = detail.apply(
             lambda row: float(row["balance_qty"]), axis=1
