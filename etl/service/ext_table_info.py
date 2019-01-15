@@ -140,30 +140,26 @@ class ExtTableInfoService:
             raise ExtDatasourceNotExist
         if template_datasource.erp_vendor != target_datasource.erp_vendor:
             raise ErpNotMatch
-        template_table_infos = ExtTableInfo.query.filter_by(source_id=template_source_id).all()
+        template_table_infos = ExtTableInfo.query.filter_by(source_id=template_source_id, weight=1).all()
         target_table_infos = ExtTableInfo.query.filter_by(source_id=target_source_id).all()
         if not all([template_table_infos, target_table_infos]):
             raise TableNotExist
 
         # 同步同样表名的配置
         for template_table in template_table_infos:
-
-            target_table = ExtTableInfo.query.filter_by(
-                source_id=target_source_id,
-                table_name=template_table.table_name).first()
-            if not target_table:
-                continue
-            info = {
-                "alias_table_name": template_table.alias_table_name,
-                "order_column": template_table.order_column,
-                "sync_column": template_table.sync_column,
-                "limit_num": template_table.limit_num,
-                "filter": template_table.filter,
-                "filter_format": template_table.filter_format,
-                "weight": template_table.weight,
-                "strategy": template_table.strategy
-            }
-            target_table.update(**info)
+            for target_table in target_table_infos:
+                if template_table.table_name.lower() == target_table.table_name.lower():
+                    info = {
+                        "alias_table_name": template_table.alias_table_name,
+                        "order_column": template_table.order_column,
+                        "sync_column": template_table.sync_column,
+                        "limit_num": template_table.limit_num,
+                        "filter": template_table.filter,
+                        "filter_format": template_table.filter_format,
+                        "weight": template_table.weight,
+                        "strategy": template_table.strategy
+                    }
+                    target_table.update(**info)
 
     @session_scope
     def batch_ext_table_info(self, data):

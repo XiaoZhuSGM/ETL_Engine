@@ -207,48 +207,51 @@ def handler(event, context):
 if __name__ == "__main__":
 
     event = {
-        "source_id": "93YYYYYYYYYYYYY",
-        "erp_name": "昂捷-中间库",
-        "date": "2018-12-18",
-        "target_table": "goodsflow",
+        "source_id": "53YYYYYYYYYYYYY",
+        "erp_name": "智百威",
+        "date": "2019-01-11",
+        "target_table": "goods_loss",
         "origin_table_columns": {
-            "tb_pos_flow_goods": [
-                "c_no",
-                "c_sale_time",
-                "c_gcode",
-                "c_barcode",
-                "c_name",
-                "c_basic_unit",
-                "c_pro_status",
-                "c_price_sale",
-                "c_price_sale_disc",
-                "c_qty_sum",
-                "c_amount",
-                "c_pos",
-                "c_store_id",
-                "c_ccode"
+            "bi_t_branch_info": ["branch_no", "branch_name"],
+            "bi_t_item_cls": ["item_clsno", "item_flag"],
+            "bi_t_item_info": [
+                "item_no",
+                "item_clsno",
+                "base_price",
+                "item_subno",
+                "barcode",
+                "unit_no",
+                "item_name",
             ],
-            "tb_store": [
-                "c_id",
-                "c_name"
+            "ic_t_check_detail": ["sheet_no", "balance_qty", "item_no"],
+            "ic_t_check_master": [
+                "check_no",
+                "oper_date",
+                "sheet_no",
+                "branch_no",
+                "approve_flag",
+                "del_flag",
             ],
-            "tbgoodscategory": [
-                "categorycode",
-                "categoryname",
-                "parentcategorycode",
-                "categoryitemcode",
-                "categorylevel"
-            ]
         },
         "converts": {
-            "tb_pos_flow_goods": {
-                "c_barcode": "str",
-                "c_ccode": "str"
+            "bi_t_branch_info": {"branch_no": "str"},
+            "bi_t_item_cls": {"item_clsno": "str", "item_flag": "str"},
+            "bi_t_item_info": {
+                "base_price": "str",
+                "item_clsno": "str",
+                "item_no": "str",
             },
-            "tbgoodscategory": {
-                "categorycode": "str"
-            }
+            "ic_t_check_detail": {
+                "balance_qty": "str",
+                "item_no": "str",
+                "sheet_no": "str",
+            },
+            "ic_t_check_master": {
+                "approve_flag": "str",
+                "branch_no": "str",
+                "del_flag": "str",
+                "sheet_no": "str",
+            },
         },
     }
-
     handler(event, None)

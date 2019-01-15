@@ -14,11 +14,15 @@ build:
     - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
     - python -m venv .venv
     - .venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+  only:
+    - merge_requests
 
 pytest:
   stage: test
   script:
     - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
+  only:
+    - merge_requests
 
 deploy:
   stage: deploy

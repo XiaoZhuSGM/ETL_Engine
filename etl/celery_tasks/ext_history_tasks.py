@@ -17,8 +17,9 @@ from flask import current_app
 from config.config import config
 import os
 import time
+from botocore.vendored.requests.exceptions import ReadTimeout
 
-ERP_DICT = {"48": "商海导航", "55": "晋中田森", "58": "美食林", "89": "易客来"}
+
 UPSERT_TABLE = ["chain_store", "chain_goods", "chain_category", "chain_verdor"]
 
 
@@ -64,26 +65,21 @@ def start_all(self, source_id, start_date, end_date, target_tables, task_id, per
         # 开始抓数
         flag, remark = ext(source_id, end_date, target_tables)
         if not flag:
-            record_log(source_id, task_id, end_date, result=2,
-                       remark=f"抓数失败，失败原因:{remark}")
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date -= timedelta(days=1)
-            end_date = end_date.strftime("%Y-%m-%d")
-            continue
-        # 开始清洗，入库
-        success_list, fail_list = load(source_id, end_date, target_tables)
+            record_log(source_id, task_id, end_date, result=2, remark=f"抓数失败，失败原因:{remark}")
+        else:
+            # 开始清洗，入库
+            success_list, fail_list = load(source_id, end_date, target_tables)
+            record_log(source_id, task_id, end_date, success_list=success_list, fail_list=fail_list)
 
         # 记录当天抓数入库日志
-        record_log(source_id, task_id, end_date, success_list=success_list, fail_list=fail_list)
 
         end_date = date_reduce_one_data(end_date)
+        self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
 
         if end_date >= start_date:
             # 休息一段时间再抓数
-            print(f"休息{period}秒")
+            print(f"{source_id}休息{period}秒")
             time.sleep(period)
-
-        self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
 
 
 def start_ext(self, source_id, start_date, end_date, target_tables, task_id, period):
@@ -97,20 +93,15 @@ def start_ext(self, source_id, start_date, end_date, target_tables, task_id, per
         # 开始抓数
         flag, remark = ext(source_id, end_date, target_tables)
         if not flag:
-            record_log(source_id, task_id, end_date, result=2,
-                       remark=f"抓数失败，失败原因:{remark}")
-
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date -= timedelta(days=1)
-            end_date = end_date.strftime("%Y-%m-%d")
-            continue
-        record_log(source_id, task_id, end_date, result=1)
+            record_log(source_id, task_id, end_date, result=2, remark=f"抓数失败，失败原因:{remark}")
+        else:
+            record_log(source_id, task_id, end_date, result=1)
 
         end_date = date_reduce_one_data(end_date)
 
         if end_date >= start_date:
             # 休息一段时间再抓数
-            print(f"休息{period}秒")
+            print(f"{source_id}抓数休息{period}秒")
             time.sleep(period)
 
         self.update_state(state="RUNNING", meta={"total": total, "pending": two_date_total(start_date, end_date)})
@@ -150,15 +141,20 @@ def ext(source_id, end_date, target_tables):
     event = DatasourceService().generator_extract_event(source_id)
     event["query_date"] = end_date
     event["filename"] = filename
-    print(f"抓数event:{event}")
+    print(f"{source_id}抓数event:{event}")
 
-    invoke_response = invoke_lambda("extract_db_worker", event)
-    payload_body = invoke_response['Payload']
-    payload_str = payload_body.read()
-    response = json.loads(payload_str)
+    try:
+        invoke_response = invoke_lambda("extract_db_worker", event)
+        payload_body = invoke_response['Payload']
+        payload_str = payload_body.read()
+        response = json.loads(payload_str)
+    except ReadTimeout as e:
+        response = {}
+        print(f'{source_id}调用lambda超时，错误原因:{str(e)}')
 
     errmsg = None
-    if 'FunctionError' in invoke_response:
+    flag = check_ext_result(source_id, end_date, filename, response.get("extract_data"))
+    if not flag:
         print(f"{source_id}lambda抓数失败，开始调用接口")
         try:
             response = json.loads(worker.handler(event, None))
@@ -167,19 +163,6 @@ def ext(source_id, end_date, target_tables):
         except Exception as e:
             print(f"{source_id}调用接口抓数失败，errmsg:{str(e)}")
             flag, errmsg = False, str(e)
-    else:
-        # 核对抓数结果
-        extract_data = response.get("extract_data")
-        flag = check_ext_result(source_id, end_date, filename, extract_data)
-        if not flag:
-            print(f"{source_id}lambda抓数核对失败，开始调用抓数接口")
-            try:
-                response = json.loads(worker.handler(event, None))
-                extract_data = response.get("extract_data")
-                flag = check_ext_result(source_id, end_date, filename, extract_data)
-            except Exception as e:
-                print(f"调用接口抓数失败，errmsg:{str(e)}")
-                flag, errmsg = False, str(e)
 
     return flag, errmsg
 
@@ -222,10 +205,9 @@ def load_one_table(source_id, end_date, table, app):
             if table_info.covert_str else {}
 
         datasource = ExtDatasource.query.filter_by(source_id=source_id).first()
-        erp_name = ERP_DICT.get(cmid) if ERP_DICT.get(cmid) else datasource.erp_vendor
 
     target_table = table.split("chain_")[-1]
-    event = dict(source_id=source_id, erp_name=erp_name, date=end_date, target_table=target_table,
+    event = dict(source_id=source_id, erp_name=datasource.erp_vendor, date=end_date, target_table=target_table,
                  origin_table_columns=origin_table, converts=convert_str)
     print(f"清洗event:{event}")
     invoke_response = invoke_lambda("lambda_clean_data", event)
@@ -285,8 +267,7 @@ def record_log(source_id, task_id, ext_date, result=None, success_list=None, fai
     info = dict(source_id=source_id, task_id=task_id, ext_date=ext_date, result=result,
                 success_table=success_table, fail_table=fail_table, remark=remark)
 
-    ext_history_log = ExtHistoryLog(**info)
-    ext_history_log.save()
+    ExtHistoryLog(**info).save()
 
 
 @session_scope
@@ -299,8 +280,7 @@ def create_task_status(data, task_id, task_type, target_table):
     info = dict(source_id=source_id, task_id=task_id, task_type=task_type, target_table=target_table,
                 ext_start=start_date, ext_end=end_date, task_start=datetime.now(), status=3)
 
-    ext_history_task = ExtHistoryTask(**info)
-    ext_history_task.save()
+    ExtHistoryTask(**info).save()
 
 
 @session_scope
@@ -322,20 +302,16 @@ def check_ext_result(source_id, extract_date, filename, extract_data):
     key = (SQL_PREFIX.format(source_id=source_id, date=extract_date) + filename)
     s3_body = get_content(S3_BUCKET, key)
     sqls = s3_body.get("sqls")
-    flag = True
     for key, values in sqls.items():
-        if not extract_data:
-            flag = False
-        elif extract_data.get(key) is None:
-            flag = False
-        elif len(extract_data[key]) != len(values):
-            flag = False
-    return flag
+        if (not extract_data) or (extract_data.get(key) is None) or (len(extract_data[key]) != len(values)):
+            return False
+    return True
 
 
 def invoke_lambda(functionname, event):
-    invoke_response = LAMBDA.invoke(FunctionName=functionname, InvocationType='RequestResponse',
-                                    Payload=json.dumps(event), LogType='Tail')
+    invoke_response = LAMBDA.invoke(
+        FunctionName=functionname, InvocationType='RequestResponse', Payload=json.dumps(event), LogType='Tail'
+    )
     return invoke_response
 
 
