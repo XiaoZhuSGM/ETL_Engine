@@ -18,7 +18,7 @@ class ExtTableInfo(db.Model, CRUDMixin):
     filter = Column(String(500))
     filter_format = Column(String(50))
     record_num = Column(Integer)
-    weight = Column(Integer)
+    weight = Column(Integer, comment="表示是否抓数 0 不抓 1 抓 2 下次抓")
     ext_column = Column(JSONB)
     remark = Column(String(50))
     strategy = Column(Integer)
