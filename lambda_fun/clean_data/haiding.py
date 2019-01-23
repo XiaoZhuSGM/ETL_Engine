@@ -2717,6 +2717,104 @@ class HaiDingCleaner:
         part = part[columns]
         return part
 
+    def check_store(self):
+        columns = [
+            "cmid",
+            "source_id",
+            "checknum",
+            "checkdate",
+            "foreign_store_id",
+            "store_show_code",
+            "store_name",
+            "foreign_item_id",
+            "item_showcode",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "origin_qty",
+            "origin_amt",
+            "actual_qty",
+            "actual_amt",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
+        ckdatas = self.data["ckdatas"]
+
+        store = self.data["store"]
+        goods = self.data["goods"]
+        sort = self.data["sort"]
+        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
+        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
+        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
+
+        part = (
+            ckdatas.merge(
+                store,
+                how="left",
+                left_on=["store"],
+                right_on=["gid"],
+                suffixes=("", ".store"),
+            ).merge(
+                goods,
+                how="left",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".goods"),
+            ).merge(
+                sort,
+                how="left",
+                left_on=["sort1"],
+                right_on=["code"],
+                suffixes=("", ".sort1"),
+            ).merge(
+                sort,
+                how="left",
+                left_on=["sort2"],
+                right_on=["code"],
+                suffixes=("", ".sort2"),
+            ).merge(
+                sort,
+                how="left",
+                left_on=["sort3"],
+                right_on=["code"],
+                suffixes=("", ".sort3"),
+            )
+        )
+        part = part[(part["stat"] == 3)]
+        if not len(part):
+            return pd.DataFrame(columns=columns)
+        part["source_id"] = self.source_id
+        part["cmid"] = self.cmid
+        part["foreign_category_lv4"] = ""
+        part["foreign_category_lv5"] = ""
+
+        part = part.rename(
+            columns={
+                "num": "checknum",
+                "cktime": "checkdate",
+                "gid": "foreign_store_id",
+                "code": "store_show_code",
+                "name": "store_name",
+                "gid.goods": "foreign_item_id",
+                "code.goods": "item_showcode",
+                "code2": "barcode",
+                "name.goods": "item_name",
+                "munit": "item_unit",
+                "acntqty": "origin_qty",
+                "acntrtotal": "origin_amt",
+                "qty": "actual_qty",
+                "rtotal": "actual_amt",
+                "code.sort1": "foreign_category_lv1",
+                "code.sort2": "foreign_category_lv2",
+                "code.sort3": "foreign_category_lv3",
+            }
+        )
+        part = part[columns]
+        return part
+
     def check_warehouse(self):
         columns = [
             "cmid",
