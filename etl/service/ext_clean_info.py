@@ -20,7 +20,7 @@ class ExtCleanInfoTableNotFound(Exception):
         self.table = table
 
     def __str__(self):
-        return f"table:{self.table}不存在"
+        return f"{self.table}不存在"
 
 
 class ExtCleanInfoColumnNotFound(Exception):
@@ -29,7 +29,7 @@ class ExtCleanInfoColumnNotFound(Exception):
         self.column = column
 
     def __str__(self):
-        return f"table:{self.table} do not have the column:{self.column}"
+        return f"{self.table}没有字段:{self.column}"
 
 
 class ExtTableInfoNotFound(Exception):
@@ -37,7 +37,7 @@ class ExtTableInfoNotFound(Exception):
         self.source_id = source_id
 
     def __str__(self):
-        return f"source_id:{self.source_id} do not have table info"
+        return f"{self.source_id}没有配置为抓的表"
 
 
 class ErpNotMatch(Exception):
@@ -50,7 +50,7 @@ class ExtDatasourceNotExist(Exception):
         self.source_id = source_id
 
     def __str__(self):
-        return f"source_id:{self.source_id}不存在"
+        return f"数据源中不存在{self.source_id}"
 
 
 class TableNotExist(Exception):
