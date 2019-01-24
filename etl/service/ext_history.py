@@ -32,7 +32,10 @@ class ExtHistoryServices:
     def get_table(self):
         """获取目标表"""
         source_id = request.args.get("source_id")
-        tables = [model.target_table for model in ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()]
+        tables = [
+            model.target_table for model in ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
+        ]
+        tables.sort()
         return tables
 
     def start_task(self):
