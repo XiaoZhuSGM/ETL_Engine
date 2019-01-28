@@ -11,14 +11,15 @@ _TZ = pytz.timezone("Asia/Shanghai")
 @etl_api.route("/iqr/<string:source_id>", methods=["GET"])
 def calculate_iqr(source_id):
     iqr_service = IQRService(source_id)
+    cache_key = f"iqr_{source_id}"
     try:
         hour = datetime.now(_TZ).hour
-        result = cache.get("iqr")
+        result = cache.get(cache_key)
         print(result)
         if hour == 4 or (result is None):
             print("进行计算了")
             result = iqr_service.pipeline()
-            cache.set("iqr", result)
+            cache.set(cache_key, result)
     except Exception as e:
         print(str(e))
         return jsonify_with_error(APIError.SERVER_ERROR, reason=str(e))

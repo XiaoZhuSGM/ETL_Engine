@@ -190,6 +190,10 @@ class DatasourceService(object):
 
         return database_url
 
+    def get_db_url(self, source_id):
+        datasource = self.__datasourceDao.find_datasource_by_source_id(source_id)
+        db_url = self.generator_db_url(datasource)
+        return db_url
 
     def find_datasource_by_filter(self, match_term):
         query = db.session.query(ExtDatasource)

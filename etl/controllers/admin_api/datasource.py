@@ -30,9 +30,16 @@ DATASOURCE_API_GET_BY_FILTER = "/datasource/filter"
 DATASOURCE_API_GENERATOR_CRON = "/crontab/full/<string:source_id>"
 DATASOURCE_API_GENERATOR_EXTRACT_EVENT = "/extract/event/<string:source_id>"
 DATASOURCE_API_GET_ALL_ONLINE_ENTERPRISE = "/datasources/online"
+DATASOURCE_API_GET_DB_URL = "/datasource/dburl/<string:source_id>"
 
 datasource_service = DatasourceService()
 table_service = ExtTableService()
+
+
+@etl_admin_api.route(DATASOURCE_API_GET_DB_URL, methods=["GET"])
+def get_dburl(source_id):
+    db_url = datasource_service.get_db_url(source_id)
+    return jsonify_with_data(APIError.OK, data=db_url)
 
 
 @etl_admin_api.route(DATASOURCE_API_GET_BY_FILTER, methods=["GET"])
