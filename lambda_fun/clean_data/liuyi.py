@@ -296,7 +296,7 @@ class LiuYiCleaner:
         lv = self.data['tbgoodscategory']
         
         df1 = lv.copy()
-        df1 = df1[df1['categorylevel'] == 1]
+        df1 = df1[(df1['categorylevel'] == 1) & (df1['categoryitemcode'] == 0000)]
         if df1.shape[0] == 0:
             df1 = pd.DataFrame(columns=columns)
         else:
@@ -324,7 +324,7 @@ class LiuYiCleaner:
             right_on=['categorycode', 'categoryitemcode'],
             suffixes=('_lv2', '_lv1')
         )
-        df2 = df2[df2['categorylevel_lv2'] == 2]
+        df2 = df2[(df2['categorylevel_lv2'] == 2) & (df2['categoryitemcode'] == 0000)]
         if df2.shape[0] == 0:
             df2 = pd.DataFrame(columns=columns)
         else:
@@ -357,7 +357,7 @@ class LiuYiCleaner:
             left_on=['parentcategorycode_lv2', 'categoryitemcode'],
             right_on=['categorycode', 'categoryitemcode'],
         )
-        df3 = df3[df3['categorylevel_lv3'] == 3]
+        df3 = df3[(df3['categorylevel_lv3'] == 3) & (df3['categoryitemcode'] == 0000)]
         if df3.shape[0] == 0:
             df3 = pd.DataFrame(columns=columns)
         else:
@@ -396,7 +396,7 @@ class LiuYiCleaner:
             right_on=['categorycode', 'categoryitemcode'],
             suffixes=('_lv2', '_lv1')
         )
-        df4 = df4[df4['categorylevel_lv4'] == 4]
+        df4 = df4[(df4['categorylevel_lv4'] == 4) & (df4['categoryitemcode'] == 0000)]
         if df4.shape[0] == 0:
             df4 = pd.DataFrame(columns=columns)
         else:
