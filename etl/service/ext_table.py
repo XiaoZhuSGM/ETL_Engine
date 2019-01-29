@@ -262,6 +262,7 @@ class ExtTableService(object):
             ["48YYYYYYYYYYYYY", "dbo", ["GoodsSale{date}", "Item{date}"]],
             ["52YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
             ["55YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
+            ["96YYYYYYYYYYYYY", "hscmp", ["tsalpludetail{date}", "tsalsale{date}", "tsalsaleplu{date}"]],
         ]
         current_month = arrow.now().format("YYYYMM")
         last_one_month = arrow.now().shift(months=-1).format("YYYYMM")
