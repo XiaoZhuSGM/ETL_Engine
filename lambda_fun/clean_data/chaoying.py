@@ -138,38 +138,41 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         )
 
     def frame_samecolumns(frames):
-        frames["source_id"] = source_id
-        frames["cmid"] = cmid
-        frames["last_updated"] = datetime.now(_TZINFO)
-        frames["saleprice"] = frames.apply(
-            lambda row: row["dj_hs"] / row["zhl"], axis=1
-        )
-        frames["quantity"] = frames.apply(lambda row: row["sl"] * row["zhl"], axis=1)
-        frames["subtotal"] = frames.apply(
-            lambda row: row["je_hs"] - row["je_yh"] - row["je_zr"] - row["je_zk"],
-            axis=1,
-        )
-        frames["foreign_category_lv3"] = ""
-        frames["foreign_category_lv3_name"] = None
-        frames["foreign_category_lv4"] = ""
-        frames["foreign_category_lv4_name"] = None
-        frames["foreign_category_lv5"] = ""
-        frames["foreign_category_lv5_name"] = None
+        if len(frames) == 0:
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["source_id"] = source_id
+            frames["cmid"] = cmid
+            frames["last_updated"] = datetime.now(_TZINFO)
+            frames["saleprice"] = frames.apply(
+                lambda row: row["dj_hs"] / row["zhl"], axis=1
+            )
+            frames["quantity"] = frames.apply(lambda row: row["sl"] * row["zhl"], axis=1)
+            frames["subtotal"] = frames.apply(
+                lambda row: row["je_hs"] - row["je_yh"] - row["je_zr"] - row["je_zk"],
+                axis=1,
+            )
+            frames["foreign_category_lv3"] = ""
+            frames["foreign_category_lv3_name"] = None
+            frames["foreign_category_lv4"] = ""
+            frames["foreign_category_lv4_name"] = None
+            frames["foreign_category_lv5"] = ""
+            frames["foreign_category_lv5_name"] = None
 
-        frames = frames.rename(
-            columns={
-                "id_store": "foreign_store_id",
-                "mc_store": "store_name",
-                "dh": "receipt_id",
-                "id_hyk": "consumer_id",
-                "rq": "saletime",
-                "id_item": "foreign_item_id",
-                "barcode": "barcode",
-                "mc_item": "item_name",
-                "jldw": "item_unit",
-                "id_pos": "pos_id",
-            }
-        )
+            frames = frames.rename(
+                columns={
+                    "id_store": "foreign_store_id",
+                    "mc_store": "store_name",
+                    "dh": "receipt_id",
+                    "id_hyk": "consumer_id",
+                    "rq": "saletime",
+                    "id_item": "foreign_item_id",
+                    "barcode": "barcode",
+                    "mc_item": "item_name",
+                    "jldw": "item_unit",
+                    "id_pos": "pos_id",
+                }
+            )
         return frames.copy()
 
     frames_part1 = frame_samecolumns(frames_part1)
@@ -233,27 +236,30 @@ def clean_cost(source_id, date, target_table, data_frames):
         frames_part2["foreign_category_lv2"] = frames_part2["lv2.bm"]
 
     def frame_samecolumns(frames):
-        frames["source_id"] = source_id
-        frames["date"] = frames["cost.ymd"].apply(
-            lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")
-        )
-        frames["cost_type"] = ""
-        frames["foreign_category_lv1"] = frames["lv1.bm"].apply(
-            lambda x: x if not pd.isnull(x) else "0"
-        )
-        frames["foreign_category_lv3"] = ""
-        frames["foreign_category_lv4"] = ""
-        frames["foreign_category_lv5"] = ""
-        frames["cmid"] = cmid
-        frames = frames.rename(
-            columns={
-                "store.id": "foreign_store_id",
-                "item.id": "foreign_item_id",
-                "cost.sl_ls": "total_quantity",
-                "cost.je_hs_ls": "total_sale",
-                "cost.je_cb_hs_ls": "total_cost",
-            }
-        )
+        if len(frames) == 0:
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["source_id"] = source_id
+            frames["date"] = frames["cost.ymd"].apply(
+                lambda x: datetime.strptime(x, "%Y%m%d").strftime("%Y-%m-%d")
+            )
+            frames["cost_type"] = ""
+            frames["foreign_category_lv1"] = frames["lv1.bm"].apply(
+                lambda x: x if not pd.isnull(x) else "0"
+            )
+            frames["foreign_category_lv3"] = ""
+            frames["foreign_category_lv4"] = ""
+            frames["foreign_category_lv5"] = ""
+            frames["cmid"] = cmid
+            frames = frames.rename(
+                columns={
+                    "store.id": "foreign_store_id",
+                    "item.id": "foreign_item_id",
+                    "cost.sl_ls": "total_quantity",
+                    "cost.je_hs_ls": "total_sale",
+                    "cost.je_cb_hs_ls": "total_cost",
+                }
+            )
         return frames.copy()
 
     frames_part1 = frame_samecolumns(frames_part1)
