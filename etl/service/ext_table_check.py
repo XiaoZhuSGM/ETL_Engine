@@ -70,7 +70,6 @@ class ExtCheckTable(object):
         record_num = json.dumps([dict(r) for r in rows], default=self.alchemyencoder)
         record_num = json.loads(record_num)
 
-        self.conn.close()
         return record_num
 
     @staticmethod
@@ -108,6 +107,7 @@ class ExtCheckTable(object):
             else:
                 sql = sql.format(date=date)
             num = self.execute_sql(sql)
+            self.conn.close()
             return num
         else:
             return None
@@ -127,3 +127,39 @@ class ExtCheckTable(object):
             ext_test_query.update(query_sql=sql)
         else:
             ExtTestQuery(source_id=source_id, query_sql=sql, target_table=target_table).save()
+
+    def ext_serial(self, source_id, date):
+        ext_test_query = ExtTestQuery.query.filter_by(source_id=source_id, target_table='goodsflow').first()
+        data_source = self.get_datasource_by_source_id(source_id)
+        db_name = data_source.get('db_name')
+        database = db_name.get('database')
+        data_source['database'] = database
+        self.connect_test(**data_source)
+
+        if ext_test_query:
+            sql = ext_test_query.query_sql
+            num_count = self.judge_source_id(source_id)
+            count = 0
+            for n in num_count:
+                sql_data = sql.format(serial=n, date=date)
+                num_ = self.execute_sql(sql_data)
+                num = num_[0].get('')
+                count += num
+
+            self.conn.close()
+            return count
+
+    def judge_source_id(self, source_id):
+        if source_id == '59YYYYYYYYYYYYY':
+            num_count = [str(i).zfill(2) for i in range(20, 40)]
+            num_count.extend(['02', '03', '04'])
+
+        elif source_id == '70YYYYYYYYYYYYY':
+            num_count = [str(i).zfill(2) for i in range(20, 60)]
+            num_count.extend(['01', '02'])
+
+        elif source_id == '73YYYYYYYYYYYYY':
+            num_count = [str(i).zfill(2) for i in range(20, 100)]
+            num_count.extend(['01', '02'])
+
+        return num_count
