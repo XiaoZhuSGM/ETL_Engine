@@ -4475,10 +4475,10 @@ class HongYeCleaner:
         detail = self.data["bil_stockapplydtl"]
         item = self.data["inf_goods"]
         vendor = self.data["inf_tradeunit"]
-
-        header["deptcode"] = header.apply(
-            lambda row: (row["deptcode"]).strip()[:4], axis=1
-        )
+        if len(header) != 0:
+            header["deptcode"] = header.apply(
+                lambda row: (row["deptcode"]).strip()[:4], axis=1
+            )
         store["deptcode"] = store["deptcode"].str.strip()
         detail["gdsincode"] = detail["gdsincode"].str.strip()
         item["gdsincode"] = item["gdsincode"].str.strip()
