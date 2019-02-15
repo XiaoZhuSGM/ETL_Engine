@@ -25,6 +25,10 @@ def get_ext_check(source_id, target_table):
     if my_data and my_data.num > 500:
         return jsonify_with_data(APIError.OK, data={'num': my_data.num})
 
+    if (source_id in ['59YYYYYYYYYYYYY', '70YYYYYYYYYYYYY', '73YYYYYYYYYYYYY']) and target_table == 'goodsflow':
+        num = ext_check_table.ext_serial(source_id, date)
+        return jsonify_with_data(APIError.OK, data={'num': num})
+
     # 测试数据库是否能够正常连接，无法连接就返回错误信息
     data_source = ext_check_table.get_datasource_by_source_id(source_id)
     if data_source is None:
