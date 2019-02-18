@@ -20,6 +20,7 @@ build:
 pytest:
   stage: test
   script:
+    - export AWS_DEFAULT_REGION=cn-north-1
     - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
   only:
     - merge_requests
