@@ -46,8 +46,8 @@ def handler(event, context):
     query_date = message["query_date"]
     hour = message["hour"]
     os.environ["NLS_LANG"] = "SIMPLIFIED CHINESE_CHINA.UTF8"
-    engine = create_engine(db_url, echo=False, poolclass=NullPool)
     try:
+        engine = create_engine(db_url, echo=False, poolclass=NullPool)
         sql_data_frame = pd.read_sql(text(sql), engine)
         sql_data_frame.columns = [c.lower() for c in sql_data_frame.columns]
 
@@ -56,7 +56,7 @@ def handler(event, context):
         response["result"][table] = key
         return response
     except Exception as e:
-        return {"status": "error", "trace": str(traceback.format_exc())}
+        return {"status": "error", "error_sql": sql, "trace": str(traceback.format_exc())}
     finally:
         engine.dispose()
 
@@ -81,19 +81,7 @@ def upload_to_s3(source_id, table, _type, query_date, hour, frame):
         rowcount=count,
     )
     print(key)
-    # S3.Object(bucket_name=S3_BUCKET, key=key).put(Body=filename)
     S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
-    # 不需要这一步骤，初次抓取的话全路径和每次第一次抓取保持同一个路径，不需要在复制，等同步更新的时候再更新到data目录下
-    # if _type == Method.full.name:
-    #     copy_source = {
-    #         'Bucket': S3_BUCKET,
-    #         'Key': key
-    #     }
-    #     full_key = S3_WHOLE_RECORDS.format(source_id=source_id, ext_table=table, date=query_date,
-    #                                        timestamp=now_timestamp(),
-    #                                        rowcount=count)
-    #     S3.Bucket(S3_BUCKET).copy(copy_source, full_key)
-    #     return key, full_key
     return key
 
 

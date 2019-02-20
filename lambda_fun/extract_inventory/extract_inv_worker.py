@@ -16,10 +16,9 @@ _TZINFO = pytz.timezone("Asia/Shanghai")
 
 S3_BUCKET = "ext-etl-data"
 
-SQL_PREFIX = "sql/source_id={source_id}/{date}/"
-HISTORY_HUMP_JSON = (
-    "datapipeline/source_id={source_id}/ext_date={date}/table={table_name}/hour={hour}/history_dump_json/"
-    "dump={timestamp}.json"
+INV_SQL_PREFIX = "sql/source_id={source_id}/{date}/inventory/"
+INV_HISTORY_HUMP_JSON = (
+    "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/dump={timestamp}.json"
 )
 
 FULL_JSON = "data/source_id={source_id}/ext_date={date}/" "dump={date}_whole_path.json"
@@ -40,7 +39,8 @@ def now_timestamp():
     _timestamp = datetime.fromtimestamp(time.time(), tz=_TZINFO)
     return _timestamp
 
-def handler(event,context):
+
+def handler(event, context):
     if "Records" in event:
         message = json.loads(event["Records"][0]["Sns"]["Message"])
         print(message)
@@ -48,16 +48,13 @@ def handler(event,context):
         message = event
     ext_inv_work = ExtInvWork(message)
     response = json.dumps(ext_inv_work.extract_data())
-    print(response)
     if response and ext_inv_work.task_type != Method.sync.name:
-        json_key = HISTORY_HUMP_JSON.format(
-            source_id =ext_inv_work.source_id,
+        json_key = INV_HISTORY_HUMP_JSON.format(
+            source_id=ext_inv_work.source_id,
             date=ext_inv_work.inv_date,
             timestamp=now_timestamp(),
-            hour=ext_inv_work.inv_hour,
-            table_name=list(ext_inv_work.inv_sqls.keys())[0]
+            hour=ext_inv_work.inv_hour
         )
-        print(json_key)
         S3_CLIENT.Object(bucket_name=S3_BUCKET, key=json_key).put(Body=response)
 
         if ext_inv_work.task_type == Method.full.name:
@@ -72,41 +69,43 @@ def handler(event,context):
 
 
 class ExtInvWork(object):
-    def __init__(self,message):
+    def __init__(self, message):
         self.source_id = message.get("source_id", None)
         self.task_type = message.get("task_type", None)  # full ,sync, increment
-        self.db_url = message.get("db_url")
-        self.inv_date = datetime.now().strftime('%Y-%m-%d')
+        self.db_url = message.get("db_url", None)
+        self.inv_date = message.get('query_date', None)
+        self.filename = message.get('filename', None)
         self.inv_hour = datetime.now().hour
-        self.inv_sqls = message.get('inv_sqls', None)
+        assert self.inv_date == datetime.now().strftime('%Y-%m-%d'), "库存日期不是当天"
 
     def inv_sqls_info(self):
         #####从s3 获取json文件,目前还没有修改，需要手写
-        inv_sqls = {
-            "type":"inventory",
-            "source_id":self.source_id,
-            "query_date":self.inv_date,
-            "sqls": self.inv_sqls
-        }
-        return inv_sqls
+        key = (
+                INV_SQL_PREFIX.format(source_id=self.source_id, date=self.inv_date)
+                + self.filename
+        )
+        inv_sqls = (
+            S3_CLIENT.Object(S3_BUCKET, key).get()["Body"].read().decode("utf-8")
+        )
+        return json.loads(inv_sqls)
 
     def extract_data(self):
         if self.source_id is None:
             return "source_id不能为空"
         inv_sqls_info = self.inv_sqls_info()
         _type = inv_sqls_info["type"]
-
         futures = []
-        _type = inv_sqls_info['type']
         with ThreadPoolExecutor() as executor:
-            for table_name,sql_statement in inv_sqls_info["sqls"].items():
+            for table_name, sql_statement in inv_sqls_info["inv_sqls"].items():
                 for value in sql_statement:
+                    print(value)
                     future = executor.submit(
-                        self.thread_query_tables,(table_name,value),_type
+                        self.thread_query_tables, (table_name, value), _type
                     )
                     futures.append(future)
                     time.sleep(1)
         result = [f.result() for f in futures]
+
         response = dict(
             source_id=self.source_id,
             query_date=self.inv_date,
@@ -122,8 +121,7 @@ class ExtInvWork(object):
         response["extract_data"] = extracted_data
         return response
 
-
-    def thread_query_tables(self,sql,_type):
+    def thread_query_tables(self, sql, _type):
         msg = dict(
             source_id=self.source_id,
             sql=sql,
@@ -133,7 +131,6 @@ class ExtInvWork(object):
             hour=self.inv_hour
         )
         from executor_inv_sql import handler
-
         payload = handler(msg, None)
         status = payload.get("status", None)
         if status and status == "OK":
@@ -141,39 +138,33 @@ class ExtInvWork(object):
             return result
         elif status and status == "error":
             trace = payload.get('trace')
-            print(trace)
+            error_sql = payload.get('error_sql')
+            print(error_sql, trace)
         return None
 
 
-
-
-
-
 if __name__ == '__main__':
-    source_id = '43YYYYYYYYYYYYY'
+    source_id = '86YYYYYYYYYYYYY'
     db_url = requests.get(f"http://172.31.16.24:50010/etl/admin/api/datasource/dburl/{source_id}",
-                 headers={"token":"AIRFLOW_REQUEST_TOKEN"},
-                 ).json()['data']
+                          headers={"token": "AIRFLOW_REQUEST_TOKEN"},
+                          ).json()['data']
+    date = datetime.now().strftime('%Y-%m-%d')
+    # date = '2018-01-01'
+    params = {'source_id': source_id, 'date': date}
+    respones = requests.get('http://localhost:5000/etl/admin/api/inv/sql', params=params)
+    res = json.loads(respones.text)
+    filename = res['data']
     event = {
-        "type": "full",
-        "db_url":db_url,
+        "task_type": "full",
+        "db_url": db_url,
         "source_id": source_id,
-        "query_date":'',
-        "sqls":{
-            "table":['select * from ...',
-                     'select * from ...']
-        },
-        "inv_sqls": {
-            "actinvs": ["""SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM actinvs order by gdgid,store,
-                        qty desc ) RPT WHERE  ROWNUM <= 300000 )  temp_rpt WHERE RN > 0""",
-                        """SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM actinvs order by gdgid,store,
-                        qty desc ) RPT WHERE  ROWNUM <= 600000 )  temp_rpt WHERE RN > 300000""",
-                        """SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM actinvs order by gdgid,store,
-                        qty desc ) RPT WHERE  ROWNUM <= 900000 )  temp_rpt WHERE RN > 600000""",
-                        """SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM actinvs order by gdgid,store,
-                        qty desc ) RPT )  temp_rpt WHERE RN > 900000"""
-                        ]
-        }
+        "query_date": date,
+        "filename": filename
     }
-    # print(event)
-    handler(event,None)
+    print(event)
+    handler(event, None)
+
+    # params = {'source_id': source_id, 'date': '2019-01-01'}
+    # response = requests.get('http://localhost:5000/etl/admin/api/inv/sql', params=params)
+    # res = json.loads(response.text)
+    # print(res)

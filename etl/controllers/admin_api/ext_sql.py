@@ -54,3 +54,13 @@ def generate_target_table_sql():
     if result:
         return jsonify_with_data(APIError.OK, data=result)
     return jsonify_with_error(APIError.SERVER_ERROR)
+
+
+@etl_admin_api.route("/inv/sql", methods=["GET"])
+def generate_inv_sql():
+    source_id = request.args["source_id"]
+    extract_date = request.args["date"]
+    result = service.generate_inventory_sql(source_id)
+    if result:
+        return jsonify_with_data(APIError.OK, data=result)
+    return jsonify_with_error(APIError.SERVER_ERROR)
