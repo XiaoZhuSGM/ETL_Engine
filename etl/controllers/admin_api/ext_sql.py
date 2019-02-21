@@ -60,7 +60,7 @@ def generate_target_table_sql():
 def generate_inv_sql():
     source_id = request.args["source_id"]
     extract_date = request.args["date"]
-    result = service.generate_inventory_sql(source_id)
+    result = service.generate_inventory_sql(source_id,extract_date)
     if result:
         return jsonify_with_data(APIError.OK, data=result)
     return jsonify_with_error(APIError.SERVER_ERROR)
