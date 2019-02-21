@@ -27,6 +27,7 @@ def get_ext_check(source_id, target_table):
 
     if (source_id in ['59YYYYYYYYYYYYY', '70YYYYYYYYYYYYY', '73YYYYYYYYYYYYY']) and target_table == 'goodsflow':
         num = ext_check_table.ext_serial(source_id, date)
+        ext_check_table.create_check_num(source_id, target_table, num, date)
         return jsonify_with_data(APIError.OK, data={'num': num})
 
     # 测试数据库是否能够正常连接，无法连接就返回错误信息
