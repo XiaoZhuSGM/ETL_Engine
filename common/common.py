@@ -149,10 +149,16 @@ PAGE_SQL = {
     "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} {order_by} ) RPT WHERE  ROWNUM <= {large} )  temp_rpt WHERE RN > {small}",
     "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ({order_by} ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum between {small} and {large}",
 }
+PAGE_LAST_SQL = {
+    "oracle": "SELECT * FROM (SELECT RPT.*, ROWNUM RN FROM (SELECT * FROM {table}  {wheres} {order_by} ) RPT )  temp_rpt WHERE RN > {small}",
+    "sqlserver": "SELECT * FROM ( SELECT  ROW_NUMBER() OVER ({order_by} ) AS rownum ,* FROM {table} {wheres} ) AS temp WHERE temp.rownum>{small} ",
+}
+
 
 S3_BUCKET = 'ext-etl-data'
 
 SQL_PREFIX = 'sql/source_id={source_id}/{date}/'
+SQL_INV_PREFIX = 'sql/source_id={source_id}/{date}/inventory/'
 
 TARGET_TABLE_KEY = "target_table/target_table.json"
 
