@@ -102,14 +102,4 @@ class Warehouser:
 
 
 if __name__ == "__main__":
-    event = {
-        # 'redshift_url': 'postgresql+psycopg2://cmdata:EDSvuSb!L9@172.31.0.231:5439/cmdata_new',
-        "redshift_url": "postgresql+psycopg2://cmdata_offline_dev:8o4PemVCK9Cfcdw5zUXC@172.16.1.116:5439/cmdata_offline",
-        'target_table': 'inventory_34yyyyyyyyyyyyy',
-        'data_key': 'ext-etl-data/clean_data/source_id=34YYYYYYYYYYYYY/clean_date=2019-02-22/target_table=inventory/hour=10/dump=2019-02-22 10:20:17.679624+08:00&rowcount=748538.csv.gz',
-        'data_date': '2019-02-22', 'warehouse_type': 'copy', 'source_id': '34YYYYYYYYYYYYY', 'cmid': '34'
-    }
-
-    begin = time.time()
-    handler(event, None)
-    print(time.time() - begin)
+    pass
