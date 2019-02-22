@@ -2229,6 +2229,7 @@ class HaiDingCleaner:
             columns={
                 "code.sort3": "foreign_category_lv1",
                 "name.sort3": "foreign_category_lv1_name",
+                "code.sort2": "foreign_category_lv2",
                 "name.sort2": "foreign_category_lv2_name",
                 "code": "foreign_category_lv3",
                 "name": "foreign_category_lv3_name",
