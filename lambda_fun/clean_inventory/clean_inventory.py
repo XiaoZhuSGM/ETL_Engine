@@ -15,7 +15,7 @@ from typing import Dict
 
 S3_BUCKET = "ext-etl-data"
 
-HISTORY_HUMP_JSON = (
+INV_HISTORY_HUMP_JSON = (
     "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/"
 )
 
@@ -25,7 +25,7 @@ BLANK_CHAR = re.compile(r"[\r\n\t]+")
 
 _TZINFO = pytz.timezone("Asia/Shanghai")
 S3 = boto3.resource("s3")
-CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/hour={hour}/dump={timestamp}&rowcount={rowcount}.csv.gz"
+INV_CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_table={target_table}/hour={hour}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 
 
 class InventoryCleaner:
@@ -48,7 +48,7 @@ class InventoryCleaner:
         """
         columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
         cmid = self.cmid
-        frames = self.data["t_stock_master"]
+        frames = self.data["t_sk_master"]
         if not len(frames):
             frames = pd.DataFrame(columns=columns)
         else:
@@ -153,22 +153,23 @@ class InventoryCleaner:
         return self.up_load_to_s3(part)
 
     def up_load_to_s3(self, dataframe):
-        filename = tempfile.NamedTemporaryFile(mode="w", encoding="utf-8")
-        count = len(dataframe)
-        dataframe.to_csv(
-            filename.name, index=False, compression="gzip", float_format="%.4f"
-        )
-        filename.seek(0)
-        key = CLEANED_PATH.format(
-            source_id=self.source_id,
-            target_table=self.target_table,
-            date=self.date,
-            timestamp=datetime.fromtimestamp(time.time(), tz=_TZINFO),
-            rowcount=count,
-            hour=self.hour
-        )
-        S3.Bucket(S3_BUCKET).upload_file(filename.name, key)
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as file:
+            count = len(dataframe)
+            dataframe.to_csv(
+                file.name, index=False, compression="gzip", float_format="%.4f"
+            )
+            file.seek(0)
+            key = INV_CLEANED_PATH.format(
+                source_id=self.source_id,
+                target_table=self.target_table,
+                date=self.date,
+                timestamp=datetime.fromtimestamp(time.time(), tz=_TZINFO),
+                rowcount=count,
+                hour=self.hour
+            )
+            S3.Bucket(S3_BUCKET).upload_file(file.name, key)
 
+        print(key)
         return key
 
 
@@ -242,26 +243,29 @@ def handler(event, context):
     origin_table_columns = message["origin_table_columns"]
     converts = message["converts"]
     # inventory_table = list(origin_table_columns.keys())[0]
-    hour = datetime.now().hour
+    hour = datetime.now(tz=_TZINFO).hour
+    hour_delta = hour - 2
     print(hour)
 
     map_converter(converts)
 
     while True:
-        prefix = HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=str(hour))
+        prefix = INV_HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=str(hour))
+        print(prefix)
         objects = list(S3.Bucket(S3_BUCKET).objects.filter(Prefix=prefix))
 
         if objects is not None and len(objects) > 0:
             break
         hour -= 1
 
-        if hour == 0:
-            break
+        if hour == hour_delta:
+            print('当前时间段没有找到数据，退出')
+            return
     print("清洗{}点的那一份".format(str(hour)))
 
     keys = get_matching_s3_keys(
         S3_BUCKET,
-        prefix=HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=hour),
+        prefix=INV_HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=hour),
         suffix=".json",
     )
 
@@ -293,11 +297,12 @@ def now_timestamp():
 if __name__ == "__main__":
     start_time = time.time()
     # event = {'source_id': '70YYYYYYYYYYYYY', 'erp_name': '科脉云鼎',
-    #          'date': '2019-02-19',
+    #          'date': '2019-02-22',
     #          'target_table': 'inventory',
-    #          'origin_table_columns': {'t_stock_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
-    #          'converts': {'t_stock_master': {'fbrh_no': 'str', 'fitem_id': 'str'}
+    #          'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
+    #          'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}
     #                       }}
+
     event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业',
              'date': '2019-02-22',
              'target_table': 'inventory',
@@ -305,5 +310,38 @@ if __name__ == "__main__":
              'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}
                           }}
 
-    handler(event, None)
-    print(time.time() - start_time)
+    # event = {'source_id': '86YYYYYYYYYYYYY', 'erp_name': '海信',
+    #          'date': '2019-02-22',
+    #          'target_table': 'inventory',
+    #          'origin_table_columns': {'tstklskc': ['orgcode', 'pluid', 'kccount', 'hcost']},
+    #          'converts': {'tstklskc': {'orgcode': 'str', 'pluid': 'str'}
+    #                       }}
+
+    # event = {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎',
+    #          'date': '2019-02-22',
+    #          'target_table': 'inventory',
+    #          'origin_table_columns': {'actinvs': ['store', 'gdgid', 'qty', 'amt', 'tax']},
+    #          'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
+    #                       }}
+
+    # handler(event, None)
+    # print(time.time() - start_time)
+
+    # import boto3
+    # from botocore.client import Config
+    #
+    # lam = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910, retries=dict(max_attempts=0)))
+    #
+    #
+    # def invoke_lambda(functionname, event):
+    #     invoke_response = lam.invoke(
+    #         FunctionName=functionname, InvocationType='RequestResponse', Payload=json.dumps(event), LogType='Tail'
+    #     )
+    #     return invoke_response
+    #
+    #
+    # response = invoke_lambda('clean_data_inv', event)
+    # payload_body = response['Payload']
+    # payload_str = payload_body.read()
+    # response = json.loads(payload_str)
+    # print(response)
