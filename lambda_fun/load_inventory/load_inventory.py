@@ -105,34 +105,4 @@ class Warehouser:
 
 
 if __name__ == "__main__":
-    event = {
-        # 'redshift_url': 'postgresql+psycopg2://cmdata:EDSvuSb!L9@172.31.0.231:5439/cmdata_new',
-        "redshift_url": "postgresql+psycopg2://cmdata_offline_dev:8o4PemVCK9Cfcdw5zUXC@172.16.1.116:5439/cmdata_offline",
-        'target_table': 'inventory_34YYYYYYYYYYYYY',
-        'data_key': 'ext-etl-data/clean_data/source_id=34YYYYYYYYYYYYY/clean_date=2019-02-26/target_table=inventory/hour=10/dump=2019-02-26 11:11:10.033368+08:00&rowcount=741982.csv.gz',
-        'data_date': '2019-02-26', 'warehouse_type': 'copy', 'source_id': '34YYYYYYYYYYYYY', 'cmid': '34'
-    }
-    #
-    begin = time.time()
-    handler(event, None)
-    print(time.time() - begin)
-
-
-    # import boto3
-    # from botocore.client import Config
-    #
-    # lam = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910, retries=dict(max_attempts=0)))
-    #
-    #
-    # def invoke_lambda(functionname, event):
-    #     invoke_response = lam.invoke(
-    #         FunctionName=functionname, InvocationType='RequestResponse', Payload=json.dumps(event), LogType='Tail'
-    #     )
-    #     return invoke_response
-    #
-    #
-    # response = invoke_lambda('load_data_inv', event)
-    # payload_body = response['Payload']
-    # payload_str = payload_body.read()
-    # response = json.loads(payload_str)
-    # print(response)
+    pass
