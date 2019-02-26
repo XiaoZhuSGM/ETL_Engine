@@ -156,7 +156,7 @@ class InventoryCleaner:
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as file:
             count = len(dataframe)
             dataframe.to_csv(
-                file.name, index=False, compression="gzip", float_format="%.4f"
+                file.name, index=False, compression="gzip", float_format="%.2f"
             )
             file.seek(0)
             key = INV_CLEANED_PATH.format(
@@ -303,12 +303,12 @@ if __name__ == "__main__":
     #          'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}
     #                       }}
 
-    event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业',
-             'date': '2019-02-22',
-             'target_table': 'inventory',
-             'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
-             'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}
-                          }}
+    # event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业',
+    #          'date': '2019-02-26',
+    #          'target_table': 'inventory',
+    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
+    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}
+    #                       }}
 
     # event = {'source_id': '86YYYYYYYYYYYYY', 'erp_name': '海信',
     #          'date': '2019-02-22',
@@ -324,8 +324,12 @@ if __name__ == "__main__":
     #          'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
     #                       }}
 
-    # handler(event, None)
-    # print(time.time() - start_time)
+    event = {'source_id': '73YYYYYYYYYYYYY', 'erp_name': '科脉云鼎', 'date': '2019-02-26', 'target_table': 'inventory',
+             'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
+             'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}}}
+
+    handler(event, None)
+    print(time.time() - start_time)
 
     # import boto3
     # from botocore.client import Config
