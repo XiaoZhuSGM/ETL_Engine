@@ -20,7 +20,6 @@ INV_SQL_PREFIX = "sql/source_id={source_id}/{date}/inventory/"
 INV_HISTORY_HUMP_JSON = (
     "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/dump={timestamp}.json"
 )
-
 FULL_JSON = "data/source_id={source_id}/ext_date={date}/" "dump={date}_whole_path.json"
 
 S3_CLIENT = boto3.resource("s3")
@@ -60,7 +59,7 @@ def handler(event, context):
         if ext_inv_work.task_type == Method.full.name:
             """full json 每天只会有一份，每次增量后的话都是更新，同步更新后放到data目录"""
             full_json_key = FULL_JSON.format(
-                source_id=ext_inv_work.source_id, date=ext_inv_work.query_date
+                source_id=ext_inv_work.source_id, date=ext_inv_work.inv_date
             )
             S3_CLIENT.Object(bucket_name=S3_BUCKET, key=full_json_key).put(
                 Body=response
@@ -104,21 +103,23 @@ class ExtInvWork(object):
                     )
                     futures.append(future)
                     time.sleep(1)
-        result = [f.result() for f in futures]
 
+        result = [f.result() for f in futures]
         response = dict(
             source_id=self.source_id,
             query_date=self.inv_date,
             hour=self.inv_hour,
             task_type=self.task_type
         )
-        extracted_data_list = [r for r in result if r is not None]
+        extracted_data_list = [r[0] for r in result if r is not None]
+        sucess_sql_list = [r[1] for r in result if r is not None]
+        all_sqls_list = list(inv_sqls_info["inv_sqls"])[0]
+        failure_sqls = list(set(all_sqls_list).difference(set(sucess_sql_list)))
         extracted_data = defaultdict(list)
         for data_road in extracted_data_list:
             (table, road), = data_road.items()
             extracted_data[table].append(road)
-        print(extracted_data)
-        response["extract_data"] = extracted_data
+        print(response)
         return response
 
     def thread_query_tables(self, sql, _type):
@@ -135,23 +136,22 @@ class ExtInvWork(object):
         status = payload.get("status", None)
         if status and status == "OK":
             result = payload.get("result")
-            return result
+            sql = payload.get("sql")
+            return result, sql
         elif status and status == "error":
             trace = payload.get('trace')
             error_sql = payload.get('error_sql')
-            print(error_sql, trace)
         return None
 
 
 if __name__ == '__main__':
-    source_id = '86YYYYYYYYYYYYY'
+    source_id = '43YYYYYYYYYYYYY'
     db_url = requests.get(f"http://172.31.16.24:50010/etl/admin/api/datasource/dburl/{source_id}",
                           headers={"token": "AIRFLOW_REQUEST_TOKEN"},
                           ).json()['data']
     date = datetime.now().strftime('%Y-%m-%d')
-    # date = '2018-01-01'
     params = {'source_id': source_id, 'date': date}
-    respones = requests.get('http://localhost:5000/etl/admin/api/inv/sql', params=params)
+    respones = requests.get('http://10.1.20.226:5000/etl/admin/api/inv/sql', params=params)
     res = json.loads(respones.text)
     filename = res['data']
     event = {
@@ -168,3 +168,11 @@ if __name__ == '__main__':
     # response = requests.get('http://localhost:5000/etl/admin/api/inv/sql', params=params)
     # res = json.loads(response.text)
     # print(res)
+
+    # invoke_response = LAMBDA_CLIENT.invoke(
+    #     FunctionName="extract_inv_worker", InvocationType='RequestResponse',
+    #     Payload=json.dumps(event))
+    # payload = invoke_response.get('Payload')
+    # payload_str = payload.read()
+    # payload = json.loads(payload_str)
+    # print(payload)
