@@ -113,7 +113,7 @@ class ExtInvWork(object):
         )
         extracted_data_list = [r[0] for r in result if r is not None]
         sucess_sql_list = [r[1] for r in result if r is not None]
-        all_sqls_list = list(inv_sqls_info["inv_sqls"])[0]
+        all_sqls_list = list(inv_sqls_info["inv_sqls"].values())[0]
         failure_sqls = list(set(all_sqls_list).difference(set(sucess_sql_list)))
         extracted_data = defaultdict(list)
         for data_road in extracted_data_list:
