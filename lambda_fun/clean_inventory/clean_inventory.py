@@ -183,11 +183,9 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
     """
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
-    for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
-    ):
-        if obj.key.endswith(suffix):
-            yield obj.key
+    objects = sorted([obj for obj in objects if obj.key.endswith(suffix)],
+                     key=lambda obj: int(obj.last_modified.strftime("%s")))
+    return objects[-1].key
 
 
 def map_converter(converts: dict):
@@ -199,16 +197,16 @@ def map_converter(converts: dict):
 
 def fetch_data_frames(keys, origin_table_columns, converts):
     datas = {}
-    for key in keys:
-        content = S3.Object(S3_BUCKET, key).get()
-        data = json.loads(content["Body"].read().decode("utf-8"))
-        extract_data_dict = data["extract_data"]
-        for table_name, records in extract_data_dict.items():
-            if (
-                    table_name in origin_table_columns.keys()
-                    and table_name not in datas.keys()
-            ):
-                datas[table_name] = records
+    content = S3.Object(S3_BUCKET, keys).get()
+    data = json.loads(content["Body"].read().decode("utf-8"))
+    print(data)
+    extract_data_dict = data["extract_data"]
+    for table_name, records in extract_data_dict.items():
+        if (
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
+        ):
+            datas[table_name] = records
 
     data_frames = {}
 
@@ -268,7 +266,6 @@ def handler(event, context):
         prefix=INV_HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=hour),
         suffix=".json",
     )
-
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
     for k, v in data_frames.items():
         data_frames[k] = v.applymap(
@@ -324,9 +321,9 @@ if __name__ == "__main__":
     #          'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
     #                       }}
 
-    event = {'source_id': '73YYYYYYYYYYYYY', 'erp_name': '科脉云鼎', 'date': '2019-02-26', 'target_table': 'inventory',
-             'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
-             'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}}}
+    event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-02-27', 'target_table': 'inventory',
+             'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
+             'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}}}
 
     handler(event, None)
     print(time.time() - start_time)
