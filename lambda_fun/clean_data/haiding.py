@@ -638,11 +638,7 @@ class HaiDingCleaner:
         buy1s = self.data["buy1s"]
         workstation = self.data["workstation"]
         store = self.data["store"]
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            goods = self.data["orggoodsh"]
-            goods = goods[goods["orggid"] == 1003890]
-        else:
-            goods = self.data["goods"]
+        goods = self.data["goods"]
         sort = self.data["sort"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
@@ -689,7 +685,7 @@ class HaiDingCleaner:
             )
             .merge(
                 store,
-                how="left",
+                how="inner",
                 left_on=["storegid"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
@@ -734,11 +730,6 @@ class HaiDingCleaner:
         part["foreign_category_lv5_name"] = None
         part["last_updated"] = str(datetime.now(_TZINFO))
         part = part[part["gid.store"].notnull() & part["gid"].notnull()]
-        if self.source_id == "3201YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & ~(part["area"].isin(['301', '302'])) & (
-                part["property"].isin(['2', '256']))]
-        elif self.source_id == "3202YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & (part["area"].isin(['301', '302']))]
         part = part.rename(
             columns={
                 "gid.store": "foreign_store_id",
@@ -764,210 +755,6 @@ class HaiDingCleaner:
         return part[columns]
 
     def cost(self):
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            return self.cost_32()
-        else:
-            return self.cost_other()
-
-    def cost_32(self):
-        rpt_storesaldrpt = self.data["rpt_storesaldrpt"]
-        store = self.data["store"]
-        goods = self.data["orggoodsh"]
-        sort = self.data["sort"]
-        goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
-        goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
-        goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
-        goods = goods[goods["orggid"] == 1003890]
-        sdrpts = self.data["sdrpts"]
-        columns = ["source_id", "foreign_store_id", "foreign_item_id", "date", "cost_type", "total_quantity",
-                   "total_sale", "total_cost", "foreign_category_lv1",
-                   "foreign_category_lv2", "foreign_category_lv3", "foreign_category_lv4", "foreign_category_lv5",
-                   "cmid", ]
-        part1 = (
-            rpt_storesaldrpt.merge(
-                store,
-                how="left",
-                left_on=["orgkey"],
-                right_on=["gid"],
-                suffixes=("", ".store"),
-            )
-                .merge(
-                goods,
-                how="left",
-                left_on=["pdkey"],
-                right_on=["gid"],
-                suffixes=("", ".goods"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort1"],
-                right_on=["code"],
-                suffixes=("", ".sort1"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort2"],
-                right_on=["code"],
-                suffixes=("", ".sort2"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort3"],
-                right_on=["code"],
-                suffixes=("", ".sort3"),
-            )
-        )
-        if not len(part1):
-            part1 = pd.DataFrame(columns=columns)
-        else:
-            part1["source_id"] = self.source_id
-            part1["cmid"] = self.cmid
-            part1["total_sale"] = part1.apply(lambda row: row["saleamt"] + row["saletax"], axis=1)
-            part1["total_cost"] = part1.apply(lambda row: row["salecamt"] + row["salectax"], axis=1)
-            part1["foreign_category_lv1"] = part1.apply(
-                lambda row: "" if row["code"] is None else row["code"], axis=1
-            )
-            part1["foreign_category_lv2"] = part1.apply(
-                lambda row: "" if row["code.sort2"] is None else row["code.sort2"],
-                axis=1,
-            )
-            part1["foreign_category_lv3"] = part1.apply(
-                lambda row: "" if row["code.sort3"] is None else row["code.sort3"],
-                axis=1,
-            )
-            part1["foreign_category_lv4"] = ""
-            part1["foreign_category_lv5"] = ""
-            part1["fildate"] = part1.apply(lambda row: row["fildate"].split()[0], axis=1)
-            part1 = part1.rename(
-                columns={
-                    "orgkey": "foreign_store_id",
-                    "pdkey": "foreign_item_id",
-                    "fildate": "date",
-                    "cls": "cost_type",
-                    "saleqty": "total_quantity",
-                }
-            )
-            if self.source_id == "3201YYYYYYYYYYY":
-                part1 = part1[(part1["orggid"] == 1003890) & ~(part1["area"].isin(['301', '302'])) & (
-                    part1["property"].isin(['2', '256']))]
-            elif self.source_id == "3202YYYYYYYYYYY":
-                part1 = part1[(part1["orggid"] == 1003890) & (part1["area"].isin(['301', '302']))]
-            part1 = part1[columns]
-        part2 = (
-            sdrpts.merge(
-                store,
-                how="inner",
-                left_on=["snd"],
-                right_on=["gid"],
-                suffixes=("", ".store")
-            )
-                .merge(
-                goods,
-                how="left",
-                left_on=["gdgid"],
-                right_on=["gid"],
-                suffixes=("", ".goods"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort1"],
-                right_on=["code"],
-                suffixes=("", ".sort1"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort2"],
-                right_on=["code"],
-                suffixes=("", ".sort2"),
-            )
-                .merge(
-                sort,
-                how="left",
-                left_on=["sort3"],
-                right_on=["code"],
-                suffixes=("", ".sort3"),
-            )
-        )
-        if not len(part2):
-            part2 = pd.DataFrame(columns=columns)
-        else:
-            part2["source_id"] = self.source_id
-            part2["cmid"] = self.cmid
-            part2["total_quantity"] = part2.apply(
-                lambda row: row["qty"]
-                if row["cls"] in ("零售", "批发")
-                else 0
-                if row["cls"] in ("成本差异", "成本调整")
-                else -1 * row["qty"],
-                axis=1,
-            )
-            part2["total_sale"] = part2.apply(
-                lambda row: row["amt"] + row["tax"]
-                if row["cls"] in ("零售", "批发")
-                else 0
-                if row["cls"] in ("成本差异", "成本调整")
-                else -1 * (row["amt"] + row["tax"]),
-                axis=1,
-            )
-            part2["total_cost"] = part2.apply(
-                lambda row: row["iamt"] + row["itax"]
-                if row["cls"] in ("零售", "批发")
-                else 0
-                if row["cls"] in ("成本差异", "成本调整")
-                else -1 * (row["iamt"] + row["itax"]),
-                axis=1,
-            )
-            part2["foreign_category_lv1"] = part2.apply(
-                lambda row: "" if row["code"] is None else row["code"], axis=1
-            )
-            part2["foreign_category_lv2"] = part2.apply(
-                lambda row: "" if row["code.sort2"] is None else row["code.sort2"],
-                axis=1,
-            )
-            part2["foreign_category_lv3"] = part2.apply(
-                lambda row: "" if row["code.sort3"] is None else row["code.sort3"],
-                axis=1,
-            )
-            part2["foreign_category_lv4"] = ""
-            part2["foreign_category_lv5"] = ""
-            part2["fildate"] = part2.apply(
-                lambda row: row["fildate"].split()[0], axis=1
-            )
-            now = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-            part2 = part2[
-                (part2["ocrdate"] >= now)
-                & (part2["cls"].isin(("零售", "零售退", "批发", "批发退", "成本差异", "成本调整")))
-                ]
-
-            part2 = part2.rename(
-                columns={
-                    "snd": "foreign_store_id",
-                    "gdgid": "foreign_item_id",
-                    "fildate": "date",
-                    "cls": "cost_type",
-                }
-            )
-            if self.source_id == "3201YYYYYYYYYYY":
-                part2 = part2[(part2["orggid"] == 1003890) & ~(part2["area"].isin(['301', '302'])) & (
-                    part2["property"].isin(['2', '256']))]
-            elif self.source_id == "3202YYYYYYYYYYY":
-                part2 = part2[(part2["orggid"] == 1003890) & (part2["area"].isin(['301', '302']))]
-            part2 = part2[columns]
-        result = pd.concat([part1, part2])
-        result = result[
-            (result["total_quantity"] != 0)
-            | (result["total_sale"] != 0)
-            | (result["total_cost"] != 0)
-            ]
-
-        return result
-
-    def cost_other(self):
         rpt_storesaldrpt = self.data["rpt_storesaldrpt"]
         goods = self.data["goods"]
         sort = self.data["sort"]
@@ -1203,11 +990,7 @@ class HaiDingCleaner:
         sort = self.data["sort"]
         vendor = self.data["vendor"]
         employee = self.data["employee"]
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            goods = self.data["orggoodsh"]
-            goods = goods[goods["orggid"] == 1003890]
-        else:
-            goods = self.data["goods"]
+        goods = self.data["goods"]
         otrequireorder = otrequireorder.drop_duplicates()
         otrequireorderline = otrequireorderline.drop_duplicates()
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
@@ -1279,11 +1062,6 @@ class HaiDingCleaner:
         part["foreign_category_lv4"] = ""
         part["foreign_category_lv5"] = ""
         part = part[(part["state"] == 8000) & (part["billtype"] == "门店叫货")]
-        if self.source_id == "3201YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & ~(part["area"].isin(['301', '302'])) & (
-                part["property"].isin(['2', '256']))]
-        elif self.source_id == "3202YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & (part["area"].isin(['301', '302']))]
         part = part.rename(
             columns={
                 "billnumber": "order_num",
@@ -1365,11 +1143,7 @@ class HaiDingCleaner:
         sort = self.data["sort"]
         stkoutbck = self.data["stkoutbck"]
         stkoutbckdtl = self.data["stkoutbckdtl"]
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            goods = self.data["orggoodsh"]
-            goods = goods[goods["orggid"] == 1003890]
-        else:
-            goods = self.data["goods"]
+        goods = self.data["goods"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
@@ -1464,11 +1238,6 @@ class HaiDingCleaner:
                     "code.sort3": "foreign_category_lv3",
                 }
             )
-            if self.source_id == "3201YYYYYYYYYYY":
-                part1 = part1[(part1["orggid"] == 1003890) & ~(part1["area"].isin(['301', '302'])) & (
-                    part1["property"].isin(['2', '256']))]
-            elif self.source_id == "3202YYYYYYYYYYY":
-                part1 = part1[(part1["orggid"] == 1003890) & (part1["area"].isin(['301', '302']))]
             part1 = part1[columns]
 
         stkoutbck: pd.DataFrame = stkoutbck[
@@ -1562,11 +1331,6 @@ class HaiDingCleaner:
                     "code.sort3": "foreign_category_lv3",
                 }
             )
-            if self.source_id == "3201YYYYYYYYYYY":
-                part2 = part2[(part2["orggid"] == 1003890) & ~(part2["area"].isin(['301', '302'])) & (
-                    part2["property"].isin(['2', '256']))]
-            elif self.source_id == "3202YYYYYYYYYYY":
-                part2 = part2[(part2["orggid"] == 1003890) & (part2["area"].isin(['301', '302']))]
             part2 = part2[columns]
         return pd.concat([part1, part2])
 
@@ -1831,7 +1595,7 @@ class HaiDingCleaner:
             )
             .merge(
                 store,
-                how="left",
+                how="inner",
                 left_on=["receiver"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
@@ -2177,55 +1941,9 @@ class HaiDingCleaner:
         part = part[columns]
         return part
 
+
+
     def store(self):
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            return self.store_32()
-        else:
-            return self.store_other()
-
-    def store_32(self):
-        store = self.data["store"]
-        area = self.data["area"]
-        columns = ["cmid", "foreign_store_id", "store_name", "store_address", "address_code", "device_id",
-                   "store_status", "create_date", "lat", "lng", "show_code",
-                   "phone_number", "contacts", "area_code", "area_name", "business_area", "property_id", "property",
-                   "source_id", "last_updated", ]
-        if self.source_id == "3201YYYYYYYYYYY":
-            store = store[(store["orggid"] == 1003890) & ~(store["area"].isin(['301', '302'])) & (store["property"].isin(['2', '256']))]
-        else:
-            store = store[(store["orggid"] == 1003890) & (store["area"].isin(['301', '302']))]
-        part = store.merge(area, how="left", left_on=["area"], right_on="code", suffixes=("", ".area"), )
-        part["cmid"] = self.cmid
-        part["source_id"] = self.source_id
-        part["address_code"] = ""
-        part["device_id"] = ""
-        print(part.columns)
-        part["store_status"] = part.apply(
-            lambda row: "闭店" if row["stat"] == 1 else "正常", axis=1
-        )
-        part["create_date"] = datetime.now(_TZINFO)
-        part["last_updated"] = datetime.now(_TZINFO)
-        part["lat"] = 0
-        part["lng"] = 0
-        part["property_id"] = part["property"]
-        part["property"] = part["property"].apply(lambda x: "特许加盟店" if x == 256 else "直营店")
-        part = part.rename(
-            columns={
-                "gid": "foreign_store_id",
-                "name": "store_name",
-                "address": "store_address",
-                "code": "show_code",
-                "phone": "phone_number",
-                "contactor": "contacts",
-                "code.area": "area_code",
-                "name.area": "area_name",
-                "circle": "business_area",
-            }
-        )
-        part = part[columns]
-        return part
-
-    def store_other(self):
         store = self.data["store"]
         area = self.data["area"]
         columns = [
@@ -2322,13 +2040,8 @@ class HaiDingCleaner:
         return part
 
     def goods(self):
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            goods = self.data["orggoodsh"]
-            vendor = self.data["vendorh"]
-            goods = goods[goods["orggid"] == 1003890]
-        else:
-            goods = self.data["goods"]
-            vendor = self.data["vendor"]
+        goods = self.data["goods"]
+        vendor = self.data["vendor"]
         goodsbusgate = self.data["goodsbusgate"]
         brand = self.data["brand"]
 
@@ -2512,15 +2225,11 @@ class HaiDingCleaner:
         part3["foreign_category_lv5"] = ""
         part3["foreign_category_lv5_name"] = None
         part3["last_updated"] = datetime.now(_TZINFO)
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            part3["foreign_category_lv2"] = sort.apply(lambda row: row["code"][:4], axis=1)
-        else:
-            part3["foreign_category_lv2"] = part3["code.sort2"]
-
         part3 = part3.rename(
             columns={
                 "code.sort3": "foreign_category_lv1",
                 "name.sort3": "foreign_category_lv1_name",
+                "code.sort2": "foreign_category_lv2",
                 "name.sort2": "foreign_category_lv2_name",
                 "code": "foreign_category_lv3",
                 "name": "foreign_category_lv3_name",
@@ -2568,7 +2277,7 @@ class HaiDingCleaner:
 
         part = ckdatas.merge(
             store,
-            how="left",
+            how="inner",
             left_on=["store"],
             right_on=["gid"],
             suffixes=("", ".store"),
@@ -2635,11 +2344,7 @@ class HaiDingCleaner:
 
         store = self.data["store"]
         sort = self.data["sort"]
-        if self.source_id == "3201YYYYYYYYYYY" or self.source_id == "3202YYYYYYYYYYY":
-            goods = self.data["orggoodsh"]
-            goods = goods[goods["orggid"] == 1003890]
-        else:
-            goods = self.data["goods"]
+        goods = self.data["goods"]
         goods["sort1"] = goods.apply(lambda row: row["sort"][:2], axis=1)
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
@@ -2647,7 +2352,7 @@ class HaiDingCleaner:
         part = (
             ckdatas.merge(
                 store,
-                how="left",
+                how="inner",
                 left_on=["store"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
@@ -2682,11 +2387,6 @@ class HaiDingCleaner:
             )
         )
         part = part[(part["qty"] < part["acntqty"]) & (part["stat"] == 3)]
-        if self.source_id == "3201YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & ~(part["area"].isin(['301', '302'])) & (
-                part["property"].isin(['2', '256']))]
-        elif self.source_id == "3202YYYYYYYYYYY":
-            part = part[(part["orggid"] == 1003890) & (part["area"].isin(['301', '302']))]
         if not len(part):
             return pd.DataFrame(columns=columns)
         part["quantity"] = part.apply(lambda row: row["qty"] - row["acntqty"], axis=1)
@@ -2753,7 +2453,7 @@ class HaiDingCleaner:
         part = (
             ckdatas.merge(
                 store,
-                how="left",
+                how="inner",
                 left_on=["store"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
