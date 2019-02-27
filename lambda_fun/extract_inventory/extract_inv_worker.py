@@ -119,6 +119,8 @@ class ExtInvWork(object):
         for data_road in extracted_data_list:
             (table, road), = data_road.items()
             extracted_data[table].append(road)
+        response["extract_data"] = extracted_data
+        response["failure_sqls"] = failure_sqls
         print(response)
         return response
 
@@ -141,6 +143,7 @@ class ExtInvWork(object):
         elif status and status == "error":
             trace = payload.get('trace')
             error_sql = payload.get('error_sql')
+            print(error_sql, trace)
         return None
 
 
