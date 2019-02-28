@@ -16,9 +16,8 @@ from typing import Dict
 S3_BUCKET = "ext-etl-data"
 
 INV_HISTORY_HUMP_JSON = (
-    "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/"
+    "inventory/source_id={source_id}/ext_date={date}/history_dump_json/{hour}/"
 )
-
 CONVERTERS = {"str": str, "int": int, "float": float}
 
 BLANK_CHAR = re.compile(r"[\r\n\t]+")
@@ -314,16 +313,16 @@ if __name__ == "__main__":
     #          'converts': {'tstklskc': {'orgcode': 'str', 'pluid': 'str'}
     #                       }}
 
-    # event = {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'actinvs': ['store', 'gdgid', 'qty', 'amt', 'tax']},
-    #          'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
-    #                       }}
+    event = {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎',
+             'date': '2019-02-28',
+             'target_table': 'inventory',
+             'origin_table_columns': {'actinvs': ['store', 'gdgid', 'qty', 'amt', 'tax']},
+             'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
+                          }}
 
-    event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-02-27', 'target_table': 'inventory',
-             'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
-             'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}}}
+    # event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-02-27', 'target_table': 'inventory',
+    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
+    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}}}
 
     handler(event, None)
     print(time.time() - start_time)
