@@ -17,7 +17,7 @@ from csv import QUOTE_NONNUMERIC
 S3_BUCKET = "ext-etl-data"
 
 S3_RECORDS = (
-    "datapipeline/source_id={source_id}/ext_date={date}/table={ext_table}/"
+    "inventory/source_id={source_id}/ext_date={date}/table={ext_table}/"
     "hour={hour}/dump={timestamp}&rowcount={rowcount}.csv.gz"
 )
 
