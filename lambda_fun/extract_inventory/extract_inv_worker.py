@@ -18,7 +18,7 @@ S3_BUCKET = "ext-etl-data"
 
 INV_SQL_PREFIX = "sql/source_id={source_id}/{date}/inventory/"
 INV_HISTORY_HUMP_JSON = (
-    "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/dump={timestamp}.json"
+    "inventory/source_id={source_id}/ext_date={date}/history_dump_json/{hour}/dump={timestamp}.json"
 )
 FULL_JSON = "data/source_id={source_id}/ext_date={date}/" "dump={date}_whole_path.json"
 
@@ -148,7 +148,7 @@ class ExtInvWork(object):
 
 
 if __name__ == '__main__':
-    source_id = '43YYYYYYYYYYYYY'
+    source_id = '34YYYYYYYYYYYYY'
     db_url = requests.get(f"http://172.31.16.24:50010/etl/admin/api/datasource/dburl/{source_id}",
                           headers={"token": "AIRFLOW_REQUEST_TOKEN"},
                           ).json()['data']
