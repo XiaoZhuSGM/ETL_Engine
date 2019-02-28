@@ -122,7 +122,7 @@ class InventoryCleaner:
         part = inventory[columns]
         return self.up_load_to_s3(part)
 
-    def clean_haixin_inventory(self):
+    def clean_haixinv5_inventory(self):
         columns = [
             "cmid",
             "foreign_store_id",
@@ -277,9 +277,9 @@ def handler(event, context):
     elif erp_name == "海鼎":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_haiding_inventory()
-    elif erp_name == '海信':
+    elif erp_name == '海信商定天下v5':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
-        return cleaner.clean_haixin_inventory()
+        return cleaner.clean_haixinv5_inventory()
     elif erp_name == '宏业':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_hongye_inventory()
@@ -291,57 +291,4 @@ def now_timestamp():
 
 
 if __name__ == "__main__":
-    start_time = time.time()
-    # event = {'source_id': '70YYYYYYYYYYYYY', 'erp_name': '科脉云鼎',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
-    #          'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}
-    #                       }}
-
-    # event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业',
-    #          'date': '2019-02-26',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
-    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}
-    #                       }}
-
-    # event = {'source_id': '86YYYYYYYYYYYYY', 'erp_name': '海信',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'tstklskc': ['orgcode', 'pluid', 'kccount', 'hcost']},
-    #          'converts': {'tstklskc': {'orgcode': 'str', 'pluid': 'str'}
-    #                       }}
-
-    event = {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎',
-             'date': '2019-02-28',
-             'target_table': 'inventory',
-             'origin_table_columns': {'actinvs': ['store', 'gdgid', 'qty', 'amt', 'tax']},
-             'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
-                          }}
-
-    # event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-02-27', 'target_table': 'inventory',
-    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
-    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}}}
-
-    handler(event, None)
-    print(time.time() - start_time)
-
-    # import boto3
-    # from botocore.client import Config
-    #
-    # lam = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910, retries=dict(max_attempts=0)))
-    #
-    #
-    # def invoke_lambda(functionname, event):
-    #     invoke_response = lam.invoke(
-    #         FunctionName=functionname, InvocationType='RequestResponse', Payload=json.dumps(event), LogType='Tail'
-    #     )
-    #     return invoke_response
-    #
-    #
-    # response = invoke_lambda('clean_data_inv', event)
-    # payload_body = response['Payload']
-    # payload_str = payload_body.read()
-    # response = json.loads(payload_str)
-    # print(response)
+    pass
