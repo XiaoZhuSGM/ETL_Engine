@@ -33,7 +33,6 @@ def clean_haixin(source_id, date, target_table, data_frames):
     elif target_table == 'delivery':
         return clean_delivery(source_id, date, target_table, data_frames)
 
-
 def clean_goodsflow(source_id, date, target_table, data_frames):
     """
     清洗销售流水
@@ -52,9 +51,9 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
     lv3 = data_frames["tcatcategory"].rename(columns=lambda x: f"lv3.{x}")
     lv2 = data_frames["tcatcategory"].rename(columns=lambda x: f"lv2.{x}")
     lv1 = data_frames["tcatcategory"].rename(columns=lambda x: f"lv1.{x}")
-
-    frames = head.merge(stores, on="orgcode").merge(item, on="pluid").merge(lv3, how="left", left_on="clsid",
-                                                                            right_on="lv3.clsid")
+    frames = head.merge(stores, on="orgcode", how='left').merge(item, on="pluid", how='left').merge(lv3, how="left",
+                                                                                                    left_on="clsid",
+                                                                                                    right_on="lv3.clsid")
     if len(frames) == 0:
         frames = pd.DataFrame(columns=[
             'source_id', 'cmid', 'foreign_store_id', 'store_name', 'receipt_id', 'consumer_id', 'saletime',
@@ -64,12 +63,10 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
             'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'])
     else:
-        frames["lv2.clscode"] = frames["lv3.clscode"].apply(lambda x: x[:4])
-        frames["lv1.clscode"] = frames["lv3.clscode"].apply(lambda x: x[:2])
+        frames["lv2.clscode"] = frames["lv3.clscode"].apply(lambda x:'' if pd.isnull(x) else str(x)[:4])
+        frames["lv1.clscode"] = frames["lv3.clscode"].apply(lambda x:'' if pd.isnull(x) else str(x)[:2])
         frames = frames.merge(lv2, how="left", on="lv2.clscode").merge(lv1, how="left", on="lv1.clscode")
-
-        frames = frames[(frames["trantype"] != "5") & (frames["lv3.clscode"].map(len) == 6)]
-
+        frames = frames[frames["trantype"] != "5"]
         frames["source_id"] = source_id
         frames["cmid"] = cmid
         frames["consumer_id"] = ""
@@ -79,7 +76,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
         frames["foreign_category_lv5"] = ""
         frames["foreign_category_lv5_name"] = None
         frames["pos_id"] = ""
-
         frames = frames.rename(columns={
             "orgcode": "foreign_store_id",
             "orgname": "store_name",
@@ -107,7 +103,6 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
             'foreign_category_lv5', 'foreign_category_lv5_name', 'pos_id'
         ]]
-
     return upload_to_s3(frames, source_id, date, target_table)
 
 
