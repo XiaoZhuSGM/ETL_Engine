@@ -136,7 +136,7 @@ def get_ext_clean_info_target():
     try:
         data = services.get_ext_clean_info_target(source_id, target)
     except (ExtCleanInfoParameterError, ExtCleanInfoNotFound) as e:
-        return jsonify_with_error(APIError.NOTFOUND, str(e))
+        return jsonify_with_error(APIError.VALIDATE_ERROR, str(e))
     return jsonify_with_data(APIError.OK, data={"target": data})
 
 
@@ -149,8 +149,8 @@ def copy_ext_clean_info_table():
     data = request.get_json()
     try:
         services.copy_ext_clean_info_table(data)
-    except (ExtDatasourceNotExist, TableNotExist) as e:
-        return jsonify_with_error(APIError.NOTFOUND, str(e))
+    except (ExtDatasourceNotExist, TableNotExist, ExtCleanInfoParameterError) as e:
+        return jsonify_with_error(APIError.VALIDATE_ERROR, str(e))
     return jsonify_with_data(APIError.OK, data={})
 
 

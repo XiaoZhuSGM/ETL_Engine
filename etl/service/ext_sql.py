@@ -6,8 +6,10 @@ from sqlalchemy import or_
 
 from common.common import (
     PAGE_SQL,
+    PAGE_LAST_SQL,
     upload_body_to_s3,
     SQL_PREFIX,
+    SQL_INV_PREFIX,
     now_timestamp,
     S3_BUCKET,
 )
@@ -37,7 +39,7 @@ class DatasourceSqlService(object):
             original_table.extend(temp_tables)
 
         original_table = [table.lower() for table in original_table]
-        
+
         return self.generate_table_sql(source_id, original_table, extract_date)
 
     def generate_full_sql(self, source_id, extract_date):
@@ -114,7 +116,7 @@ class DatasourceSqlService(object):
             sqls[table_name].extend(sql_str)
         return sqls
 
-    def _page_by_limit_mould(self, table, db_type, extract_date):
+    def _page_by_limit_mould(self, table, db_type, extract_date,max_num=20_000):
         """
         配置分页
         分页页数可以通过定时任务更新
@@ -124,11 +126,13 @@ class DatasourceSqlService(object):
         :return:
         """
         sql_template = PAGE_SQL[db_type]
-
+        sql_last_template = PAGE_LAST_SQL[db_type]
         where = ""
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
             where = self._formated_where(table, format_date)
+        if table.max_page_num is not None and table.max_page_num>20_000:
+            max_num = table.max_page_num
         sql_str = []
         for i in range(table.limit_num):
             order_by = table.order_column
@@ -138,16 +142,25 @@ class DatasourceSqlService(object):
                 order_by = ""
             if order_by:
                 order_by = f"order by {order_by} desc"
-
-            sql_str.append(
-                sql_template.format(
-                    table=table.table_name,
-                    order_by=order_by,
-                    wheres=where,
-                    small=i * 200_000,
-                    large=(i + 1) * 200_000,
+            if i == range(table.limit_num)[-1]:
+                sql_str.append(
+                    sql_last_template.format(
+                        table=table.table_name,
+                        order_by=order_by,
+                        wheres=where,
+                        small=i * max_num
+                    )
                 )
-            )
+            else:
+                sql_str.append(
+                    sql_template.format(
+                        table=table.table_name,
+                        order_by=order_by,
+                        wheres=where,
+                        small=i * max_num,
+                        large=(i + 1) * max_num,
+                    )
+                )
         return sql_str
 
     def _common_mould(self, table, extract_date):
@@ -234,5 +247,24 @@ class DatasourceSqlService(object):
         }
         file_name = str(now_timestamp()) + ".json"
         key = SQL_PREFIX.format(source_id=source_id, date=extract_date) + file_name
+        upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
+        return file_name
+
+    def generate_inventory_sql(self, source_id, extract_date):
+        tables = (
+            db.session.query(ExtTableInfo)
+                .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1,
+                        ExtTableInfo.inventory_table == 1)
+                .options(joinedload(ExtTableInfo.datasource))
+                .all()
+        )
+        tables_sqls = {
+            "type": "inventory",
+            "source_id": source_id,
+            "query_date": extract_date,
+            "inv_sqls": self._generate_by_correct_mould(tables, extract_date),
+        }
+        file_name = str(now_timestamp()) + '.json'
+        key = SQL_INV_PREFIX.format(source_id=source_id,date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return file_name

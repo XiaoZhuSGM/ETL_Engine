@@ -24,9 +24,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 
 WORKDIR /app
+ADD requirements.txt /app
+RUN python3 -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ADD . /app
 
-RUN python3 -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 
 CMD ["gunicorn", "-c", "gunicorn.py", "manage:app"]

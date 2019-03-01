@@ -23,6 +23,8 @@ class ExtTableInfo(db.Model, CRUDMixin):
     remark = Column(String(50))
     strategy = Column(Integer)
     special_column = Column(String(500), comment="特殊列")
+    inventory_table = Column(Integer, comment="表示是否是库存表 0 不是 1 是")
+    max_page_num = Column(Integer, comment="每页最多行数")
 
     datasource = relationship(
         "ExtDatasource",
