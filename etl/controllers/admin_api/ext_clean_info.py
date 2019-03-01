@@ -149,7 +149,7 @@ def copy_ext_clean_info_table():
     data = request.get_json()
     try:
         services.copy_ext_clean_info_table(data)
-    except (ExtDatasourceNotExist, TableNotExist) as e:
+    except (ExtDatasourceNotExist, TableNotExist, ExtCleanInfoParameterError) as e:
         return jsonify_with_error(APIError.NOTFOUND, str(e))
     return jsonify_with_data(APIError.OK, data={})
 
