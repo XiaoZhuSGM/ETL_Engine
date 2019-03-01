@@ -7,7 +7,7 @@ from etl.models import session_scope
 
 class ExtCleanInfoParameterError(Exception):
     def __str__(self):
-        return "参数错误，请重新确认"
+        return "请填写必要的参数"
 
 
 class ExtCleanInfoNotFound(Exception):
@@ -253,7 +253,7 @@ class ExtCleanInfoService:
 
         query = ExtCleanInfo.query.filter_by(source_id=template_source_id, deleted=False)
         if target_tables is not None:
-            query = query.filter(ExtCleanInfo.in_(target_tables))
+            query = query.filter(ExtCleanInfo.target_table.in_(target_tables))
 
         template_models = query.all()
 
