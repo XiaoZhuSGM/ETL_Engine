@@ -298,5 +298,5 @@ class ExtCleanInfoService:
         :return:
         """
         models = ExtCleanInfo.query.filter_by(source_id=source_id, deleted=False).all()
-        table_names = [model.target_table for model in models]
+        table_names = sorted([model.target_table for model in models])
         return table_names
