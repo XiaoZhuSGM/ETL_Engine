@@ -43,7 +43,9 @@ class ExtTableInfoService:
             "alias_table_name": eti.alias_table_name,
             "created_at": eti.created_at,
             "updated_at": eti.updated_at,
-            "special_column": eti.special_column
+            "special_column": eti.special_column,
+            "inventory_table": eti.inventory_table,
+            "max_page_num": eti.max_page_num,
         }
 
     def get_ext_table_infos(self, args):
@@ -157,7 +159,9 @@ class ExtTableInfoService:
                         "filter": template_table.filter,
                         "filter_format": template_table.filter_format,
                         "weight": template_table.weight,
-                        "strategy": template_table.strategy
+                        "strategy": template_table.strategy,
+                        "inventory_table": template_table.inventory_table,
+                        "max_page_num": template_table.max_page_num,
                     }
                     target_table.update(**info)
 
