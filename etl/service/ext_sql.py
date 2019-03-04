@@ -52,7 +52,7 @@ class DatasourceSqlService(object):
         """
         tables = (
             db.session.query(ExtTableInfo)
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1, ExtTableInfo.inventory_table != 1)
             .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
@@ -72,7 +72,7 @@ class DatasourceSqlService(object):
     def generate_table_sql(self, source_id, targets, extract_date):
         tables = (
             db.session.query(ExtTableInfo)
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1, ExtTableInfo.inventory_table != 1)
             .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
@@ -131,7 +131,7 @@ class DatasourceSqlService(object):
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
             where = self._formated_where(table, format_date)
-        if table.max_page_num is not None and table.max_page_num>20_000:
+        if table.max_page_num is not None and table.max_page_num > 20_000:
             max_num = table.max_page_num
         sql_str = []
         for i in range(table.limit_num):
@@ -198,7 +198,7 @@ class DatasourceSqlService(object):
         """
         tables = (
             db.session.query(ExtTableInfo)
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1, ExtTableInfo.inventory_table != 1)
             .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
