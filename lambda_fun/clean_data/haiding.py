@@ -838,7 +838,7 @@ class HaiDingCleaner:
 
             if self.source_id in ("79YYYYYYYYYYYYY", "80YYYYYYYYYYYYY"):
                 part1 = part1[part1["cls"] == "零售"]
-            elif self.source_id == "82YYYYYYYYYYYYY":
+            elif self.source_id in ("82YYYYYYYYYYYYY","43YYYYYYYYYYYYY"):
                 part1 = part1[part1["cls"] != "批发"]
 
             part1["fildate"] = part1.apply(

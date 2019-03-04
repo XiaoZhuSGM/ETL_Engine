@@ -16,9 +16,8 @@ from typing import Dict
 S3_BUCKET = "ext-etl-data"
 
 INV_HISTORY_HUMP_JSON = (
-    "datapipeline/source_id={source_id}/ext_date={date}/history_dump_json/inventory/{hour}/"
+    "inventory/source_id={source_id}/ext_date={date}/history_dump_json/{hour}/"
 )
-
 CONVERTERS = {"str": str, "int": int, "float": float}
 
 BLANK_CHAR = re.compile(r"[\r\n\t]+")
@@ -123,7 +122,7 @@ class InventoryCleaner:
         part = inventory[columns]
         return self.up_load_to_s3(part)
 
-    def clean_haixin_inventory(self):
+    def clean_haixinv5_inventory(self):
         columns = [
             "cmid",
             "foreign_store_id",
@@ -183,11 +182,9 @@ def get_matching_s3_keys(bucket, prefix="", suffix=""):
     """
 
     objects = S3.Bucket(bucket).objects.filter(Prefix=prefix)
-    for obj in sorted(
-            objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True
-    ):
-        if obj.key.endswith(suffix):
-            yield obj.key
+    objects = sorted([obj for obj in objects if obj.key.endswith(suffix)],
+                     key=lambda obj: int(obj.last_modified.strftime("%s")))
+    return objects[-1].key
 
 
 def map_converter(converts: dict):
@@ -199,16 +196,16 @@ def map_converter(converts: dict):
 
 def fetch_data_frames(keys, origin_table_columns, converts):
     datas = {}
-    for key in keys:
-        content = S3.Object(S3_BUCKET, key).get()
-        data = json.loads(content["Body"].read().decode("utf-8"))
-        extract_data_dict = data["extract_data"]
-        for table_name, records in extract_data_dict.items():
-            if (
-                    table_name in origin_table_columns.keys()
-                    and table_name not in datas.keys()
-            ):
-                datas[table_name] = records
+    content = S3.Object(S3_BUCKET, keys).get()
+    data = json.loads(content["Body"].read().decode("utf-8"))
+    print(data)
+    extract_data_dict = data["extract_data"]
+    for table_name, records in extract_data_dict.items():
+        if (
+                table_name in origin_table_columns.keys()
+                and table_name not in datas.keys()
+        ):
+            datas[table_name] = records
 
     data_frames = {}
 
@@ -268,7 +265,6 @@ def handler(event, context):
         prefix=INV_HISTORY_HUMP_JSON.format(source_id=source_id, date=date, hour=hour),
         suffix=".json",
     )
-
     data_frames = fetch_data_frames(keys, origin_table_columns, converts)
     for k, v in data_frames.items():
         data_frames[k] = v.applymap(
@@ -281,9 +277,9 @@ def handler(event, context):
     elif erp_name == "海鼎":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_haiding_inventory()
-    elif erp_name == '海信':
+    elif erp_name == '海信商定天下v5':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
-        return cleaner.clean_haixin_inventory()
+        return cleaner.clean_haixinv5_inventory()
     elif erp_name == '宏业':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_hongye_inventory()
@@ -295,57 +291,4 @@ def now_timestamp():
 
 
 if __name__ == "__main__":
-    start_time = time.time()
-    # event = {'source_id': '70YYYYYYYYYYYYY', 'erp_name': '科脉云鼎',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
-    #          'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}
-    #                       }}
-
-    # event = {'source_id': '34YYYYYYYYYYYYY', 'erp_name': '宏业',
-    #          'date': '2019-02-26',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
-    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}
-    #                       }}
-
-    # event = {'source_id': '86YYYYYYYYYYYYY', 'erp_name': '海信',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'tstklskc': ['orgcode', 'pluid', 'kccount', 'hcost']},
-    #          'converts': {'tstklskc': {'orgcode': 'str', 'pluid': 'str'}
-    #                       }}
-
-    # event = {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎',
-    #          'date': '2019-02-22',
-    #          'target_table': 'inventory',
-    #          'origin_table_columns': {'actinvs': ['store', 'gdgid', 'qty', 'amt', 'tax']},
-    #          'converts': {'actinvs': {'store': 'str', 'gdgid': 'str'}
-    #                       }}
-
-    event = {'source_id': '73YYYYYYYYYYYYY', 'erp_name': '科脉云鼎', 'date': '2019-02-26', 'target_table': 'inventory',
-             'origin_table_columns': {'t_sk_master': ['fbrh_no', 'fitem_id', 'fqty', 'fcost_amt']},
-             'converts': {'t_sk_master': {'fbrh_no': 'str', 'fitem_id': 'str'}}}
-
-    handler(event, None)
-    print(time.time() - start_time)
-
-    # import boto3
-    # from botocore.client import Config
-    #
-    # lam = boto3.client("lambda", config=Config(connect_timeout=910, read_timeout=910, retries=dict(max_attempts=0)))
-    #
-    #
-    # def invoke_lambda(functionname, event):
-    #     invoke_response = lam.invoke(
-    #         FunctionName=functionname, InvocationType='RequestResponse', Payload=json.dumps(event), LogType='Tail'
-    #     )
-    #     return invoke_response
-    #
-    #
-    # response = invoke_lambda('clean_data_inv', event)
-    # payload_body = response['Payload']
-    # payload_str = payload_body.read()
-    # response = json.loads(payload_str)
-    # print(response)
+    pass
