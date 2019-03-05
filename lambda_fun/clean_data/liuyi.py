@@ -47,39 +47,53 @@ class LiuYiCleaner:
         return key
 
     def _goodsflow_subquery(self):
-        lv = self.data['tbgoodscategory']
+        lv = self.data['tb_gdsclass']
+        origin_table = lv.copy()
+        lv['item_clsno_1'] = lv['c_ccode'].apply(lambda x: x[:1])
+        lv['item_clsno_2'] = lv['c_ccode'].apply(lambda x: x[:2])
+        lv['item_clsno_3'] = lv['c_ccode'].apply(lambda x: x[:3])
+        lv['item_clsno_4'] = lv['c_ccode'].apply(lambda x: x[:5])
         df = lv.merge(
-            lv,
+            origin_table,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
-            suffixes=('_lv4', '_lv3')
+            left_on=['item_clsno_4'],
+            right_on=['c_ccode'],
+            suffixes=('_lv5', '_lv4')
         ).merge(
-            lv,
+            origin_table,
             how='left',
-            left_on=['parentcategorycode_lv3', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_3'],
+            right_on=['c_ccode']
         ).merge(
-            lv,
+            origin_table,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
-            suffixes=('_lv2', '_lv1')
+            left_on=['item_clsno_2'],
+            right_on=['c_ccode'],
+            suffixes=('_lv3', '_lv2')
+        ).merge(
+            origin_table,
+            how='left',
+            left_on=['item_clsno_1'],
+            right_on=['c_ccode']
         )
-        df = df[df['categorylevel_lv4'] == 4]
+        df = df[df['c_ccode_lv5'].str.len() == 7]
         df = df.rename(columns={
-            'categorycode_lv1': 'foreign_category_lv1',
-            'categoryname_lv1': 'foreign_category_lv1_name',
-            'categorycode_lv2': 'foreign_category_lv2',
-            'categoryname_lv2': 'foreign_category_lv2_name',
-            'categorycode_lv3': 'foreign_category_lv3',
-            'categoryname_lv3': 'foreign_category_lv3_name',
-            'categorycode_lv4': 'foreign_category_lv4',
-            'categoryname_lv4': 'foreign_category_lv4_name',
+            'c_ccode': 'foreign_category_lv1',
+            'c_name': 'foreign_category_lv1_name',
+            'c_ccode_lv2': 'foreign_category_lv2',
+            'c_name_lv2': 'foreign_category_lv2_name',
+            'c_ccode_lv3': 'foreign_category_lv3',
+            'c_name_lv3': 'foreign_category_lv3_name',
+            'c_ccode_lv4': 'foreign_category_lv4',
+            'c_name_lv4': 'foreign_category_lv4_name',
+            'c_ccode_lv5': 'foreign_category_lv5',
+            'c_name_lv5': 'foreign_category_lv5_name',
+
         })
         df = df[[
             'foreign_category_lv1', 'foreign_category_lv1_name', 'foreign_category_lv2', 'foreign_category_lv2_name',
             'foreign_category_lv3', 'foreign_category_lv3_name', 'foreign_category_lv4', 'foreign_category_lv4_name',
+            'foreign_category_lv5', 'foreign_category_lv5_name'
         ]]
         return df
 
@@ -117,7 +131,7 @@ class LiuYiCleaner:
         store = self.data['tb_store']
         lv = self._goodsflow_subquery()
         df = flow.merge(store, how='left', left_on='c_store_id', right_on='c_id', suffixes=('_flow', '_store'))\
-            .merge(lv, left_on='c_ccode', right_on='foreign_category_lv4')
+            .merge(lv, left_on='c_ccode', right_on='foreign_category_lv5')
         if df.shape[0] == 0:
             return pd.DataFrame(columns=columns)
         df = df.rename(columns={
@@ -141,8 +155,6 @@ class LiuYiCleaner:
             lambda row: row['c_price_sale'] if row['c_pro_status'] in ('普通商品', '组合商品', '')
             else row['c_price_sale_disc'], axis=1
         )
-        df['foreign_category_lv5'] = ''
-        df['foreign_category_lv5_name'] = None
         return df[columns]
 
     def cost(self):
@@ -291,18 +303,18 @@ class LiuYiCleaner:
             "foreign_category_lv4",
             "foreign_category_lv4_name",
             "foreign_category_lv5",
-            "foreign_category_lv5_name",
+            "foreign_category_lv5_name"
         ]
-        lv = self.data['tbgoodscategory']
+        lv = self.data['tb_gdsclass']
         
         df1 = lv.copy()
-        df1 = df1[(df1['categorylevel'] == 1) & (df1['categoryitemcode'] == 0000)]
+        df1 = df1[df1['c_ccode'].str.len() == 1]
         if df1.shape[0] == 0:
             df1 = pd.DataFrame(columns=columns)
         else:
             df1 = df1.rename(columns={
-                'categorycode': 'foreign_category_lv1',
-                'categoryname': 'foreign_category_lv1_name',
+                'c_ccode': 'foreign_category_lv1',
+                'c_name': 'foreign_category_lv1_name',
             })
             df1['cmid'] = self.cmid
             df1['level'] = 1
@@ -317,22 +329,24 @@ class LiuYiCleaner:
             df1['last_updated'] = datetime.now(_TZINFO)
             df1 = df1[columns]
 
-        df2 = lv.merge(
+        df2 = lv.copy()
+        df2['item_clsno_1'] = df2['c_ccode'].str.slice(0, 1)
+        df2 = df2.merge(
             lv,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_1'],
+            right_on=['c_ccode'],
             suffixes=('_lv2', '_lv1')
         )
-        df2 = df2[(df2['categorylevel_lv2'] == 2) & (df2['categoryitemcode'] == 0000)]
+        df2 = df2[df2['c_ccode_lv2'].str.len() == 2]
         if df2.shape[0] == 0:
             df2 = pd.DataFrame(columns=columns)
         else:
             df2 = df2.rename(columns={
-                'categorycode_lv1': 'foreign_category_lv1',
-                'categoryname_lv1': 'foreign_category_lv1_name',
-                'categorycode_lv2': 'foreign_category_lv2',
-                'categoryname_lv2': 'foreign_category_lv2_name',
+                'c_ccode_lv1': 'foreign_category_lv1',
+                'c_name_lv1': 'foreign_category_lv1_name',
+                'c_ccode_lv2': 'foreign_category_lv2',
+                'c_name_lv2': 'foreign_category_lv2_name',
             })
             df2['cmid'] = self.cmid
             df2['level'] = 2
@@ -345,29 +359,32 @@ class LiuYiCleaner:
             df2['last_updated'] = datetime.now(_TZINFO)
             df2 = df2[columns]
 
-        df3 = lv.merge(
+        df3 = lv.copy()
+        df3['item_clsno_1'] = df3['c_ccode'].str.slice(0, 1)
+        df3['item_clsno_2'] = df3['c_ccode'].str.slice(0, 2)
+        df3 = df3.merge(
             lv,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_2'],
+            right_on=['c_ccode'],
             suffixes=('_lv3', '_lv2')
         ).merge(
             lv,
             how='left',
-            left_on=['parentcategorycode_lv2', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_1'],
+            right_on=['c_ccode']
         )
-        df3 = df3[(df3['categorylevel_lv3'] == 3) & (df3['categoryitemcode'] == 0000)]
+        df3 = df3[df3['c_ccode_lv3'].str.len() == 3]
         if df3.shape[0] == 0:
             df3 = pd.DataFrame(columns=columns)
         else:
             df3 = df3.rename(columns={
-                'categorycode': 'foreign_category_lv1',
-                'categoryname': 'foreign_category_lv1_name',
-                'categorycode_lv2': 'foreign_category_lv2',
-                'categoryname_lv2': 'foreign_category_lv2_name',
-                'categorycode_lv3': 'foreign_category_lv3',
-                'categoryname_lv3': 'foreign_category_lv3_name',
+                'c_ccode': 'foreign_category_lv1',
+                'c_name': 'foreign_category_lv1_name',
+                'c_ccode_lv2': 'foreign_category_lv2',
+                'c_name_lv2': 'foreign_category_lv2_name',
+                'c_ccode_lv3': 'foreign_category_lv3',
+                'c_name_lv3': 'foreign_category_lv3_name'
             })
             df3['cmid'] = self.cmid
             df3['level'] = 3
@@ -378,37 +395,41 @@ class LiuYiCleaner:
             df3['last_updated'] = datetime.now(_TZINFO)
             df3 = df3[columns]
 
-        df4 = lv.merge(
+        df4 = lv.copy()
+        df4['item_clsno_1'] = df4['c_ccode'].str.slice(0, 1)
+        df4['item_clsno_2'] = df4['c_ccode'].str.slice(0, 2)
+        df4['item_clsno_3'] = df4['c_ccode'].str.slice(0, 3)
+        df4 = df4.merge(
             lv,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_3'],
+            right_on=['c_ccode'],
             suffixes=('_lv4', '_lv3')
         ).merge(
             lv,
             how='left',
-            left_on=['parentcategorycode_lv3', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_2'],
+            right_on=['c_ccode']
         ).merge(
             lv,
             how='left',
-            left_on=['parentcategorycode', 'categoryitemcode'],
-            right_on=['categorycode', 'categoryitemcode'],
+            left_on=['item_clsno_1'],
+            right_on=['c_ccode'],
             suffixes=('_lv2', '_lv1')
         )
-        df4 = df4[(df4['categorylevel_lv4'] == 4) & (df4['categoryitemcode'] == 0000)]
+        df4 = df4[df4['c_ccode_lv4'].str.len() == 5]
         if df4.shape[0] == 0:
             df4 = pd.DataFrame(columns=columns)
         else:
             df4 = df4.rename(columns={
-                'categorycode_lv1': 'foreign_category_lv1',
-                'categoryname_lv1': 'foreign_category_lv1_name',
-                'categorycode_lv2': 'foreign_category_lv2',
-                'categoryname_lv2': 'foreign_category_lv2_name',
-                'categorycode_lv3': 'foreign_category_lv3',
-                'categoryname_lv3': 'foreign_category_lv3_name',
-                'categorycode_lv4': 'foreign_category_lv4',
-                'categoryname_lv4': 'foreign_category_lv4_name',
+                'c_ccode_lv1': 'foreign_category_lv1',
+                'c_name_lv1': 'foreign_category_lv1_name',
+                'c_ccode_lv2': 'foreign_category_lv2',
+                'c_name_lv2': 'foreign_category_lv2_name',
+                'c_ccode_lv3': 'foreign_category_lv3',
+                'c_name_lv3': 'foreign_category_lv3_name',
+                'c_ccode_lv4': 'foreign_category_lv4',
+                'c_name_lv4': 'foreign_category_lv4_name'
             })
             df4['cmid'] = self.cmid
             df4['level'] = 4
@@ -417,5 +438,54 @@ class LiuYiCleaner:
             df4['last_updated'] = datetime.now(_TZINFO)
             df4 = df4[columns]
 
-        return pd.concat([df1, df2, df3, df4])
+        df5 = lv.copy()
+        df5['item_clsno_1'] = df5['c_ccode'].str.slice(0, 1)
+        df5['item_clsno_2'] = df5['c_ccode'].str.slice(0, 2)
+        df5['item_clsno_3'] = df5['c_ccode'].str.slice(0, 3)
+        df5['item_clsno_4'] = df5['c_ccode'].str.slice(0, 5)
+        df5 = df5.merge(
+            lv,
+            how='left',
+            left_on=['item_clsno_4'],
+            right_on=['c_ccode'],
+            suffixes=('_lv5', '_lv4')
+        ).merge(
+            lv,
+            how='left',
+            left_on=['item_clsno_3'],
+            right_on=['c_ccode'],
+        ).merge(
+            lv,
+            how='left',
+            left_on=['item_clsno_2'],
+            right_on=['c_ccode'],
+            suffixes=('_lv3', '_lv2')
+        ).merge(
+            lv,
+            how='left',
+            left_on=['item_clsno_1'],
+            right_on=['c_ccode']
+        )
+        df5 = df5[df5['c_ccode_lv5'].str.len() == 7]
+        if df5.shape[0] == 0:
+            df5 = pd.DataFrame(columns=columns)
+        else:
+            df5 = df5.rename(columns={
+                'c_ccode': 'foreign_category_lv1',
+                'c_name': 'foreign_category_lv1_name',
+                'c_ccode_lv2': 'foreign_category_lv2',
+                'c_name_lv2': 'foreign_category_lv2_name',
+                'c_ccode_lv3': 'foreign_category_lv3',
+                'c_name_lv3': 'foreign_category_lv3_name',
+                'c_ccode_lv4': 'foreign_category_lv4',
+                'c_name_lv4': 'foreign_category_lv4_name',
+                'c_ccode_lv5': 'foreign_category_lv5',
+                'c_name_lv5': 'foreign_category_lv5_name',
+            })
+            df5['cmid'] = self.cmid
+            df5['level'] = 5
+            df5['last_updated'] = datetime.now(_TZINFO)
+            df5 = df5[columns]
+
+        return pd.concat([df1, df2, df3, df4, df5])
 
