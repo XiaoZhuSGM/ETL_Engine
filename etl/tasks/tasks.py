@@ -27,15 +27,15 @@ def task_iqr(source_id):
 
 @celery.task(name="etl.task_warehose")
 def task_warehouse(
-        db_url,
-        target_table,
-        data_key,
-        sync_column,
-        date_column,
-        cmid,
-        source_id,
-        warehouse_type,
-        **kwargs,
+    db_url,
+    target_table,
+    data_key,
+    sync_column,
+    date_column,
+    cmid,
+    source_id,
+    warehouse_type,
+    **kwargs,
 ):
     runner = Warehouser(
         db_url, target_table, data_key, sync_column, date_column, cmid, source_id

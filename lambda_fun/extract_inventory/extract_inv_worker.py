@@ -4,7 +4,6 @@ import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-import requests
 from enum import Enum
 
 import boto3
@@ -133,7 +132,7 @@ class ExtInvWork(object):
             query_date=self.inv_date,
             hour=self.inv_hour
         )
-        from executor_inv_sql import handler
+        from lambda_fun.extract_inventory.executor_inv_sql import handler
         payload = handler(msg, None)
         status = payload.get("status", None)
         if status and status == "OK":
@@ -147,25 +146,27 @@ class ExtInvWork(object):
         return None
 
 
-if __name__ == '__main__':
-    source_id = '34YYYYYYYYYYYYY'
-    db_url = requests.get(f"http://172.31.16.24:50010/etl/admin/api/datasource/dburl/{source_id}",
-                          headers={"token": "AIRFLOW_REQUEST_TOKEN"},
-                          ).json()['data']
-    date = datetime.now().strftime('%Y-%m-%d')
-    params = {'source_id': source_id, 'date': date}
-    respones = requests.get('http://10.1.20.226:5000/etl/admin/api/inv/sql', params=params)
-    res = json.loads(respones.text)
-    filename = res['data']
-    event = {
-        "task_type": "full",
-        "db_url": db_url,
-        "source_id": source_id,
-        "query_date": date,
-        "filename": filename
-    }
-    print(event)
-    handler(event, None)
+# if __name__ == '__main__':
+#     import requests
+#
+#     source_id = '34YYYYYYYYYYYYY'
+#     db_url = requests.get(f"http://172.31.16.24:50010/etl/admin/api/datasource/dburl/{source_id}",
+#                           headers={"token": "AIRFLOW_REQUEST_TOKEN"},
+#                           ).json()['data']
+#     date = datetime.now().strftime('%Y-%m-%d')
+#     params = {'source_id': source_id, 'date': date}
+#     respones = requests.get('http://10.1.20.226:5000/etl/admin/api/inv/sql', params=params)
+#     res = json.loads(respones.text)
+#     filename = res['data']
+#     event = {
+#         "task_type": "full",
+#         "db_url": db_url,
+#         "source_id": source_id,
+#         "query_date": date,
+#         "filename": filename
+#     }
+#     print(event)
+    # handler(event, None)
 
     # params = {'source_id': source_id, 'date': '2019-01-01'}
     # response = requests.get('http://localhost:5000/etl/admin/api/inv/sql', params=params)
