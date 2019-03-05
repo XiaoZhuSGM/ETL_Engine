@@ -56,7 +56,7 @@ def task_extract_data(source_id, query_date, task_type, filename, db_url, **kwar
     return worker.handler(event, None)
 
 
-@celery.task(name="etl.task_extract_inventory")
+@celery.task(name="inventory.task_extract_inventory")
 def task_extract_inventory(source_id, query_date, task_type, filename, db_url, **kwargs):
     """kucun"""
     event = dict(

@@ -35,6 +35,7 @@ class Config(object):
         "etl.*": {"queue": "etl", "routing_key": "etl.#"},
         "rollback.*": {"queue": "rollback", "routing_key": "rollback.#"},
         "ext_history.*": {"queue": "ext_history", "routing_key": "ext_history.#"},
+        "inventory.*": {"queue": "inventory", "routing_key": "inventory.#"},
     }
 
     # BROKER_POOL_LIMIT = None
