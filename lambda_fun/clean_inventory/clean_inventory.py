@@ -81,7 +81,10 @@ class InventoryCleaner:
         else:
             frames["cmid"] = cmid
             frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-            frames["deptcode"] = frames["deptcode"].apply(lambda x: x[:4])
+            if self.source_id == '85YYYYYYYYYYYYY':
+                frames["deptcode"] = frames["deptcode"].apply(lambda x: x[:3])
+            elif self.source_id == "34YYYYYYYYYYYYY":
+                frames["deptcode"] = frames["deptcode"].apply(lambda x: x[:4])
             frames["foreign_store_id"] = frames["deptcode"]
             frames["foreign_item_id"] = frames["gdsincode"].str.strip()
             frames["quantity"] = frames["nowamount"]
@@ -137,8 +140,10 @@ class InventoryCleaner:
         inventory["cmid"] = self.cmid
         inventory["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
         inventory = inventory[inventory['orgcode'] != '00']
-        inventory = inventory.groupby(['cmid', 'pluid', 'orgcode', 'date']).agg(
-            {'kccount': 'sum', 'hcost': 'sum'}).reset_index()
+        inventory["orgcode"] = inventory["orgcode"].str.strip()
+        inventory["pluid"] = inventory["pluid"].str.strip()
+        # inventory = inventory.groupby(['cmid', 'pluid', 'orgcode', 'date']).agg(
+        #     {'kccount': 'sum', 'hcost': 'sum'}).reset_index()
         inventory = inventory.rename(
             columns={
                 "pluid": "foreign_item_id",
@@ -241,7 +246,7 @@ def handler(event, context):
     converts = message["converts"]
     # inventory_table = list(origin_table_columns.keys())[0]
     hour = datetime.now(tz=_TZINFO).hour
-    hour_delta = hour - 2
+    hour_delta = hour - 3
     print(hour)
 
     map_converter(converts)
