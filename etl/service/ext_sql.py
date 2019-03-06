@@ -198,7 +198,7 @@ class DatasourceSqlService(object):
         """
         tables = (
             db.session.query(ExtTableInfo)
-            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1, ExtTableInfo.inventory_table != 1)
+            .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1)
             .options(joinedload(ExtTableInfo.datasource))
             .all()
         )
