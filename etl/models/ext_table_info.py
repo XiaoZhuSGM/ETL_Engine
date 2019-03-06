@@ -15,7 +15,7 @@ class ExtTableInfo(db.Model, CRUDMixin):
     order_column = Column(String(200))
     sync_column = Column(String(200))
     limit_num = Column(Integer)  # 分页页数
-    filter = Column(String(500))
+    filter = Column(String(2000))
     filter_format = Column(String(50))
     record_num = Column(Integer)
     weight = Column(Integer, comment="表示是否抓数 0 不抓 1 抓 2 下次抓")
