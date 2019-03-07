@@ -57,7 +57,10 @@ class InventoryCleaner:
             frames["foreign_store_id"] = frames["branch_no"]
             frames["foreign_item_id"] = frames["item_no"].str.strip()
             frames["quantity"] = frames["stock_qty"]
-            frames["amount"] = frames["stock_qty"] * frames["avg_cost"]
+            # frames["amount"] = frames["stock_qty"] * frames["avg_cost"]
+            frames["amount"] = frames.apply(
+                lambda row: row["stock_qty"] * row["avg_cost"], axis=1
+            )
             frames = frames[columns]
             frames = frames[
                 (frames["quantity"] != 0)
@@ -317,7 +320,7 @@ def handler(event, context):
     elif erp_name == '宏业':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_hongye_inventory()
-    elif erp_name == '思迅':
+    elif erp_name == '思迅' or erp_name == "衡阳联邦":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_sixun_inventory()
 
