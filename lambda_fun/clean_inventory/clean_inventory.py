@@ -36,6 +36,38 @@ class InventoryCleaner:
         self.hour = hour
         self.target_table = target_table
 
+    def clean_sixun_inventory(self):
+        """
+        清洗思讯库存表
+        :param source_id:
+        :param date:
+        :param target_table:
+        :param data_frames:
+        :return:
+        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["t_im_branch_stock"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["branch_no"] = frames["branch_no"].apply(lambda x: x[:4])
+            frames["foreign_store_id"] = frames["branch_no"]
+            frames["foreign_item_id"] = frames["item_no"].str.strip()
+            frames["quantity"] = frames["stock_qty"]
+            # frames["amount"] = frames["stock_qty"] * frames["avg_cost"]
+            frames["amount"] = frames.apply(
+                lambda row: row["stock_qty"] * row["avg_cost"], axis=1
+            )
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
     def clean_kemaiyunding_inventory(self):
         """
         清洗科脉云鼎库存表
@@ -288,6 +320,9 @@ def handler(event, context):
     elif erp_name == '宏业':
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_hongye_inventory()
+    elif erp_name == '思迅' or erp_name == "衡阳联邦":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_sixun_inventory()
 
 
 def now_timestamp():
