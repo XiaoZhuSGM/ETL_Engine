@@ -1,4 +1,4 @@
-from etl.tasks.tasks import task_warehouse, task_extract_data
+from etl.tasks.tasks import task_warehouse, task_extract_data, task_extract_inventory
 from etl.tasks.rollback_taskset import task_rollback
 from . import etl_admin_api
 from .. import jsonify_with_data, APIError
@@ -138,6 +138,46 @@ def get_task_rollback_status():
     if async_result.successful():
         status = "success"
         result = async_result.result
+    elif async_result.failed():
+        status = "failed"
+        reason = str(async_result.info)
+    else:
+        status = "running"
+    return jsonify_with_data(
+        APIError.OK,
+        data={"status": status, "reason": reason, "task_id": task_id, "result": result},
+    )
+
+
+@etl_admin_api.route("/ext/tasks/extract_inventory", methods=["POST"])
+def trigger_task_extract_inventory():
+    message = request.json
+    source_id = message["source_id"]
+    query_date = message["query_date"]
+    task_type = message["task_type"]
+    filename = message["filename"]
+    db_url = message["db_url"]
+    event = dict(
+        source_id=source_id,
+        query_date=query_date,
+        task_type=task_type,
+        filename=filename,
+        db_url=db_url,
+    )
+    result = task_extract_inventory.apply_async(kwargs=event)
+    return jsonify_with_data(APIError.OK, data={"task_id": result.id})
+
+
+@etl_admin_api.route("/ext/tasks/extract_inventory/status", methods=["GET"])
+def get_task_extract_inventory_status():
+    task_id = request.args.get("task_id")
+    reason = ""
+    result = False
+    async_result = task_extract_inventory.AsyncResult(task_id=task_id)
+
+    if async_result.successful():
+        result = async_result.result
+        status = "success"
     elif async_result.failed():
         status = "failed"
         reason = str(async_result.info)

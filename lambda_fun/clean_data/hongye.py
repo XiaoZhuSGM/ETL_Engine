@@ -5123,7 +5123,7 @@ class HongYeCleaner:
 
         visit = self.data['rep_class_guest']
         cost = self.data['rep_goods_sale']
-        cost['deptcode'] = cost['deptcode'].apply(lambda x: x[:3])
+        cost['deptcode'] = cost['deptcode'].apply(lambda x: x[:self.store_id_len])
         cost = cost.groupby(['deptcode'], as_index=False).agg({'gdsincode': 'nunique', 'totalsalemoney': 'sum'})
         cost = cost.rename(columns={
             'deptcode': 'store_id',
