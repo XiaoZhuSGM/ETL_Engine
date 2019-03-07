@@ -1362,6 +1362,7 @@ class HaiDingCleaner:
             "foreign_category_lv4",
             "foreign_category_lv5",
             "bill_status",
+            "origin_order_num",
         ]
         stkin = self.data["stkin"]
         stkindtl = self.data["stkindtl"]
@@ -1452,6 +1453,7 @@ class HaiDingCleaner:
                     "code.warehouseh": "warehouse_code",
                     "name.warehouseh": "warehouse_name",
                     "statname": "bill_status",
+                    "ordnum": "origin_order_num",
                 }
             )
             part1 = part1[columns]
@@ -1516,6 +1518,7 @@ class HaiDingCleaner:
             part2["foreign_category_lv3"] = part2.apply(
                 lambda row: row["sort"][:6], axis=1
             )
+            part2["origin_order_num"] = ""
             part2["foreign_category_lv4"] = ""
             part2["foreign_category_lv5"] = ""
             part2["cmid"] = self.cmid
