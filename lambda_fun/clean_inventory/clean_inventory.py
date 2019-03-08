@@ -69,6 +69,178 @@ class InventoryCleaner:
                 ]
         return self.up_load_to_s3(frames)
 
+    def clean_bianzhaijia_inventory(self):
+        """
+        清洗便宅家库存表
+        :param source_id:
+        :param date:
+        :param target_table:
+        :param data_frames:
+        :return:
+        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["zetl_inventory"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["storeuuid"]
+            frames["foreign_item_id"] = frames["productuuid"]
+            frames["quantity"] = frames["qty"]
+            frames["amount"] = frames["costamount"]
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_shanghai_inventory(self):
+        """
+        清洗商海连锁版库存表
+        :param source_id:
+        :param date:
+        :param target_table:
+        :param data_frames:
+        :return:
+                """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["goodsorg"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["orgcode"]
+            frames["foreign_item_id"] = frames["plucode"]
+            frames["quantity"] = frames["gcount"]
+            frames["amount"] = frames["cost"]
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_tianshen_inventory(self):
+        """
+                清洗田森库存表
+                :param source_id:
+                :param date:
+                :param target_table:
+                :param data_frames:
+                :return:
+                        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["tstklskc"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["orgcode"].str.strip()
+            frames["foreign_item_id"] = frames["pluid"].str.strip()
+            frames["quantity"] = frames["kccount"]
+            frames["amount"] = frames["hcost"]
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0) & (frames['foreign_store_id'] != 00)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_angjie_inventory(self):
+        """
+    清洗昂捷中间库库存表
+    :param source_id:
+    :param date:
+    :param target_table:
+    :param data_frames:
+    :return:
+                """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        inventroy_part = self.data["tbstocks"]
+        store_part = self.data['tb_store']
+        if not len(inventroy_part):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames = inventroy_part.merge(store_part, how='left',
+                                          left_on='c_web_page', right_on='c_web_page')
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["c_id"]
+            frames["foreign_item_id"] = frames["goodscode"]
+            frames["quantity"] = frames["amount"]
+            frames["amount"] = frames["salemoney"]
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_zhibaiwei_inventory(self):
+        """
+            清洗智百威库存表
+            :param source_id:
+            :param date:
+            :param target_table:
+            :param data_frames:
+            :return:
+                        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["ic_t_branch_stock"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["branch_no"].str.strip().apply(lambda x: x[:2])
+            frames["foreign_item_id"] = frames["item_no"].str.strip()
+            frames["quantity"] = frames["stock_qty"]
+            frames["amount"] = frames["cost_amt"]
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_fujirongtong_inventory(self):
+        """
+                    清洗富基融通库存表
+                    :param source_id:
+                    :param date:
+                    :param target_table:
+                    :param data_frames:
+                    :return:
+                                """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["shopsstock"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames["shopid"].str.strip()
+            frames["foreign_item_id"] = frames["goodsid"].str.strip()
+            frames["quantity"] = frames["qty"]
+            frames["amount"] = frames.apply(
+                lambda row: row["costvalue"] + row["costtaxvalue"], axis=1
+            )
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
     def clean_kemaiyunding_inventory(self):
         """
         清洗科脉云鼎库存表
@@ -324,6 +496,24 @@ def handler(event, context):
     elif erp_name == '思迅' or erp_name == "衡阳联邦":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_sixun_inventory()
+    elif erp_name == "便宅家中间库":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_bianzhaijia_inventory()
+    elif erp_name == "商海（连锁版）":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_shanghai_inventory()
+    elif erp_name == "晋中田森":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_tianshen_inventory()
+    elif erp_name == "昂捷-中间库":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_angjie_inventory()
+    elif erp_name == "智百威":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_zhibaiwei_inventory()
+    elif erp_name == "富基融通":
+        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
+        return cleaner.clean_fujirongtong_inventory()
 
 
 def now_timestamp():
