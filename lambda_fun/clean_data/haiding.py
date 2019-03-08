@@ -1547,6 +1547,126 @@ class HaiDingCleaner:
             part2 = part2[columns]
         return pd.concat([part1, part2])
 
+    def purchase_order(self):
+        columns = [
+            "cmid",
+            "source_id",
+            "order_num",
+            "order_date",
+            "order_type",
+            "dead_date",
+            "vendor_id",
+            "vendor_show_code",
+            "vendor_name",
+            "warehouse_code",
+            "warehouse_name",
+            "foreign_item_id",
+            "item_show_code",
+            "barcode",
+            "item_name",
+            "item_unit",
+            "order_qty",
+            "order_price",
+            "order_amount",
+            "origin_inv",
+            "on_order_qty",
+            "stat",
+            "foreign_category_lv1",
+            "foreign_category_lv2",
+            "foreign_category_lv3",
+            "foreign_category_lv4",
+            "foreign_category_lv5",
+        ]
+        ord = self.data["ord"]
+        orddtl = self.data["orddtl"]
+        vendorh = self.data["vendorh"]
+        modulestat = self.data["modulestat"]
+        goods = self.data["goods"]
+        warehouseh = self.data["warehouseh"]
+
+        part = (
+            ord.merge(
+                orddtl, how="inner", on="num", suffixes=("", ".orddtl")
+            )
+            .merge(
+                vendorh,
+                how="inner",
+                left_on=["vendor"],
+                right_on=["gid"],
+                suffixes=("", ".vendor"),
+            )
+            .merge(
+                warehouseh,
+                how="inner",
+                left_on=["raiserwrh"],
+                right_on=["gid"],
+                suffixes=("", ".warehouse"),
+            )
+            .merge(
+                goods,
+                how="inner",
+                left_on=["gdgid"],
+                right_on=["gid"],
+                suffixes=("", ".item"),
+            )
+            .merge(
+                modulestat,
+                how="inner",
+                left_on=["stat"],
+                right_on=["no"],
+                suffixes=("", ".stat"),
+            )
+        )
+        if not len(part):
+            part = pd.DataFrame(columns=columns)
+        else:
+            part["dead_date"] = part.apply(
+                lambda row: datetime.strptime(row["deaddate"], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d'), axis=1
+            )
+            part["order_price"] = part.apply(
+                lambda row: 0 if row["qty"] == 0 else row["total"] / row["qty"], axis=1
+            )
+            part["on_order_qty"] = part.apply(
+                lambda row: 0 if pd.isna(row["ordqty"]) else row["ordqty"], axis=1
+            )
+            part["foreign_category_lv1"] = part.apply(
+                lambda row: row["sort"][:2], axis=1
+            )
+            part["foreign_category_lv2"] = part.apply(
+                lambda row: row["sort"][:4], axis=1
+            )
+            part["foreign_category_lv3"] = part.apply(
+                lambda row: row["sort"][:6], axis=1
+            )
+            part["foreign_category_lv4"] = ""
+            part["foreign_category_lv5"] = ""
+            part["cmid"] = self.cmid
+            part["source_id"] = self.source_id
+            part = part[part["cls"] == "自营进"]
+            part['stat'] = part['statname']
+            part = part.rename(
+                columns={
+                    "num": "order_num",
+                    "fildate": "order_date",
+                    "cls": "order_type",
+                    "gid": "vendor_id",
+                    "code": "vendor_show_code",
+                    "name": "vendor_name",
+                    "code.warehouse": "warehouse_code",
+                    "name.warehouse": "warehouse_name",
+                    "gid.item": "foreign_item_id",
+                    "code.item": "item_show_code",
+                    "code2": "barcode",
+                    "name.item": "item_name",
+                    "munit": "item_unit",
+                    "qty": "order_qty",
+                    "total": "order_amount",
+                    "invqty": "origin_inv",
+                }
+            )
+            part = part[columns]
+        return part
+
     def purchase_store(self):
         columns = [
             "source_id",
