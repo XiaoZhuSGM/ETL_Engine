@@ -28,6 +28,8 @@ INV_CLEANED_PATH = "clean_data/source_id={source_id}/clean_date={date}/target_ta
 
 
 class InventoryCleaner:
+    store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4, "95": 3, "97": 3, "98": 3}
+
     def __init__(self, source_id: str, date, data: Dict[str, pd.DataFrame], hour: str, target_table) -> None:
         self.source_id = source_id
         self.date = date
@@ -35,6 +37,7 @@ class InventoryCleaner:
         self.data = data
         self.hour = hour
         self.target_table = target_table
+        self.store_id_len = self.store_id_len_map[self.cmid]
 
     def clean_sixun_inventory(self):
         """
@@ -113,11 +116,9 @@ class InventoryCleaner:
         else:
             frames["cmid"] = cmid
             frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-            if self.source_id == '85YYYYYYYYYYYYY':
-                frames["deptcode"] = frames["deptcode"].apply(lambda x: x[:3])
-            elif self.source_id == "34YYYYYYYYYYYYY":
-                frames["deptcode"] = frames["deptcode"].apply(lambda x: x[:4])
-            frames["foreign_store_id"] = frames["deptcode"]
+            frames["foreign_store_id"] = frames.apply(
+                lambda row: row["deptcode"][: self.store_id_len], axis=1
+            )
             frames["foreign_item_id"] = frames["gdsincode"].str.strip()
             frames["quantity"] = frames["nowamount"]
             frames["amount"] = frames["nowinmoney"]
