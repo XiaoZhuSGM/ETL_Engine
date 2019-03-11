@@ -241,6 +241,7 @@ class InventoryCleaner:
             frames["amount"] = frames.apply(
                 lambda row: row["costvalue"] + row["costtaxvalue"], axis=1
             )
+            frames = frames[columns]
             frames = frames[
                 (frames["quantity"] != 0)
                 | (frames["amount"] != 0)
