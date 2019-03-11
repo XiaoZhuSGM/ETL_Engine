@@ -162,12 +162,18 @@ class InventoryCleaner:
     :param data_frames:
     :return:
                 """
-        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        columns_inv= ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        columns_store=["c_id", "c_web_page"]
         cmid = self.cmid
         inventroy_part = self.data["tbstocks"]
-        store_part = self.data['tb_store']
+        base_table_date = (datetime.strptime(self.date, '%Y-%m-%d') - timedelta(days=1)).strftime('%Y-%m-%d')
+        prefix = f"datapipeline/source_id={self.source_id}/ext_date={base_table_date}/table=tb_store/"
+        key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
+        key = f"S3://{S3_BUCKET}/{key}"
+        store_part = pd.read_csv(key, encoding="utf-8", compression="gzip", usecols=columns_store)
+        print(store_part)
         if not len(inventroy_part):
-            frames = pd.DataFrame(columns=columns)
+            frames = pd.DataFrame(columns=columns_inv)
         else:
             frames = inventroy_part.merge(store_part, how='left',
                                           left_on='c_web_page', right_on='c_web_page')
@@ -177,7 +183,7 @@ class InventoryCleaner:
             frames["foreign_item_id"] = frames["goodscode"]
             frames["quantity"] = frames["amount"]
             frames["amount"] = frames["salemoney"]
-            frames = frames[columns]
+            frames = frames[columns_inv]
             frames = frames[
                 (frames["quantity"] != 0)
                 | (frames["amount"] != 0)
