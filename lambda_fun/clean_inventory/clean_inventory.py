@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import tempfile
 import time
 from typing import Dict
+import numpy as np
 
 S3_BUCKET = "ext-etl-data"
 
@@ -46,6 +47,22 @@ class InventoryCleaner:
         :param data_frames:
         :return:
         """
+        if self.source_id == "54YYYYYYYYYYYYY" or self.source_id == "91YYYYYYYYYYYYY":
+            return self.clean_sixun_inventory_54_91()
+        else:
+            return self.clean_sixun_inventory_other()
+
+    def clean_sixun_inventory_54_91(self):
+        """
+        清洗思讯库存表
+        :param source_id:
+        :param date:
+        :param target_table:
+        :param data_frames:
+        :return:
+        """
+        store_id_len_map = {"54": 2, "91": 4}
+        store_id_len = store_id_len_map[self.cmid]
         columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
         cmid = self.cmid
         frames = self.data["t_im_branch_stock"]
@@ -54,11 +71,45 @@ class InventoryCleaner:
         else:
             frames["cmid"] = cmid
             frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
-            frames["branch_no"] = frames["branch_no"].apply(lambda x: x[:4])
+            # frames["branch_no"] = frames["branch_no"].apply(lambda x: x[:4])
+            # frames["foreign_store_id"] = frames["branch_no"]
+            frames["foreign_store_id"] = frames.apply(
+                lambda row: row["branch_no"][: store_id_len], axis=1
+            )
+            frames["foreign_item_id"] = frames["item_no"].str.strip()
+            frames["quantity"] = frames["stock_qty"]
+            frames["amount"] = frames.apply(
+                lambda row: row["stock_qty"] * row["avg_cost"], axis=1
+            )
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
+    def clean_sixun_inventory_other(self):
+        """
+        清洗56,57,74思讯库存表
+        :param source_id:
+        :param date:
+        :param target_table:
+        :param data_frames:
+        :return:
+        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        frames = self.data["t_im_branch_stock"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["branch_no"] = frames["branch_no"].str.strip().apply(lambda x: x[:3])
+            frames = frames[frames["branch_no"] != '000']
             frames["foreign_store_id"] = frames["branch_no"]
             frames["foreign_item_id"] = frames["item_no"].str.strip()
             frames["quantity"] = frames["stock_qty"]
-            # frames["amount"] = frames["stock_qty"] * frames["avg_cost"]
             frames["amount"] = frames.apply(
                 lambda row: row["stock_qty"] * row["avg_cost"], axis=1
             )
@@ -309,6 +360,12 @@ class InventoryCleaner:
         return self.up_load_to_s3(frames)
 
     def clean_haiding_inventory(self):
+        if self.source_id == "101YYYYYYYYYYYY":
+            return self.clean_haiding_inventory_101()
+        else:
+            return self.clean_haiding_inventory_other()
+
+    def clean_haiding_inventory_101(self):
         columns = [
             "cmid",
             "foreign_store_id",
@@ -317,18 +374,48 @@ class InventoryCleaner:
             "quantity",
             "amount",
         ]
-        if self.source_id == "101YYYYYYYYYYYY":
-            base_table_date = (datetime.now(tz=_TZINFO) - timedelta(days=2)).strftime("%Y-%m-%d")
-            prefix = f"datapipeline/source_id=101YYYYYYYYYYYY/ext_date={base_table_date}/table=store/"
-            key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
-            key = f"s3://{S3_BUCKET}/{key}"
-            store_data = pd.read_csv(key, encoding="utf-8")
-            store_data = store_data[store_data["orggid"] == 1003890]
-            store_data["gid"] = str(store_data["gid"])
-            actinvs = self.data.get("actinvs")
-            inventory = actinvs.merge(store_data, how="left", left_on="store", right_on="gid")
+        base_table_date = (datetime.now(tz=_TZINFO) - timedelta(days=2)).strftime("%Y-%m-%d")
+        prefix = f"datapipeline/source_id=101YYYYYYYYYYYY/ext_date={base_table_date}/table=store/"
+        key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
+        key = f"s3://{S3_BUCKET}/{key}"
+        store_data = pd.read_csv(key, encoding="utf-8", compression="gzip", dtype={'gid': str})
+        actinvs = self.data.get("actinvs")
+        frames = actinvs.merge(store_data, how="left", left_on="store", right_on="gid")
+        if len(frames) == 0:
+            return pd.DataFrame(columns=columns)
         else:
-            inventory = self.data.get("actinvs")
+            frames = frames[(frames["orggid"] == 1003890) & (frames["store"] != 1000000)]
+            frames['amount'] = frames['amt'] + frames['tax']
+            frames = frames.groupby([
+                "store",
+                "gdgid",
+            ], as_index=False
+            ).agg({
+                "qty": np.sum,
+                "amount": np.sum,
+            })
+            frames["cmid"] = self.cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames = frames.rename(
+                columns={
+                    "gdgid": "foreign_item_id",
+                    "store": "foreign_store_id",
+                    'qty': 'quantity',
+                }
+            )
+            frames = frames[columns]
+        return self.up_load_to_s3(frames)
+
+    def clean_haiding_inventory_other(self):
+        columns = [
+            "cmid",
+            "foreign_store_id",
+            "foreign_item_id",
+            "date",
+            "quantity",
+            "amount",
+        ]
+        inventory = self.data.get("actinvs")
         if len(inventory) == 0:
             return pd.DataFrame(columns=columns)
         else:
