@@ -1896,28 +1896,28 @@ class HaiDingCleaner:
             invxf.merge(
                 invxfdtl, how="inner", on=["num", "cls"], suffixes=("", ".invxfdtl")
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["fromstore"],
                 right_on=["gid"],
                 suffixes=("", ".from_store"),
             )
-            .merge(
+                .merge(
                 store,
                 how="inner",
                 left_on=["tostore"],
                 right_on=["gid"],
                 suffixes=("", ".to_store"),
             )
-            .merge(
+                .merge(
                 goods,
                 how="inner",
                 left_on=["gdgid"],
                 right_on=["gid"],
                 suffixes=("", ".goods"),
             )
-            .merge(
+                .merge(
                 modulestat,
                 how="left",
                 left_on=["stat"],
@@ -1925,9 +1925,9 @@ class HaiDingCleaner:
                 suffixes=("", ".modulestat"),
             )
         )
+        part = part[part["cls"].isin(("门店调拨",))]
         if not len(part):
             return pd.DataFrame(columns=columns)
-        part = part[part["cls"].isin(("门店调拨",))]
         part["foreign_category_lv1"] = part.apply(lambda row: row["sort"][:2], axis=1)
         part["foreign_category_lv2"] = part.apply(lambda row: row["sort"][:4], axis=1)
         part["foreign_category_lv3"] = part.apply(lambda row: row["sort"][:6], axis=1)
