@@ -103,15 +103,22 @@ class InventoryCleaner:
         if not len(frames):
             frames = pd.DataFrame(columns=columns)
         else:
+            frames = frames.copy(deep=True)
             frames["cmid"] = cmid
             frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
             frames["branch_no"] = frames["branch_no"].str.strip().apply(lambda x: x[:3])
             frames = frames[frames["branch_no"] != '000']
-            frames["foreign_store_id"] = frames["branch_no"]
-            frames["foreign_item_id"] = frames["item_no"].str.strip()
-            frames["quantity"] = frames["stock_qty"]
+            frames["item_no"] = frames["item_no"].str.strip()
+            frames["avg_cost"] = frames["avg_cost"].fillna(0)
             frames["amount"] = frames.apply(
                 lambda row: row["stock_qty"] * row["avg_cost"], axis=1
+            )
+            frames = frames.rename(
+                columns={
+                    "item_no": "foreign_item_id",
+                    "branch_no": "foreign_store_id",
+                    'stock_qty': 'quantity',
+                }
             )
             frames = frames[columns]
             frames = frames[
@@ -222,7 +229,6 @@ class InventoryCleaner:
         key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
         key = f"S3://{S3_BUCKET}/{key}"
         store_part = pd.read_csv(key, encoding="utf-8", compression="gzip", usecols=columns_store)
-        print(store_part)
         if not len(inventroy_part):
             frames = pd.DataFrame(columns=columns_inv)
         else:
@@ -379,6 +385,7 @@ class InventoryCleaner:
         key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
         key = f"s3://{S3_BUCKET}/{key}"
         store_data = pd.read_csv(key, encoding="utf-8", compression="gzip", dtype={'gid': str})
+        store_data = store_data[["gid", "orggid"]]
         actinvs = self.data.get("actinvs")
         frames = actinvs.merge(store_data, how="left", left_on="store", right_on="gid")
         if len(frames) == 0:
