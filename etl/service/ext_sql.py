@@ -131,8 +131,13 @@ class DatasourceSqlService(object):
         if table.filter is not None:
             format_date = datetime.strptime(extract_date, "%Y-%m-%d")
             where = self._formated_where(table, format_date)
+
         if table.max_page_num is not None and table.max_page_num > 20_000:
             max_num = table.max_page_num
+        if table.special_column:
+            special_column = table.special_column
+        else:
+            special_column = '*'
         sql_str = []
         for i in range(table.limit_num):
             order_by = table.order_column
@@ -148,7 +153,8 @@ class DatasourceSqlService(object):
                         table=table.table_name,
                         order_by=order_by,
                         wheres=where,
-                        small=i * max_num
+                        small=i * max_num,
+                        special_column=special_column
                     )
                 )
             else:
@@ -159,6 +165,7 @@ class DatasourceSqlService(object):
                         wheres=where,
                         small=i * max_num,
                         large=(i + 1) * max_num,
+                        special_column=special_column
                     )
                 )
         return sql_str
