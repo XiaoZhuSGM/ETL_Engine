@@ -566,6 +566,39 @@ class InventoryCleaner:
                 ]
         return self.up_load_to_s3(frames)
 
+    def clean_shanglong_inventory(self):
+        """
+        清洗77好邻居_inventory
+        :return:
+        """
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "quantity", "amount"]
+        cmid = self.cmid
+        f_store = self.data["f_store"]
+        base_table_date = (datetime.now(tz=_TZINFO) - timedelta(days=2)).strftime("%Y-%m-%d")
+        prefix = f"datapipeline/source_id=77YYYYYYYYYYYYY/ext_date={base_table_date}/table=f_thing_base/"
+        key = get_matching_s3_keys(S3_BUCKET, prefix=prefix, suffix=".csv.gz")
+        key = f"s3://{S3_BUCKET}/{key}"
+        item = pd.read_csv(key, encoding="utf-8", compression="gzip", dtype={'dmasterbarcode': str})
+        print(item.head(100))
+        frames = f_store.merge(item, how="left", left_on="dbarcode", right_on="dmasterbarcode")
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames = frames.rename(columns={
+                "dshop": "foreign_store_id",
+                "dthingcode": "foreign_item_id",
+                "dnum": "quantity",
+                "dmoney_in": "amount"
+            })
+            frames = frames[columns]
+            frames = frames[
+                (frames["quantity"] != 0)
+                | (frames["amount"] != 0)
+                ]
+        return self.up_load_to_s3(frames)
+
     def up_load_to_s3(self, dataframe):
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as file:
             count = len(dataframe)
@@ -686,6 +719,7 @@ def handler(event, context):
             lambda e: BLANK_CHAR.sub(" ", e).strip() if isinstance(e, str) else e
         )
 
+    cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
     if erp_name == "科脉云鼎":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_kemaiyunding_inventory()
@@ -693,41 +727,31 @@ def handler(event, context):
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_haiding_inventory()
     elif erp_name == '海信商定天下v5' or erp_name == '海信商定天下':
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_haixinv5_inventory()
     elif erp_name == '宏业':
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_hongye_inventory()
     elif erp_name == '思迅' or erp_name == "衡阳联邦":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_sixun_inventory()
     elif erp_name == "便宅家中间库":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_bianzhaijia_inventory()
     elif erp_name == "商海（连锁版）":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_shanghai_inventory()
     elif erp_name == "晋中田森":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_tianshen_inventory()
     elif erp_name == "昂捷-中间库":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_angjie_inventory()
     elif erp_name == "智百威":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_zhibaiwei_inventory()
     elif erp_name == "富基融通":
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_fujirongtong_inventory()
     elif erp_name == '科脉御商v9':
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_kemaiv9_inventory()
     elif erp_name == '美食林':
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_meishilin_inventory()
     elif erp_name == '超赢':
-        cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_chaoying_inventory()
+    elif erp_name == "商龍":
+        return cleaner.clean_shanglong_inventory()
 
 
 def now_timestamp():

@@ -203,7 +203,7 @@ def handler(event, context):
         cleaner = LiuYiCleaner(source_id, date, data_frames)
         return cleaner.clean(target_table)
     elif erp_name == "商龍":
-        from lambda_fun.clean_data.shanglong import clean_shanglong
+        from shanglong import clean_shanglong
         return clean_shanglong(source_id, date, target_table, data_frames)
 
 if __name__ == "__main__":
