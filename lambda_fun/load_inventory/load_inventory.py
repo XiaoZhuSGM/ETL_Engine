@@ -1,13 +1,15 @@
 import json
 import time
 from sqlalchemy import create_engine
-from datetime import timedelta
+from datetime import datetime, timedelta
 import boto3
 import pandas as pd
+import pytz
 
 S3_BUCKET = "ext-etl-data"
 TARGET_TABLE_KEY = "target_table/target_table.json"
 S3_CLIENT = boto3.resource("s3")
+TZ = pytz.timezone("Asia/Shanghai")
 
 
 def handler(event, context):
@@ -79,7 +81,10 @@ class Warehouser:
         if not result:
             return  # 判断数据库里是否有当天数据
         else:
-            where = f"{self.date_column}::date = {data_date} AND cmid = {self.cmid}"
+            date_end = (datetime.now(tz=TZ) + timedelta(days=-100)).strftime("%Y-%m-%d")
+            date_end = f"'{date_end}'"
+            list_dates = [data_date, date_end]
+            where = f"{self.date_column}::date IN ({','.join(d for d in list_dates)}) AND cmid = {self.cmid}"
             r = self.conn.execute(f"DELETE FROM {self.target_table} WHERE {where}")
             query = f"DELETE FROM {self.target_table} WHERE {where}"
             print(query)
