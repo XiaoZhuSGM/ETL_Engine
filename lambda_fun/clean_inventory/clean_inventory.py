@@ -688,7 +688,11 @@ def handler(event, context):
     origin_table_columns = message["origin_table_columns"]
     converts = message["converts"]
     # inventory_table = list(origin_table_columns.keys())[0]
+    beijing_date = datetime.now(tz=_TZINFO)
     hour = datetime.now(tz=_TZINFO).hour
+    print(beijing_date)
+    if beijing_date != date:
+        hour = 23
     hour_delta = hour - 3
     print(hour)
 
