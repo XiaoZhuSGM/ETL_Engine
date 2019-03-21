@@ -446,6 +446,65 @@ class InventoryCleaner:
             "quantity",
             "amount",
         ]
+        column1 = [
+            "foreign_store_id",
+            "foreign_item_id",
+            "quantity",
+            "amount",
+        ]
+        part1 = self.data.get("tstklskc")
+        if len(part1) == 0:
+            return pd.DataFrame(columns=columns)
+        part1 = part1[part1['orgcode'] != '00']
+        part1["orgcode"] = part1["orgcode"].str.strip()
+        part1["pluid"] = part1["pluid"].str.strip()
+        part1 = part1.rename(
+            columns={
+                "pluid": "foreign_item_id",
+                "orgcode": "foreign_store_id",
+                'kccount': 'quantity',
+                'hcost': 'amount'
+            }
+        )
+        part1 = part1[column1]
+        part2 = self.data.get("tsalwtzpludetail")
+        if len(part2) == 0:
+            return pd.DataFrame(columns=columns)
+        part2["orgcode"] = part2["orgcode"].str.strip()
+        part2["pluid"] = part2["pluid"].str.strip()
+        part2["quantity"] = part2.apply(lambda row: row["xscount"] * -1, axis=1)
+        part2["amount"] = part2.apply(lambda row: row["hjcost"] * -1, axis=1)
+        part2 = part2.rename(
+            columns={
+                "pluid": "foreign_item_id",
+                "orgcode": "foreign_store_id"
+            }
+        )
+        part2 = part2[column1]
+        inventory = pd.concat([part1, part2])
+        inventory = inventory.groupby(['foreign_store_id', 'foreign_item_id']).agg(
+            {'quantity': 'sum', 'amount': 'sum'}).reset_index()
+        inventory["cmid"] = self.cmid
+        inventory["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+        inventory = inventory.rename(columns={
+            "foreign_store_id": "foreign_store_id",
+            "foreign_item_id": "foreign_item_id",
+            "quantity": "quantity",
+            "amount": "amount"
+        })
+
+        inventory = inventory[columns]
+        return self.up_load_to_s3(inventory)
+
+    def clean_haixin_inventory(self):
+        columns = [
+            "cmid",
+            "foreign_store_id",
+            "foreign_item_id",
+            "date",
+            "quantity",
+            "amount",
+        ]
         inventory = self.data.get("tstklskc")
         if len(inventory) == 0:
             return pd.DataFrame(columns=columns)
@@ -731,8 +790,10 @@ def handler(event, context):
     elif erp_name == "海鼎":
         cleaner = InventoryCleaner(source_id, date, data_frames, hour, target_table)
         return cleaner.clean_haiding_inventory()
-    elif erp_name == '海信商定天下v5' or erp_name == '海信商定天下':
+    elif erp_name == '海信商定天下v5':
         return cleaner.clean_haixinv5_inventory()
+    elif erp_name == "海信商定天下":
+        return cleaner.clean_haixin_inventory()
     elif erp_name == '宏业':
         return cleaner.clean_hongye_inventory()
     elif erp_name == '思迅' or erp_name == "衡阳联邦":
