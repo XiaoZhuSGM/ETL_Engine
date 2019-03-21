@@ -473,7 +473,7 @@ class InventoryCleaner:
         part2["orgcode"] = part2["orgcode"].str.strip()
         part2["pluid"] = part2["pluid"].str.strip()
         part2["quantity"] = part2.apply(lambda row: row["xscount"] * -1, axis=1)
-        part2["amount"] = part2.apply(lambda row: row["hjcost"] * -1, axis=1)
+        part2["amount"] = 0
         part2 = part2.rename(
             columns={
                 "pluid": "foreign_item_id",
