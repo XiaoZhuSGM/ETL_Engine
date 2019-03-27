@@ -75,35 +75,35 @@ def clean_goodsflow(source_id, date, target_table, data_frames):
             .merge(lv3_frames, how="left", on="lv3.dkindno") \
             .merge(lv4_frames, how="left", on="lv4.dkindno")
 
-    goodsflow_frames["source_id"] = source_id
-    goodsflow_frames["cmid"] = cmid
-    goodsflow_frames["consumer_id"] = ""
-    goodsflow_frames["last_updated"] = datetime.now(_TZINFO)
-    goodsflow_frames["foreign_category_lv1"] = goodsflow_frames["lv1.dkindno"].fillna("无")
-    goodsflow_frames["foreign_category_lv2"] = goodsflow_frames["lv2.dkindno"].fillna("无")
-    goodsflow_frames["foreign_category_lv3"] = goodsflow_frames["lv3.dkindno"].fillna("无")
-    goodsflow_frames["foreign_category_lv4"] = goodsflow_frames["lv4.dkindno"].fillna("无")
-    goodsflow_frames["foreign_category_lv5"] = goodsflow_frames["lv.dkindno"].fillna("无")
-    goodsflow_frames["pos_id"] = ""
-    goodsflow_frames["item_name"] = goodsflow_frames["item.dfullname"].fillna("无名称")
+        goodsflow_frames["source_id"] = source_id
+        goodsflow_frames["cmid"] = cmid
+        goodsflow_frames["consumer_id"] = ""
+        goodsflow_frames["last_updated"] = datetime.now(_TZINFO)
+        goodsflow_frames["foreign_category_lv1"] = goodsflow_frames["lv1.dkindno"].fillna("无")
+        goodsflow_frames["foreign_category_lv2"] = goodsflow_frames["lv2.dkindno"].fillna("无")
+        goodsflow_frames["foreign_category_lv3"] = goodsflow_frames["lv3.dkindno"].fillna("无")
+        goodsflow_frames["foreign_category_lv4"] = goodsflow_frames["lv4.dkindno"].fillna("无")
+        goodsflow_frames["foreign_category_lv5"] = goodsflow_frames["lv.dkindno"].fillna("无")
+        goodsflow_frames["pos_id"] = ""
+        goodsflow_frames["item_name"] = goodsflow_frames["item.dfullname"].fillna("无名称")
 
-    goodsflow_frames = goodsflow_frames.rename(columns={
-        "store.dshopno": "foreign_store_id",
-        "store.dshopname": "store_name",
-        "flow.dno": "receipt_id",
-        "flow.ddate": "saletime",
-        "flow.dthingcode": "foreign_item_id",
-        "flow.dbarcode": "barcode",
-        "item.dunitname": "item_unit",
-        "flow.dprice": "saleprice",
-        "flow.dnum": "quantity",
-        "flow.dmoney_ss": "subtotal",
-        "lv1.dkindname": "foreign_category_lv1_name",
-        "lv2.dkindname": "foreign_category_lv2_name",
-        "lv3.dkindname": "foreign_category_lv3_name",
-        "lv4.dkindname": "foreign_category_lv4_name",
-        "lv.dkindname": "foreign_category_lv5_name"
-    })
+        goodsflow_frames = goodsflow_frames.rename(columns={
+            "store.dshopno": "foreign_store_id",
+            "store.dshopname": "store_name",
+            "flow.dno": "receipt_id",
+            "flow.ddate": "saletime",
+            "flow.dthingcode": "foreign_item_id",
+            "flow.dbarcode": "barcode",
+            "item.dunitname": "item_unit",
+            "flow.dprice": "saleprice",
+            "flow.dnum": "quantity",
+            "flow.dmoney_ss": "subtotal",
+            "lv1.dkindname": "foreign_category_lv1_name",
+            "lv2.dkindname": "foreign_category_lv2_name",
+            "lv3.dkindname": "foreign_category_lv3_name",
+            "lv4.dkindname": "foreign_category_lv4_name",
+            "lv.dkindname": "foreign_category_lv5_name"
+        })
 
     goodsflow_frames = goodsflow_frames[columns]
     return upload_to_s3(goodsflow_frames, source_id, date, target_table)

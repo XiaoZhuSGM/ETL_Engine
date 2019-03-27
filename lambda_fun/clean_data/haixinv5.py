@@ -125,8 +125,10 @@ def clean_cost(source_id, date, target_table, data_frames):
             "foreign_category_lv4", "foreign_category_lv5", "cmid"])
     else:
         frames = frames.merge(lv3, how="left", on="clsid")
-        frames = frames[(frames["orgcode"] != "00") & (frames["clscode"].map(len) == 6)]
-
+        if source_id =='86YYYYYYYYYYYYY':
+            frames = frames[(frames["orgcode"] != "JSZB") & (frames["clscode"].map(len) == 6)]
+        else:
+            frames = frames[(frames["orgcode"] != "00") & (frames["clscode"].map(len) == 6)]
         frames = frames.groupby(["orgcode", "pluid", "rptdate", "clscode"], as_index=False) \
             .agg({"xscount": sum, "hxtotal": sum, "hjcost": sum})
 
