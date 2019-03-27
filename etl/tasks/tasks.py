@@ -1,6 +1,7 @@
 from lambda_fun.load_data.warehouse import Warehouser
 import lambda_fun.extract_data.extract_db_worker as worker
 import lambda_fun.extract_inventory.extract_inv_worker as inv_worker
+import lambda_fun.load_inventory.load_inventory as load_inv
 from etl.etl import celery
 from etl.service.iqr import IQRService
 from datetime import datetime
@@ -67,3 +68,23 @@ def task_extract_inventory(source_id, query_date, task_type, filename, db_url, *
         db_url=db_url,
     )
     return inv_worker.handler(event, None)
+
+
+@celery.task(name="inventory.task_load_inv")
+def task_load_inv(
+        db_url,
+        target_table,
+        data_key,
+        sync_column,
+        date_column,
+        cmid,
+        source_id,
+        warehouse_type,
+        data_date,
+        **kwargs,
+):
+    runner = load_inv.Warehouser(
+        db_url, target_table, data_key, sync_column, date_column, cmid, source_id, data_date
+    )
+    runner.run(warehouse_type)
+    return True
