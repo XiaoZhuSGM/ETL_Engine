@@ -12,8 +12,6 @@ class DatasourceDao(Dao):
         datasource = ExtDatasource(**datasource_json)
         datasource.save()
 
-    
-
     def find_all(self):
         datasource_list = (
             db.session.query(ExtDatasource)
@@ -34,7 +32,7 @@ class DatasourceDao(Dao):
             .order_by(ExtDatasource.source_id.asc())
             .all()
         )
-    
+
     def find_datasource_by_status(self, status):
         return (
             self.model.query.filter_by(status=status)

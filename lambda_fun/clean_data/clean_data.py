@@ -52,6 +52,7 @@ def fetch_data_frames(keys, origin_table_columns, converts):
     for key in keys:
         content = S3.Object(S3_BUCKET, key).get()
         data = json.loads(content["Body"].read().decode("utf-8"))
+        print(key)
         extract_data_dict = data["extract_data"]
         for table_name, records in extract_data_dict.items():
             if (
@@ -208,52 +209,7 @@ def handler(event, context):
 
 if __name__ == "__main__":
 
-    event = {
-        "source_id": "53YYYYYYYYYYYYY",
-        "erp_name": "智百威",
-        "date": "2019-01-11",
-        "target_table": "goods_loss",
-        "origin_table_columns": {
-            "bi_t_branch_info": ["branch_no", "branch_name"],
-            "bi_t_item_cls": ["item_clsno", "item_flag"],
-            "bi_t_item_info": [
-                "item_no",
-                "item_clsno",
-                "base_price",
-                "item_subno",
-                "barcode",
-                "unit_no",
-                "item_name",
-            ],
-            "ic_t_check_detail": ["sheet_no", "balance_qty", "item_no"],
-            "ic_t_check_master": [
-                "check_no",
-                "oper_date",
-                "sheet_no",
-                "branch_no",
-                "approve_flag",
-                "del_flag",
-            ],
-        },
-        "converts": {
-            "bi_t_branch_info": {"branch_no": "str"},
-            "bi_t_item_cls": {"item_clsno": "str", "item_flag": "str"},
-            "bi_t_item_info": {
-                "base_price": "str",
-                "item_clsno": "str",
-                "item_no": "str",
-            },
-            "ic_t_check_detail": {
-                "balance_qty": "str",
-                "item_no": "str",
-                "sheet_no": "str",
-            },
-            "ic_t_check_master": {
-                "approve_flag": "str",
-                "branch_no": "str",
-                "del_flag": "str",
-                "sheet_no": "str",
-            },
-        },
-    }
+    event =  {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎', 'date': '2019-02-27', 'target_table': 'store', 'origin_table_columns': {'area': ['code', 'name'], 'store': ['address', 'area', 'circle', 'code', 'contactor', 'gid', 'name', 'phone', 'property', 'stat']}, 'converts': {'area': {'code': 'str', 'name': 'str'}, 'store': {'address': 'str', 'area': 'str', 'circle': 'str', 'code': 'str', 'contactor': 'str', 'gid': 'str', 'name': 'str', 'phone': 'str'}}}
+
+
     handler(event, None)
