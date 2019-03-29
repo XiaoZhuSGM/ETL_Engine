@@ -205,11 +205,45 @@ def handler(event, context):
         return cleaner.clean(target_table)
     elif erp_name == "商龍":
         from shanglong import clean_shanglong
+
         return clean_shanglong(source_id, date, target_table, data_frames)
+
 
 if __name__ == "__main__":
 
-    event =  {'source_id': '43YYYYYYYYYYYYY', 'erp_name': '海鼎', 'date': '2019-02-27', 'target_table': 'store', 'origin_table_columns': {'area': ['code', 'name'], 'store': ['address', 'area', 'circle', 'code', 'contactor', 'gid', 'name', 'phone', 'property', 'stat']}, 'converts': {'area': {'code': 'str', 'name': 'str'}, 'store': {'address': 'str', 'area': 'str', 'circle': 'str', 'code': 'str', 'contactor': 'str', 'gid': 'str', 'name': 'str', 'phone': 'str'}}}
-
+    event = {
+        "source_id": "43YYYYYYYYYYYYY",
+        "erp_name": "海鼎",
+        "date": "2019-02-27",
+        "target_table": "store",
+        "origin_table_columns": {
+            "area": ["code", "name"],
+            "store": [
+                "address",
+                "area",
+                "circle",
+                "code",
+                "contactor",
+                "gid",
+                "name",
+                "phone",
+                "property",
+                "stat",
+            ],
+        },
+        "converts": {
+            "area": {"code": "str", "name": "str"},
+            "store": {
+                "address": "str",
+                "area": "str",
+                "circle": "str",
+                "code": "str",
+                "contactor": "str",
+                "gid": "str",
+                "name": "str",
+                "phone": "str",
+            },
+        },
+    }
 
     handler(event, None)
