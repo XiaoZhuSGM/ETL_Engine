@@ -1218,7 +1218,7 @@ class HaiDingCleaner:
             part1 = part1.rename(
                 columns={
                     "num": "delivery_num",
-                    "ocrdate": "delivery_date",
+                    "fildate": "delivery_date",
                     "cls": "delivery_type",
                     "gid": "foreign_store_id",
                     "code": "store_show_code",
@@ -1311,7 +1311,7 @@ class HaiDingCleaner:
             part2 = part2.rename(
                 columns={
                     "num": "delivery_num",
-                    "ocrdate": "delivery_date",
+                    "fildate": "delivery_date",
                     "cls": "delivery_type",
                     "gid": "foreign_store_id",
                     "code": "store_show_code",
