@@ -1129,18 +1129,15 @@ class HaiDingCleaner:
             6: "特卖会",
             7: "首配",
         }
-        delivery_state = {
-            "0": "未审核",
-            "100": "已审核",
-            "300": "已完成",
-            "700": "已发货",
-            "1000": "已收货",
-        }
+
+        stkoutlog = self.data["stkoutlog"]
         stkout = self.data["stkout"]
         stkoutdtl = self.data["stkoutdtl"]
         store = self.data["store"]
         warehouse = self.data["warehouse"]
         sort = self.data["sort"]
+        modulestat = self.data["modulestat"]
+        stkoutbcklog = self.data["stkoutbcklog"]
         stkoutbck = self.data["stkoutbck"]
         stkoutbckdtl = self.data["stkoutbckdtl"]
         goods = self.data["goods"]
@@ -1148,14 +1145,23 @@ class HaiDingCleaner:
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
-        stkout: pd.DataFrame = stkout[
-            (stkout["cls"] == "统配出")
-            & (stkout["stat"].isin(("0", "100", "300", "700", "1000")))
+        stkoutlog: pd.DataFrame = stkoutlog[
+            (stkoutlog["cls"] == "统配出")
+            & (stkoutlog["stat"].isin(("700", "720", "740", "320", "340")))
         ]
-
+        stkout: pd.DataFrame = stkout[(stkout["cls"] == "统配出")]
         part1 = (
-            stkout.merge(
-                stkoutdtl, how="inner", on=["num", "cls"], suffixes=("", ".stkoutdtl")
+            stkoutlog.merge(
+                stkout,
+                how="inner",
+                on=["num", "cls"],
+                suffixes=("", ".stkout")
+            )
+            .merge(
+                stkoutdtl,
+                how="inner",
+                on=["num", "cls"],
+                suffixes=("", ".stkoutdtl")
             )
             .merge(
                 store,
@@ -1163,6 +1169,13 @@ class HaiDingCleaner:
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
+            )
+            .merge(
+                modulestat,
+                how="inner",
+                left_on=["stat.stkout"],
+                right_on=["no"],
+                suffixes=("", ".modulestat"),
             )
             .merge(
                 warehouse,
@@ -1212,13 +1225,11 @@ class HaiDingCleaner:
                 lambda row: row["rtlprc"] * row["qty"], axis=1
             )
             part1["src_type"] = part1.apply(lambda row: src_type[row["alcsrc"]], axis=1)
-            part1["delivery_state"] = part1.apply(
-                lambda row: delivery_state[row["stat"]], axis=1
-            )
+
             part1 = part1.rename(
                 columns={
                     "num": "delivery_num",
-                    "fildate": "delivery_date",
+                    "time": "delivery_date",
                     "cls": "delivery_type",
                     "gid": "foreign_store_id",
                     "code": "store_show_code",
@@ -1230,6 +1241,7 @@ class HaiDingCleaner:
                     "munit": "item_unit",
                     "qty": "delivery_qty",
                     "rtlprc": "rtl_price",
+                    "statname": "delivery_state",
                     "gid.warehouse": "warehouse_id",
                     "code.warehouse": "warehouse_show_code",
                     "name.warehouse": "warehouse_name",
@@ -1240,12 +1252,20 @@ class HaiDingCleaner:
             )
             part1 = part1[columns]
 
-        stkoutbck: pd.DataFrame = stkoutbck[
-            (stkoutbck["cls"] == "统配出退")
-            & (stkoutbck["stat"].isin(("0", "100", "300", "700", "1000")))
+        stkoutbcklog: pd.DataFrame = stkoutbcklog[
+            (stkoutbcklog["cls"] == "统配出退")
+            & (stkoutbcklog["stat"].isin(("1000", "1020", "1040", "320", "340")))
         ]
+        stkoutbck: pd.DataFrame = stkoutbck[(stkoutbck["cls"] == "统配出退")]
+
         part2 = (
-            stkoutbck.merge(
+            stkoutbcklog.merge(
+                stkoutbck,
+                how="inner",
+                on=["num", "cls"],
+                suffixes=("", ".stkoutbck"),
+            )
+            .merge(
                 stkoutbckdtl,
                 how="inner",
                 on=["num", "cls"],
@@ -1257,6 +1277,13 @@ class HaiDingCleaner:
                 left_on=["billto"],
                 right_on=["gid"],
                 suffixes=("", ".store"),
+            )
+            .merge(
+                modulestat,
+                how="inner",
+                left_on=["stat.stkoutbck"],
+                right_on=["no"],
+                suffixes=("", ".modulestat"),
             )
             .merge(
                 warehouse,
@@ -1305,13 +1332,11 @@ class HaiDingCleaner:
             part2["rtl_amt"] = part2.apply(
                 lambda row: row["rtlprc"] * row["qty"] * -1, axis=1
             )
-            part2["delivery_state"] = part2.apply(
-                lambda row: delivery_state[row["stat"]], axis=1
-            )
+
             part2 = part2.rename(
                 columns={
                     "num": "delivery_num",
-                    "fildate": "delivery_date",
+                    "time": "delivery_date",
                     "cls": "delivery_type",
                     "gid": "foreign_store_id",
                     "code": "store_show_code",
@@ -1322,6 +1347,7 @@ class HaiDingCleaner:
                     "name.goods": "item_name",
                     "munit": "item_unit",
                     "rtlprc": "rtl_price",
+                    "statname": "delivery_state",
                     "gid.warehouse": "warehouse_id",
                     "code.warehouse": "warehouse_show_code",
                     "name.warehouse": "warehouse_name",
