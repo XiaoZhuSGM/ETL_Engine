@@ -29,6 +29,7 @@ class Config(object):
         Queue("etl", routing_key="etl.#"),
         Queue("rollback", routing_key="rollback.#"),
         Queue("ext_history", routing_key="ext_history.#"),
+        Queue("inventory", routing_key="inventory.#"),
     )
 
     CELERY_ROUTES = {
