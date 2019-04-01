@@ -1145,7 +1145,7 @@ class HaiDingCleaner:
         goods["sort2"] = goods.apply(lambda row: row["sort"][:4], axis=1)
         goods["sort3"] = goods.apply(lambda row: row["sort"][:6], axis=1)
 
-        if self.cmid == 43:
+        if self.cmid == '43':
             stkoutlog: pd.DataFrame = stkoutlog[
                 (stkoutlog["cls"] == "统配出")
                 & (stkoutlog["stat"].isin(("700", "720", "740", "320", "340")))
@@ -1259,7 +1259,7 @@ class HaiDingCleaner:
             )
             part1 = part1[columns]
 
-        if self.cmid == 43:
+        if self.cmid == '43':
             stkoutbcklog: pd.DataFrame = stkoutbcklog[
                 (stkoutbcklog["cls"] == "统配出退")
                 & (stkoutbcklog["stat"].isin(("1000", "1020", "1040", "320", "340")))
