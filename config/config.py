@@ -75,10 +75,6 @@ class TestingConfig(Config):
 
 class UnitestConfig(Config):
     TESTING = True
-    SENTRY_DSN = ""
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
 
 class DockerDevConfig(DevelopmentConfig):
