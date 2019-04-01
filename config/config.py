@@ -41,40 +41,27 @@ class Config(object):
     # BROKER_POOL_LIMIT = None
     BROKER_HEARTBEAT = 0
 
-
-class ProductionConfig(Config):
-    SQLALCHEMY_ECHO = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
     SENTRY_DSN = ""
     CELERYD_CONCURRENCY = 6
     CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
-    AIRFLOW_DB_URL = os.environ.get("AIRFLOW_DB_URL")
-    REDSHIFT_URL = os.environ.get("REDSHIFT_URL")
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+    AIRFLOW_DB_URL = os.getenv("AIRFLOW_DB_URL")
+    REDSHIFT_URL = os.getenv("REDSHIFT_URL")
 
     CACHE_TYPE = "redis"
     CACHE_REDIS_HOST = "redis"
     CACHE_REDIS_PORT = 6379
     CACHE_REDIS_DB = 1
+
+
+class ProductionConfig(Config):
+    SQLALCHEMY_ECHO = False
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_ECHO = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
-    SENTRY_DSN = "http://0ed8df75ac66462bb8a82064955052ad@sentry-dev.chaomengdata.com/9"
-    CELERYD_CONCURRENCY = 6
-    CELERYD_MAX_TASKS_PER_CHILD = 100
-    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
-    AIRFLOW_DB_URL = os.environ.get("AIRFLOW_DB_URL")
-    REDSHIFT_URL = os.environ.get("REDSHIFT_URL")
-
-    CACHE_TYPE = "redis"
-    CACHE_REDIS_HOST = "redis"
-    CACHE_REDIS_PORT = 6379
-    CACHE_REDIS_DB = 1
 
 
 class LocalConfig(Config):
@@ -88,9 +75,9 @@ class TestingConfig(Config):
 class UnitestConfig(Config):
     TESTING = True
     SENTRY_DSN = ""
-    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
-    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-    CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
 
 class DockerDevConfig(DevelopmentConfig):
