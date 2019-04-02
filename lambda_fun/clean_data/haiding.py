@@ -1153,7 +1153,7 @@ class HaiDingCleaner:
         else:
             stkoutlog: pd.DataFrame = stkoutlog[
                 (stkoutlog["cls"] == "统配出")
-                & (stkoutlog["stat"].isin(("0","100","300","700","1000","1300","1700")))
+                & (stkoutlog["stat"].isin(("1000","320","340","720","740")))
                 ]
 
         stkout: pd.DataFrame = stkout[(stkout["cls"] == "统配出")]
@@ -1267,7 +1267,7 @@ class HaiDingCleaner:
         else:
             stkoutbcklog: pd.DataFrame = stkoutbcklog[
                 (stkoutbcklog["cls"] == "统配出退")
-                & (stkoutbcklog["stat"].isin(("1000", "1030", "1040", "300", "400")))
+                & (stkoutbcklog["stat"].isin(("1000", "1020", "1040")))
                 ]
 
         stkoutbck: pd.DataFrame = stkoutbck[(stkoutbck["cls"] == "统配出退")]
