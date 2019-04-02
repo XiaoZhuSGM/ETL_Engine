@@ -328,6 +328,32 @@ class InventoryCleaner:
         return self.up_load_to_s3(frames)
 
     def clean_hongye_inventory(self):
+        if self.source_id == "98YYYYYYYYYYYYY" and self.target_table == "road_inventory":
+            return self.clean_hongye_road_inventory()
+        else:
+            return self.clean_hongye_inventory_other()
+
+    def clean_hongye_road_inventory(self):
+        store_id_len_map = {"34": 4, "61": 3, "65": 3, "85": 3, "92": 4, "94": 4, "95": 3, "97": 3, "98": 3}
+        store_id_len = store_id_len_map[self.cmid]
+        columns = ["cmid", "foreign_store_id", "foreign_item_id", "date", "road_qty"]
+        cmid = self.cmid
+        frames = self.data["acc_incodeamount"]
+        if not len(frames):
+            frames = pd.DataFrame(columns=columns)
+        else:
+            frames["cmid"] = cmid
+            frames["date"] = datetime.now(_TZINFO).strftime("%Y-%m-%d")
+            frames["foreign_store_id"] = frames.apply(
+                lambda row: row["deptcode"][: store_id_len], axis=1
+            )
+            frames["foreign_item_id"] = frames["gdsincode"].str.strip()
+            frames["road_qty"] = frames["sendroadamount"]
+            frames = frames[columns]
+            frames = frames[frames["road_qty"] != 0]
+        return self.up_load_to_s3(frames)
+
+    def clean_hongye_inventory_other(self):
         """
         清洗宏业库存表
         :param source_id:
@@ -826,4 +852,10 @@ def now_timestamp():
 
 
 if __name__ == "__main__":
-    pass
+    # event = {'source_id': '98YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-04-02', 'target_table': 'inventory',
+    #          'origin_table_columns': {'acc_incodeamount': ['deptcode', 'gdsincode', 'nowamount', 'nowinmoney']},
+    #          'converts': {'acc_incodeamount': {'deptcode': 'str', 'gdsincode': 'str'}}}
+    event = {'source_id': '98YYYYYYYYYYYYY', 'erp_name': '宏业', 'date': '2019-04-02', 'target_table': 'road_inventory',
+             'origin_table_columns': {"acc_incodeamount": ["sendroadamount", "deptcode", "gdsincode"]},
+             'converts': {"acc_incodeamount": {"deptcode": "str", "gdsincode": "str"}}}
+    handler(event, None)
