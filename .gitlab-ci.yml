@@ -54,10 +54,10 @@ deploy dev:
     - echo $DEV_ENV | tr " " "\n" > .env
     - scp $CI_PROJECT_DIR/docker-compose.yml .env $DEV_SERVER:/data/app/$CI_PROJECT_NAME
     - ssh $JUMP_SERVER
-      "ansible etl-engine-dev -a ""bash -lc 'docker pull $MAIN_IMAGE:$CI_COMMIT_SHA &&
+      "ansible etl-engine-dev -a \"bash -lc 'docker pull $MAIN_IMAGE:$CI_COMMIT_SHA &&
       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
-      docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'"""
+      docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
     - ssh $JUMP_SERVER
-      "ansible etl-engine-dev[0] -a ""bash -lc 'cd /data/app/$CI_PROJECT_NAME && sudo su -c ''docker stack deploy -c <(docker-compose config) app'''"""
+      "ansible etl-engine-dev[0] -a \"bash -lc 'cd /data/app/$CI_PROJECT_NAME && sudo su -c \'docker stack deploy -c <(docker-compose config) app\''\""
   only:
     - dev@airflow-datapipline/etl-engine
