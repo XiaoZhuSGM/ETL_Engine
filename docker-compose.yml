@@ -31,10 +31,3 @@ services:
     stop_signal: SIGTERM
     deploy:
       mode: global
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    ports:
-      - "${PORT:-5000}:80"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock
-    restart: always
