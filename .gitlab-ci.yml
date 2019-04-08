@@ -60,6 +60,6 @@ deploy dev:
       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
       docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
     - ssh $JUMP_SERVER
-      "ansible etl-engine-dev[0] -a \"bash -lc '$DEPLOY_SCRIPT'"
+      "ansible etl-engine-dev[0] -a \"bash -lc '$DEPLOY_SCRIPT'\""
   only:
     - dev@airflow-datapipline/etl-engine
