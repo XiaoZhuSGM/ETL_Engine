@@ -6,6 +6,9 @@ if another app called other ,so the config file named other_config.py. and so on
 from typing import Optional
 from kombu import Queue
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Config(object):
