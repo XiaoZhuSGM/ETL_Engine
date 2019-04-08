@@ -60,6 +60,28 @@ deploy dev:
       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
       docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
     - ssh $JUMP_SERVER
-      "ansible etl-engine-dev[0] -a \"bash -lc '$DEPLOY_SCRIPT'\""
+      "ansible etl-engine-dev[0] -a \"bash -lc $DEPLOY_SCRIPT\""
   only:
     - dev@airflow-datapipline/etl-engine
+
+# deploy prod:
+#   stage: deploy
+#   image: kroniak/ssh-client
+#   before_script:
+#     - mkdir -p ~/.ssh
+#     - echo "$JUMP_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+#     - chmod 700 -R ~/.ssh
+#     - echo "$JUMP_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+#     - chmod 644 ~/.ssh/known_hosts
+#   script:
+#     - echo $PROD_ENV | tr " " "\n" > .env
+#     - scp $CI_PROJECT_DIR/docker-compose.yml .env $PROD_SERVER:/data/app/$CI_PROJECT_NAME
+#     - ssh $JUMP_SERVER
+#       "ansible etl-engine-prod -a \"bash -lc 'docker pull $MAIN_IMAGE:$CI_COMMIT_SHA &&
+#       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
+#       docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
+#     - ssh $JUMP_SERVER
+#       "ansible etl-engine-prod[0] -a \"bash -lc '$DEPLOY_SCRIPT'\""
+#   only:
+#     - master@airflow-datapipline/etl-engine
+#   when: manual
