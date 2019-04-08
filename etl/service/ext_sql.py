@@ -116,7 +116,7 @@ class DatasourceSqlService(object):
             sqls[table_name].extend(sql_str)
         return sqls
 
-    def _page_by_limit_mould(self, table, db_type, extract_date,max_num=20_000):
+    def _page_by_limit_mould(self, table, db_type, extract_date, max_num=20000):
         """
         配置分页
         分页页数可以通过定时任务更新
@@ -260,10 +260,13 @@ class DatasourceSqlService(object):
     def generate_inventory_sql(self, source_id, extract_date):
         tables = (
             db.session.query(ExtTableInfo)
-                .filter(ExtTableInfo.source_id == source_id, ExtTableInfo.weight == 1,
-                        ExtTableInfo.inventory_table == 1)
-                .options(joinedload(ExtTableInfo.datasource))
-                .all()
+            .filter(
+                ExtTableInfo.source_id == source_id,
+                ExtTableInfo.weight == 1,
+                ExtTableInfo.inventory_table == 1,
+            )
+            .options(joinedload(ExtTableInfo.datasource))
+            .all()
         )
         tables_sqls = {
             "type": "inventory",
@@ -271,7 +274,8 @@ class DatasourceSqlService(object):
             "query_date": extract_date,
             "inv_sqls": self._generate_by_correct_mould(tables, extract_date),
         }
-        file_name = str(now_timestamp()) + '.json'
-        key = SQL_INV_PREFIX.format(source_id=source_id,date=extract_date) + file_name
+        file_name = str(now_timestamp()) + ".json"
+        key = SQL_INV_PREFIX.format(source_id=source_id, date=extract_date) + file_name
         upload_body_to_s3(S3_BUCKET, key, json.dumps(tables_sqls))
         return file_name
+

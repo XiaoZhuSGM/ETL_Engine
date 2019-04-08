@@ -77,3 +77,4 @@ arrow==0.12.1
 dask[complete]
 flask-caching==1.4.0
 openpyxl==2.5.10
+python-dotenv==0.10.1

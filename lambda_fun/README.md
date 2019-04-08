@@ -22,10 +22,10 @@ docker build -t tools:env .
 
 
 ## 发布
-fab deploy_lambda:path=clean_data
+2. fab deploy_lambda:path=clean_data
 
 ## 远程创建lambda
-fab create_lambda:lambda_name=clean_data
+1. fab create_lambda:lambda_name=clean_data
 
 ## 更新lambda
-fab update_lambda:lambda_name=clean_data
+3. fab update_lambda:lambda_name=clean_data
