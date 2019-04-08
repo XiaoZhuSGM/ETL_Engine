@@ -15,6 +15,8 @@ variables:
   DOCKER_HOST: tcp://docker:2375/
   DOCKER_DRIVER: overlay2
   MAIN_IMAGE: 244434823928.dkr.ecr.cn-northwest-1.amazonaws.com.cn/etl-engine
+  DEPLOY_SCRIPT: cd /data/app/$CI_PROJECT_NAME && sudo su -c 'docker stack deploy -c <(docker-compose config) app'
+
 
 build:
   stage: build
@@ -58,6 +60,6 @@ deploy dev:
       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
       docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
     - ssh $JUMP_SERVER
-      "ansible etl-engine-dev[0] -a \"bash -lc 'cd /data/app/$CI_PROJECT_NAME && sudo su -c \'docker stack deploy -c <(docker-compose config) app\''\""
+      "ansible etl-engine-dev[0] -a \"bash -lc '$DEPLOY_SCRIPT'"
   only:
     - dev@airflow-datapipline/etl-engine
