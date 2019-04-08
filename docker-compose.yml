@@ -1,8 +1,7 @@
-version: "3"
+version: "3.4"
 
 x-etl-engine: &default-app
-  image: etl-engine
-  restart: always
+  image: $MAIN_IMAGE
   environment:
     ETL_ENVIREMENT: "${ETL_ENVIREMENT:-docker_dev}"
     VIRTUAL_HOST: "${VIRTUAL_HOST:-localhost}"
@@ -19,18 +18,19 @@ x-etl-engine: &default-app
 services:
   gunicorn:
     <<: *default-app
-    build: .
-    depends_on:
-      - redis
-      - nginx-proxy
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      mode: global
+    ports:
+      - "${PORT:-50010}:5000"
   celery:
     <<: *default-app
     command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history, inventory
-    depends_on:
-      - redis
-      - rabbitmq
     stop_signal: SIGTERM
-    restart: always
+    deploy:
+      mode: global
   nginx-proxy:
     image: jwilder/nginx-proxy
     ports:
