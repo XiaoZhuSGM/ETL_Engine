@@ -15,7 +15,7 @@ variables:
   DOCKER_HOST: tcp://docker:2375/
   DOCKER_DRIVER: overlay2
   MAIN_IMAGE: 244434823928.dkr.ecr.cn-northwest-1.amazonaws.com.cn/etl-engine
-  DEPLOY_SCRIPT: cd /data/app/$CI_PROJECT_NAME && sudo su -c 'docker stack deploy -c <(docker-compose config) app'
+  DEPLOY_SCRIPT: "cd /data/app/$CI_PROJECT_NAME && sudo su -c 'docker stack deploy -c <(docker-compose config) app'"
 
 
 build:
