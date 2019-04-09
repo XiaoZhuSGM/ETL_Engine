@@ -3,41 +3,86 @@ stages:
   - test
   - deploy
 
-cache:
-  paths:
-    - .venv/
+services:
+  - docker:dind
 
+image: gjquoiai/docker-in-docker-with-awscli
+
+before_script:
+  - $(aws ecr get-login --no-include-email --region cn-northwest-1)
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  MAIN_IMAGE: 244434823928.dkr.ecr.cn-northwest-1.amazonaws.com.cn/etl-engine
+  DEPLOY_SCRIPT: "cd /data/app/etl-engine && sudo su -c 'docker stack deploy -c <(docker-compose config) app'"
 
 build:
   stage: build
   script:
-    - export PYMSSQL_BUILD_WITH_BUNDLED_FREETDS=1
-    - python -m venv .venv
-    - .venv/bin/pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    - docker pull $MAIN_IMAGE:latest || true
+    - docker build --tag $MAIN_IMAGE:$CI_COMMIT_SHA --tag $MAIN_IMAGE:latest --cache-from $MAIN_IMAGE:latest .
+    - docker push $MAIN_IMAGE:$CI_COMMIT_SHA
+    - docker push $MAIN_IMAGE:latest
   only:
-    - merge_requests
+    - dev@airflow-datapipline/etl-engine
+    - master@airflow-datapipline/etl-engine
 
-pytest:
+unit test:
   stage: test
+  variables:
+    GIT_STRATEGY: none
   script:
-    - export AWS_DEFAULT_REGION=cn-north-1
-    - .venv/bin/pytest tests --cov=etl --cov-report=term --cov-branch
+    - docker pull $MAIN_IMAGE:$CI_COMMIT_SHA
+    - echo $UNIT_ENV | tr " " "\n" > .env
+    - docker run --env-file=.env
+      $MAIN_IMAGE:$CI_COMMIT_SHA
+      bash -c "pytest tests --cov=etl --cov-report=term --cov-branch"
   only:
-    - merge_requests
+    - dev@airflow-datapipline/etl-engine
 
-deploy:
-  stage: deploy
-  only:
-    - branches@airflow-datapipline/etl-engine
-  except:
-    - master@airflow-datapipline/etl-engine
-  script:
-    - curl -v 10.1.20.226:9999
 
-deploy_prod:
+deploy dev:
   stage: deploy
+  image: kroniak/ssh-client
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$JUMP_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 700 -R ~/.ssh
+    - echo "$JUMP_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo $DEV_ENV | tr " " "\n" > .env
+    - echo $DEPLOY_SCRIPT > deploy.sh
+    - scp $CI_PROJECT_DIR/docker-compose.yml .env deploy.sh $DEV_SERVER:/data/app/$CI_PROJECT_NAME
+    - ssh $JUMP_SERVER
+      "ansible etl-engine-dev -a \"bash -lc 'docker pull $MAIN_IMAGE:$CI_COMMIT_SHA &&
+      docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
+      docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
+    - ssh $JUMP_SERVER
+      "ansible etl-engine-dev[0] -a 'bash /data/app/$CI_PROJECT_NAME/deploy.sh'"
+  only:
+    - dev@airflow-datapipline/etl-engine
+
+
+deploy prod:
+  stage: deploy
+  image: kroniak/ssh-client
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$JUMP_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 700 -R ~/.ssh
+    - echo "$JUMP_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo $PROD_ENV | tr " " "\n" > .env
+    - echo $DEPLOY_SCRIPT > deploy.sh
+    - scp $CI_PROJECT_DIR/docker-compose.yml .env deploy.sh $PROD_SERVER:/data/app/$CI_PROJECT_NAME
+    - ssh $JUMP_SERVER
+      "ansible etl-engine-prod -a \"bash -lc 'docker pull $MAIN_IMAGE:$CI_COMMIT_SHA &&
+      docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
+      docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
+    - ssh $JUMP_SERVER
+      "ansible etl-engine-prod[0] -a 'bash /data/app/$CI_PROJECT_NAME/deploy.sh'"
   only:
     - master@airflow-datapipline/etl-engine
-  script:
-    - curl -v 172.31.16.24:9999
-  when: manual

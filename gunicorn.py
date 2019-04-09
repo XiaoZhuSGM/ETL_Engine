@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 env = os.getenv("ETL_ENVIREMENT") or "dev"
 
 capture_output = True

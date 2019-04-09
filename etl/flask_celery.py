@@ -1,5 +1,4 @@
 from celery import Celery as _Celery
-from kombu import Queue
 
 
 class Celery(_Celery):
