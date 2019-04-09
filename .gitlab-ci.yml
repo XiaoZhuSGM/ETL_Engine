@@ -83,6 +83,6 @@ deploy prod:
       docker tag $MAIN_IMAGE:$CI_COMMIT_SHA $CI_PROJECT_NAME:$CI_COMMIT_SHA &&
       docker tag $CI_PROJECT_NAME:$CI_COMMIT_SHA $CI_PROJECT_NAME:latest'\""
     - ssh $JUMP_SERVER
-      "ansible etl-engine-prod[0] -a 'bash /data/app/etl-engine/deploy.sh'"
+      "ansible etl-engine-prod[0] -a 'bash /data/app/$CI_PROJECT_NAME/deploy.sh'"
   only:
     - master@airflow-datapipline/etl-engine
