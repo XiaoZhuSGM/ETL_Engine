@@ -2156,9 +2156,7 @@ class HaiDingCleaner:
             part["lng"] = None
         part["create_date"] = datetime.now(_TZINFO)
         part["last_updated"] = datetime.now(_TZINFO)
-        part["store_status"] = part.apply(
-            lambda row: "闭店" if row["stat"] == 1 else "正常", axis=1
-        )
+        part["store_status"] = part["stat"].map({0: '正常', 1: '关店', 2: '暂停营业', 3: '未开业', 4: '正常'})
         part["property_id"] = part["property"]
 
         def property_map(prop):
