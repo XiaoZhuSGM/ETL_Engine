@@ -237,7 +237,7 @@ class RollbackTaskSet:
         db.engine.dispose()
 
 
-@celery.task(name="rollback.main")
+@celery.task(name="rollback.main", time_limit=31 * 60)
 def task_rollback(source_id, date, erp_name, target_list):
     task_set = RollbackTaskSet(source_id, date, erp_name, target_list)
     task_set.pipeline()
