@@ -27,7 +27,10 @@ services:
       - "${PORT:-50010}:5000"
   celery:
     <<: *default-app
-    command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history,inventory
+    command: celery -A manage.celery worker -l info -Q etl,rollback,ext_history,inventory -O fair
     stop_signal: SIGTERM
     deploy:
       mode: global
+      placement:
+        constraints:
+          - node.role == worker
