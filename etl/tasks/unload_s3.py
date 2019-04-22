@@ -167,3 +167,29 @@ class UploadS3(object):
             for x in range(delta.days + 1)
         ]
 
+    def copy_etl_standard(self, dates, target):
+        table = target.split("chain_")[-1]
+        origin_bucket = 'ext-etl-data'
+        target_bucket = 'etl-standard-data'
+        for date in dates:
+            origin_prefix = f"clean_data/source_id={self.source_id}/clean_date={date}/target_table={table}"
+            target_prefix = f'{self.source_id}/{date}/{target}/'
+            print(""" 删除目标桶中的objects""")
+            objs = self.s3_client.list_objects(
+                Bucket=target_bucket, Prefix=target_prefix, Delimiter="/")
+            key_dict = dict()
+            if "Contents" in objs:
+                key_dict["Objects"] = [dict(Key=obj["Key"]) for obj in objs["Contents"]]
+            if key_dict:
+                self.s3_client.delete_objects(Bucket=target_bucket, Delete=key_dict)
+            print("""找原始桶中最新的objects""")
+            objects = self.s3.Bucket(origin_bucket).objects.filter(Prefix=origin_prefix)
+            objs = sorted(objects, key=lambda obj: int(obj.last_modified.strftime("%s")), reverse=True)
+            if objs:
+                origin_bojects = objs[0]
+                print("""拷贝""")
+                copy_source = {
+                    'Bucket': origin_bojects.bucket_name,
+                    "Key": origin_bojects.key
+                }
+                self.s3.meta.client.copy(copy_source, target_bucket, f'{self.source_id}/{date}/{target}/{target}.csv.gz')

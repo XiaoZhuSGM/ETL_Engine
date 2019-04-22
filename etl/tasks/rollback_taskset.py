@@ -234,6 +234,9 @@ class RollbackTaskSet:
             print(f"开始上传s3：{target}")
             up.loop(dates, target)
             print(f"上传s3完成：{target}")
+            print(f"开始拷贝最新数据: {target}")
+            up.copy_etl_standard(dates,target)
+            print(f"拷贝最新数据完成: {target}")
         db.engine.dispose()
 
 
