@@ -4404,11 +4404,10 @@ class HongYeCleaner:
         if str(self.source_id) == '98YYYYYYYYYYYYY':
             frames_2 = frames_2[frames_2['applyamount'] != 0]
 
+        frames_2 = frames_2[(frames_2['type.warehouse'] == 3) & (frames_2['flag'] != 4)]
         if len(frames_2) == 0:
             frames_2 = pd.DataFrame(columns=columns)
         else:
-            frames_2 = frames_2[(frames_2['type.warehouse'] == 3) & (frames_2['flag'] != 4)]
-
             frames_2["source_id"] = self.source_id
             frames_2["cmid"] = self.cmid
             frames_2 = frames_2.rename(columns={
