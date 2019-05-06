@@ -326,7 +326,6 @@ def clean_goods(source_id, date, target_table, data_frames):
             return '正常'
         else:
             return ''
-
     goods['item_status'] = goods['status'].map(item_status_convert)
     goods = goods[[
         "cmid",
@@ -603,7 +602,6 @@ def clean_cost(source_id, date, target_table, data_frames):
         'avg_cost_amt': 'total_cost'
 
     })
-
     result_frame = result_frame[columns]
 
     return upload_to_s3(result_frame, source_id, date, target_table)
