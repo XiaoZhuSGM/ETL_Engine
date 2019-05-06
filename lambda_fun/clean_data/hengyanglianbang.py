@@ -321,11 +321,13 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods['foreign_category_lv5'] = ''
     goods['allot_method'] = ''
     goods['warranty'] = None
+
     def item_status_convert(status):
         if status == '1':
             return '正常'
         else:
             return ''
+
     goods['item_status'] = goods['status'].map(item_status_convert)
     goods = goods[[
         "cmid",
@@ -594,6 +596,7 @@ def clean_cost(source_id, date, target_table, data_frames):
     result_frame['source_id'] = source_id
     result_frame['cmid'] = cmid
     result_frame['cost_type'] = ''
+    result_frame["avg_cost_amt"] = result_frame.avg_cost_amt.map(lambda x: 0 if pd.isnull(x) else x)
     result_frame = result_frame.rename(columns={
         'branch_no': 'foreign_store_id',
         'item_no': 'foreign_item_id',
