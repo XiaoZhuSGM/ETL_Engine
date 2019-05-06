@@ -321,7 +321,6 @@ def clean_goods(source_id, date, target_table, data_frames):
     goods['foreign_category_lv5'] = ''
     goods['allot_method'] = ''
     goods['warranty'] = None
-
     def item_status_convert(status):
         if status == '1':
             return '正常'
@@ -604,6 +603,7 @@ def clean_cost(source_id, date, target_table, data_frames):
         'avg_cost_amt': 'total_cost'
 
     })
+
     result_frame = result_frame[columns]
 
     return upload_to_s3(result_frame, source_id, date, target_table)
