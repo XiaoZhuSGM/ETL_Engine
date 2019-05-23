@@ -72,6 +72,7 @@ class Warehouser:
             (
                 f"COPY #{self.target_table} FROM '{self.data_source}' "
                 f"IAM_ROLE 'arn:aws-cn:iam::244434823928:role/RedshiftCopyFromS3' "
+                f"REGION 'cn-north-1'"
                 "CSV GZIP IGNOREHEADER 1"
             )
         )
@@ -115,6 +116,7 @@ class Warehouser:
             (
                 f"COPY {self.target_table} FROM '{self.data_source}' "
                 f"IAM_ROLE 'arn:aws-cn:iam::244434823928:role/RedshiftCopyFromS3' "
+                f"REGION 'cn-north-1'"
                 f"CSV GZIP IGNOREHEADER 1"
             )
         )
