@@ -2319,12 +2319,28 @@ class HongYeCleaner:
             "source_id",
             "last_updated",
         ]
-        part = inf_shop_message.merge(
-            inf_whole_district,
-            how="left",
-            on=["dis_code"],
-            suffixes=("", ".inf_whole_district"),
-        )
+        if self.cmid in ('94', '95', '98'):
+            inf_shopclass = self.data["inf_shopclass"]
+            part = inf_shop_message.merge(
+                inf_whole_district,
+                how="left",
+                on=["dis_code"],
+                suffixes=("", ".inf_whole_district"),
+            ).merge(
+                inf_shopclass,
+                how="left",
+                left_on="shopclass",
+                right_on="classcode")
+            part["business_area"] = part["classname"]
+
+        else:
+            part = inf_shop_message.merge(
+                inf_whole_district,
+                how="left",
+                on=["dis_code"],
+                suffixes=("", ".inf_whole_district"),
+            )
+            part["business_area"] = None
         if str(self.source_id) == '98YYYYYYYYYYYYY':
             part = part[part['depttype'].astype('str') == '1']
         part["cmid"] = self.cmid
@@ -2333,7 +2349,6 @@ class HongYeCleaner:
         part["device_id"] = None
         part["lat"] = None
         part["lng"] = None
-        part["business_area"] = None
         part["property_id"] = None
         part["property"] = ""
         part["last_updated"] = datetime.now(_TZINFO)
